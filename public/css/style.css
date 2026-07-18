@@ -199,6 +199,13 @@ h6,
 .hero-section .sub-heading {
   color: rgba(255, 255, 255, 0.78);
 }
+.hero-section .hero-lead {
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 46ch;
+  margin-left: auto;
+  margin-right: auto;
+}
 .next-event-bar {
   position: relative;
   overflow: hidden;
@@ -1358,6 +1365,9 @@ h6,
   }
   .hero-section h1.display-3 {
     font-size: 2.5rem;
+  }
+  .hero-section .hero-lead {
+    font-size: 1rem;
   }
   .hero-section .btn-lg {
     width: 100%;
