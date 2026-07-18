@@ -1,15 +1,8 @@
 // out: ../public/css/style.css
-// --- 1. VARIABLES Y TIPOGRAFÍA (Tema: Native Church) ---
+// --- 1. VARIABLES, TIPOGRAFÍA Y MIXINS COMPARTIDOS (Tema: Native Church) ---
 @import "variables.less";
 @import "fonts.less";
-
-// --- 2. MIXINS ---
-.bg-cover(@url) {
-    background-image: url(@url);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
+@import "mixins.less";
 
 // --- 3. ESTILOS GLOBALES ---
 body {
@@ -33,7 +26,10 @@ h1, h2, h3, h4, h5, h6,
     font-weight: 500;
     letter-spacing: .14em;
     text-transform: uppercase;
+    color: @primary-deep;
 }
+
+.eyebrow-light { color: rgba(255, 255, 255, .6) !important; }
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -46,6 +42,25 @@ h1, h2, h3, h4, h5, h6,
 // Sobrescribir Bootstrap Primary Color
 .text-primary { color: @primary-color !important; }
 .bg-primary { background-color: @primary-color !important; }
+
+// Sobrescribir las utilidades .shadow/.shadow-sm/.shadow-lg de Bootstrap en
+// todo el sitio: se centraliza aquí la regla "estructura, no sombra difusa"
+// para que ningún .html suelto necesite tocarse si esto cambia.
+.shadow-sm, .shadow, .shadow-lg {
+    box-shadow: none !important;
+    border: 1px solid @line !important;
+}
+
+// Excepción: overlays realmente flotantes (menú desplegable) sí llevan una
+// sombra funcional, tintada a la tinta de marca en vez de negro puro.
+.dropdown-menu.shadow {
+    border: none !important;
+    box-shadow: 0 14px 32px fade(@dark-color, 20%) !important;
+}
+
+.btn.shadow, .btn.shadow-sm, .btn.shadow-lg {
+    border: none !important;
+}
 
 .btn-primary {
     background-color: @primary-color;
@@ -76,6 +91,7 @@ h1, h2, h3, h4, h5, h6,
     overflow: hidden;  // Evita que el video se salga de los bordes
     display: flex;
     align-items: center;
+    .seam-glint(.16, 46s, 1); // el mismo destello que el resto del sitio, encima del video
 
     #bg-video {
         position: absolute;
@@ -94,7 +110,7 @@ h1, h2, h3, h4, h5, h6,
         width: 100%;
         height: 100%;
         background:
-            linear-gradient(0deg, rgba(11, 14, 26, .75) 0%, rgba(11, 14, 26, 0) 45%),
+            linear-gradient(0deg, fade(@dark-color, 75%) 0%, transparent 45%),
             @hero-overlay;
         z-index: 1;
     }
@@ -109,27 +125,17 @@ h1, h2, h3, h4, h5, h6,
     }
 }
 
-// Countdown Bar — degradé de tinta a carmín con un brillo que respira lentamente
+// Barra de "Próximo servicio" — misma superficie de tinta + seam que el resto
 .next-event-bar {
-    position: relative;
-    overflow: hidden;
-    background:
-        radial-gradient(140% 160% at 15% -20%, fade(@primary-color, 55%) 0%, transparent 55%),
-        linear-gradient(115deg, @dark-color 0%, darken(@dark-color, 4%) 100%);
-    background-size: 180% 180%, 100% 100%;
-    background-position: 0% 0%, center;
-    animation: emberBreathe 26s ease-in-out infinite alternate;
+    .seam-surface(.20, 42s, @dark-color);
+
+    .container { position: relative; z-index: 1; }
 
     #countdown {
         font-family: @font-mono;
         font-variant-numeric: tabular-nums;
         letter-spacing: -0.02em;
     }
-}
-
-@keyframes emberBreathe {
-    from { background-position: 0% 0%, center; }
-    to   { background-position: 22% 12%, center; }
 }
 
 // Features Section — fila editorial con divisores, sin tarjetas idénticas con círculo
@@ -152,7 +158,7 @@ h1, h2, h3, h4, h5, h6,
             margin: 0 0 22px;
             background-color: @primary-tint;
             color: @primary-color;
-            border-radius: @radius-s;
+            border-radius: @radius-control;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -188,7 +194,6 @@ h1, h2, h3, h4, h5, h6,
 .home-ministry-spotlight {
     .eyebrow {
         display: block;
-        color: @primary-deep;
         margin-bottom: 10px;
     }
 
@@ -197,25 +202,25 @@ h1, h2, h3, h4, h5, h6,
         display: block;
         height: 100%;
         background: @white;
-        border-radius: @radius-m;
-        border: 1px solid fade(@dark-color, 8%);
+        border-radius: 0;
+        .hairline();
         border-top: 3px solid var(--card-accent);
-        padding: 30px 28px 26px;
+        padding: @space-6 @space-5;
         text-decoration: none;
         color: @dark-color;
-        transition: transform .3s ease, box-shadow .3s ease;
+        transition: border-color .3s ease;
 
         &__icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 48px;
-            height: 48px;
-            border-radius: @radius-s;
+            width: 44px;
+            height: 44px;
+            border-radius: @radius-control;
             background: color-mix(in srgb, var(--card-accent) 14%, white);
             color: var(--card-accent);
             font-size: 1.2rem;
-            margin-bottom: 18px;
+            margin-bottom: @space-4;
         }
 
         &__eyebrow {
@@ -243,12 +248,168 @@ h1, h2, h3, h4, h5, h6,
         }
 
         &:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 18px 34px -20px fade(@dark-color, 35%);
+            border-color: var(--card-accent);
 
             .ministry-link-card__arrow i { margin-left: 5px; }
         }
     }
+}
+
+// --- BLOQUE DE INTRODUCCIÓN COMPARTIDO ---
+// .page-intro-strip es el wrapper de espaciado; .section-intro-panel es el
+// contenido en sí. Se reutiliza en ministerios, eventos, limpieza y sermones.
+.page-intro-strip { background: @white; }
+
+.section-intro-panel {
+    max-width: 74ch;
+
+    h2, h3 { margin-top: @space-2; }
+    p { color: @ink-soft; font-size: 1.02rem; }
+}
+
+// --- HISTORIA DE MINISTERIO (jovenes / damas / escuela) ---
+.ministry-story {
+    background: @white;
+}
+
+.ministry-story-card {
+    background: @white;
+    .hairline();
+    border-left: 3px solid var(--story-accent, @primary-color);
+    padding: @space-6 @space-6;
+
+    h2 { margin-top: @space-2; }
+
+    &__quote {
+        margin: @space-5 0;
+        padding: @space-4 @space-5;
+        background: @surface-sunken;
+        border-left: 2px solid var(--story-accent, @primary-color);
+
+        p { font-family: @font-display; font-size: 1.1rem; color: @dark-color; margin: 0 0 @space-2; }
+        small { color: @ink-faint; font-family: @font-mono; font-size: .74rem; letter-spacing: .04em; text-transform: uppercase; }
+    }
+}
+
+.ministry-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: @space-5;
+    margin-top: @space-6;
+    padding-top: @space-5;
+    border-top: 1px solid @line;
+}
+
+.ministry-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    strong { font-family: @font-display; font-size: 1.05rem; color: var(--story-accent, @primary-color); }
+    span { color: @ink-soft; font-size: .88rem; }
+}
+
+.ministry-visual-panel {
+    position: relative;
+    min-height: 360px;
+    background: @dark-color;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    .seam-glint(.18, 50s, 0);
+
+    img { max-width: 44%; position: relative; z-index: 1; filter: drop-shadow(0 0 0 transparent); }
+
+    &__badge {
+        position: absolute;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: fade(@white, 96%);
+        color: @dark-color;
+        font-size: .82rem;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 999px;
+
+        &--top { top: @space-5; left: @space-5; }
+        &--right { top: 50%; right: @space-5; transform: translateY(-50%); }
+        &--bottom { bottom: @space-5; left: @space-5; }
+    }
+
+    &--jovenes .ministry-visual-panel__badge i { color: @ministry-jovenes; }
+    &--damas   .ministry-visual-panel__badge i { color: @ministry-damas; }
+    &--escuela .ministry-visual-panel__badge i { color: @ministry-escuela; }
+}
+
+// Modificadores de ministerio: reemplazan los --card-accent/--story-accent y
+// los style="color:#..." sueltos en el HTML. Cambiar el color de un
+// ministerio ahora es una sola línea en variables.less.
+.ministry-link-card--jovenes  { --card-accent: @ministry-jovenes; }
+.ministry-link-card--damas    { --card-accent: @ministry-damas; }
+.ministry-link-card--escuela  { --card-accent: @ministry-escuela; }
+
+.ministry-story-card--jovenes { --story-accent: @ministry-jovenes; }
+.ministry-story-card--damas   { --story-accent: @ministry-damas; }
+.ministry-story-card--escuela { --story-accent: @ministry-escuela; }
+
+.text-ministry-escuela { color: @ministry-escuela !important; }
+.text-ministry-jovenes { color: @ministry-jovenes !important; }
+.text-ministry-damas   { color: @ministry-damas !important; }
+
+// --- CTA DE CIERRE POR MINISTERIO — misma superficie de tinta + seam ---
+.ministry-cta {
+    .seam-surface(.20, 46s, @dark-color);
+    text-align: center;
+
+    &__panel {
+        position: relative;
+        z-index: 1;
+        max-width: 62ch;
+        margin: 0 auto;
+    }
+
+    &--jovenes .btn-primary { background-color: @ministry-jovenes; border-color: @ministry-jovenes; &:hover { background-color: darken(@ministry-jovenes, 8%); border-color: darken(@ministry-jovenes, 8%); } }
+    &--escuela .btn-primary { background-color: @ministry-escuela; border-color: @ministry-escuela; &:hover { background-color: darken(@ministry-escuela, 8%); border-color: darken(@ministry-escuela, 8%); } }
+}
+
+@media (max-width: 768px) {
+    .ministry-stat-grid { grid-template-columns: 1fr; gap: @space-4; }
+    .ministry-visual-panel { min-height: 260px; img { max-width: 56%; } }
+    .ministry-story-card { padding: @space-5; }
+}
+
+// --- HISTORIA DE LA IGLESIA (/nosotros) ---
+.history-stats-strip {
+    background: @white;
+}
+
+.history-stat-card {
+    .hairline();
+    padding: @space-5;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    &__value {
+        font-family: @font-display;
+        font-weight: 800;
+        font-size: 2.2rem;
+        color: @primary-color;
+        line-height: 1;
+    }
+
+    h5 { margin: @space-2 0 0; }
+    p { color: @ink-soft; font-size: .9rem; margin: 0; }
+}
+
+.alert-primary {
+    background: @primary-tint;
+    color: @primary-deep;
+    border: 1px solid fade(@primary-color, 22%);
+    border-radius: 0;
 }
 
 // Sermons Section
@@ -259,10 +420,11 @@ h1, h2, h3, h4, h5, h6,
 
     .sermon-card {
         background: @white;
-        border-radius: 8px;
+        border-radius: 0;
+        .hairline();
         overflow: hidden;
-        transition: box-shadow 0.3s ease;
-        
+        transition: border-color 0.3s ease;
+
         // Imagen Destacada (Video)
         .card-img-wrap {
             overflow: hidden;
@@ -304,7 +466,7 @@ h1, h2, h3, h4, h5, h6,
         }
 
         &:hover {
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-color: @primary-color;
             .card-img-wrap img { transform: scale(1.05); }
         }
     }
@@ -337,68 +499,26 @@ h1, h2, h3, h4, h5, h6,
 
 // --- ESTILOS DE PÁGINAS INTERNAS ---
 
-// Page Header — escena propia (cielo de atardecer andino + siluetas de mesetas
-// tipo El Sillar), en vez de la foto de stock genérica. Animación ambiental,
-// no ligada al scroll, con respaldo estático si se pide reducir movimiento.
+// Page Header — misma superficie de tinta + seam que el resto del sitio.
+// Los ministerios tiñen el propio texto/breadcrumb con su color, no el fondo,
+// para no crear una segunda receta de degradé.
 .page-header {
-    --ph-glow: @primary-color;
     height: 300px; // Más corto que el home
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
-    background:
-        radial-gradient(130% 100% at 18% 115%, color-mix(in srgb, var(--ph-glow) 55%, transparent) 0%, transparent 58%),
-        linear-gradient(195deg, #1c2440 0%, @dark-color 52%, #0b0e1a 100%);
-    background-size: 170% 170%, 100% 100%;
-    background-position: 0% 0%, center;
-    animation: phEmberDrift 34s ease-in-out infinite alternate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .seam-surface(.20, 44s, @dark-color);
 
-    &::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(11, 14, 26, .38);
-        z-index: 1;
-    }
-
-    &::after {
-        content: '';
-        position: absolute;
-        left: -5%; right: -5%; bottom: 0;
-        height: 46%;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Cpolygon points='0,120 0,78 36,78 36,46 84,46 84,64 132,64 132,30 190,30 190,58 238,58 238,20 300,20 300,66 344,66 344,42 400,42 400,120' fill='rgba(11,14,26,0.9)'/%3E%3C/svg%3E");
-        background-repeat: repeat-x;
-        background-size: 420px 100%;
-        background-position: 0 bottom;
-        opacity: .8;
-        animation: phCanyonDrift 80s linear infinite;
-        z-index: 1;
-    }
-
-    .container { position: relative; z-index: 2; }
+    .container { position: relative; z-index: 1; }
 
     h1 {
         font-family: @font-display;
         letter-spacing: -0.01em;
     }
 
-    &.page-header--jovenes  { --ph-glow: @ministry-jovenes; }
-    &.page-header--damas    { --ph-glow: @ministry-damas; }
-    &.page-header--escuela  { --ph-glow: @ministry-escuela; }
-}
-
-@keyframes phEmberDrift {
-    from { background-position: 0% 0%, center; }
-    to   { background-position: 26% 14%, center; }
-}
-
-@keyframes phCanyonDrift {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-420px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .page-header, .page-header::after { animation: none !important; }
+    &.page-header--jovenes  .breadcrumb-item.active { color: @ministry-jovenes !important; }
+    &.page-header--damas    .breadcrumb-item.active { color: @ministry-damas !important; }
+    &.page-header--escuela  .breadcrumb-item.active { color: @ministry-escuela !important; }
 }
 
 // Estilos del Formulario de Contacto
@@ -406,16 +526,16 @@ h1, h2, h3, h4, h5, h6,
     
     // Inputs personalizados
     .form-control {
-        background-color: #f8f9fa;
-        border: 1px solid #e9ecef;
+        background-color: @surface-sunken;
+        border: 1px solid @line;
         padding: 12px 15px;
-        border-radius: 5px;
+        border-radius: @radius-control;
         transition: all 0.3s;
 
         &:focus {
             background-color: #fff;
-            border-color: @primary-color; // Borde naranja al escribir
-            box-shadow: 0 0 0 0.25rem rgba(214, 90, 49, 0.15); // Sombra naranja suave
+            border-color: @primary-color;
+            box-shadow: 0 0 0 3px fade(@primary-color, 16%); // anillo de foco, funcional, no decorativo
         }
     }
 
@@ -446,10 +566,10 @@ h1, h2, h3, h4, h5, h6,
 
 // Estado cuando bajas con el scroll
 .navbar.scrolled {
-    padding-top: 5px;   
+    padding-top: 5px;
     padding-bottom: 5px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1); 
-    background-color: rgba(255, 255, 255, 0.95) !important; 
+    border-bottom: 1px solid @line;
+    background-color: rgba(255, 255, 255, 0.95) !important;
 }
 
 // --- PÁGINA DE DETALLE (SERMÓN) ---
@@ -470,10 +590,12 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .sidebar-widget {
-    border: 1px solid #eee; 
-    
+    .hairline();
+    background: @white;
+    border-radius: 0 !important; // pisa el .rounded de Bootstrap en el markup
+
     .category-list li {
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid @line;
         padding: 10px 0;
 
         &:last-child {
@@ -482,16 +604,16 @@ h1, h2, h3, h4, h5, h6,
 
         a {
             text-decoration: none;
-            color: @text-muted;
+            color: @ink-soft;
             display: flex;
-            justify-content: space-between; 
+            justify-content: space-between;
             transition: color 0.2s;
 
-            span { 
-                background-color: #fff;
-                border: 1px solid #ddd;
+            span {
+                background-color: @white;
+                border: 1px solid @line;
                 padding: 0 8px;
-                border-radius: 10px;
+                border-radius: @radius-control;
                 font-size: 0.8rem;
             }
 
@@ -506,6 +628,119 @@ h1, h2, h3, h4, h5, h6,
     }
 }
 
+// --- BIBLIOTECA DE SERMONES ---
+.sermon-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: @space-2;
+    margin-top: @space-2;
+}
+
+.sermon-sort-chip {
+    font-family: @font-mono;
+    font-size: .72rem;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    background: @surface-sunken;
+    color: @ink-soft;
+    border: none;
+    border-radius: @radius-control;
+    padding: 7px 13px;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+
+    &:hover { color: @dark-color; }
+
+    &.is-active {
+        background: @dark-color;
+        color: @white;
+    }
+}
+
+.sermon-count-badge {
+    font-family: @font-mono;
+    font-size: .74rem;
+    color: @ink-faint;
+}
+
+.sermon-list-stack {
+    display: flex;
+    flex-direction: column;
+    gap: @space-3;
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+.sermon-mini-card {
+    display: flex;
+    align-items: center;
+    gap: @space-3;
+    background: @white;
+    .hairline();
+    padding: @space-2;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    transition: border-color .2s ease;
+
+    &:hover, &.is-active { border-color: @primary-color; }
+    &.is-active { background: @primary-tint; }
+
+    &__thumb {
+        flex-shrink: 0;
+        width: 64px;
+        height: 64px;
+        overflow: hidden;
+        img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    }
+
+    &__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    &__title { font-size: .88rem; color: @dark-color; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    &__meta { font-size: .76rem; color: @ink-faint; }
+}
+
+.sermon-feature-card {
+    background: @white;
+    .hairline();
+    overflow: hidden;
+}
+
+.sermon-feature-media {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    background: @dark-color;
+
+    iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
+}
+
+.sermon-feature-body { padding: @space-6; }
+
+.sermon-feature-badge {
+    font-family: @font-mono;
+    font-size: .7rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    background: @primary-tint;
+    color: @primary-deep;
+    padding: 5px 12px;
+    border-radius: @radius-control;
+
+    &--light { background: @surface-sunken; color: @ink-soft; }
+}
+
+.sermon-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: @space-4;
+    margin: @space-4 0;
+    font-size: .9rem;
+    color: @ink-soft;
+}
+
+.sermon-content { color: @ink-soft; max-width: 68ch; }
+.sermon-actions { display: flex; flex-wrap: wrap; gap: @space-3; margin-top: @space-5; }
+
 .blockquote {
     font-style: italic;
     color: @dark-color;
@@ -513,76 +748,119 @@ h1, h2, h3, h4, h5, h6,
 }
 
 // --- PÁGINA DE EVENTOS ---
+// (.event-board-card es el componente real que renderiza app.js; el viejo
+// .event-item/.event-date no se usa en ningún lado — se retira.)
 
-.events-wrap {
-    .event-item {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border-left: 4px solid transparent; 
+.event-board-card {
+    background: @white;
+    .hairline();
+    overflow: hidden;
+    margin-bottom: @space-5;
+    transition: border-color .3s ease;
 
-        &:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            border-left-color: @primary-color; 
+    &:hover { border-color: @primary-color; }
 
-            .event-date {
-                background-color: @primary-color;
-                color: #fff;
-                .month { color: rgba(255,255,255,0.8); }
-            }
-        }
+    &__media {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 220px;
+        padding: 0;
+        border: none;
+        background: @dark-color;
+        cursor: pointer;
+
+        img { width: 100%; height: 100%; object-fit: cover; display: block; min-height: 220px; }
     }
 
-    .event-date {
-        min-width: 90px;
-        height: 90px;
-        background-color: #f8f9fa; 
-        border: 1px solid #e9ecef;
+    &__body {
+        padding: @space-6 @space-5;
+        height: 100%;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: center;
-        transition: all 0.3s ease;
-
-        .day {
-            font-size: 2rem;
-            line-height: 1;
-            color: @dark-color;
-        }
-
-        .month {
-            font-size: 0.85rem;
-            letter-spacing: 1px;
-            font-weight: 700;
-            color: @text-muted;
-            margin-top: 5px;
-        }
     }
 
-    .event-thumb img {
-        width: 150px;
-        height: 100px;
-        object-fit: cover;
+    &__description {
+        max-width: 60ch;
+    }
+
+    .card-title {
+        font-family: @font-display;
+    }
+}
+
+.event-zoom-badge {
+    position: absolute;
+    left: @space-3;
+    bottom: @space-3;
+    background: fade(@dark-color, 70%);
+    color: @white;
+    font-size: .78rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: @radius-control;
+}
+
+.event-chip {
+    font-family: @font-mono;
+    font-size: .72rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: @radius-control;
+    background: @surface-sunken;
+    color: @ink-soft;
+
+    &--general  { background: @primary-tint; color: @primary-deep; }
+    &--jovenes  { background: fade(@ministry-jovenes, 14%); color: @ministry-jovenes; }
+    &--damas    { background: @primary-tint; color: @primary-deep; }
+    &--escuela  { background: fade(@ministry-escuela, 14%); color: @ministry-escuela; }
+    &--date, &--time { background: transparent; color: @ink-faint; padding-left: 0; }
+}
+
+.event-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: @space-4;
+    padding-top: @space-5;
+    margin-top: @space-5;
+    border-top: 1px solid @line;
+
+    span { display: block; font-family: @font-mono; font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: @ink-faint; margin-bottom: 4px; }
+    strong { font-weight: 600; font-size: .92rem; color: @dark-color; }
+}
+
+.event-card-actions { display: flex; flex-wrap: wrap; gap: @space-3; margin-top: @space-6; }
+
+.events-empty-state, .sermon-empty-state {
+    text-align: center;
+    padding: @space-8 @space-4;
+    color: @ink-soft;
+}
+
+.events-utility-strip {
+    .quick-link-pill {
+        display: inline-flex;
+        align-items: center;
+        font-size: .88rem;
+        font-weight: 600;
+        color: @dark-color;
+        background: @white;
+        .hairline();
+        border-radius: 999px;
+        padding: 9px 18px;
+        text-decoration: none;
+        transition: border-color .2s ease, color .2s ease;
+
+        &:hover { border-color: @primary-color; color: @primary-deep; }
     }
 }
 
 @media (max-width: 768px) {
-    .events-wrap {
-        .event-thumb img {
-            width: 100%; 
-            height: auto;
-        }
-        .event-date {
-            width: 100%; 
-            height: auto;
-            padding: 10px;
-            margin-bottom: 15px;
-            flex-direction: row; 
-            gap: 10px;
-            
-            .day { font-size: 1.5rem; }
-            .month { margin-top: 0; align-self: center; }
-        }
-    }
+    .event-board-card__media { min-height: 200px; }
+    .event-meta-grid { grid-template-columns: 1fr; gap: @space-2; }
 }
 
 // --- PRELOADER ---
@@ -640,12 +918,177 @@ h1, h2, h3, h4, h5, h6,
     100% { opacity: 0.5; }
 }
 
+// --- DETALLES SUELTOS: barra superior, redes, copyright ---
+.bg-dark { background-color: @dark-color !important; }
+
+.top-bar { font-family: @font-mono; font-size: .78rem; letter-spacing: .02em; }
+
+.socials a {
+    transition: color .2s ease, opacity .2s ease;
+    &:hover { color: @primary-color !important; opacity: .85; }
+}
+
+.copyright { border-color: fade(@white, 12%) !important; }
+
+.content-wrap { background: @white; }
+
+// --- PÁGINA DE RADIO (/alabanza) — pantalla propia, misma identidad ---
+.radio-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: @dark-color;
+    color: @white;
+    padding: @space-5;
+    position: relative;
+    overflow: hidden;
+}
+
+.radio-page__glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, fade(@seam-color, 20%) 48%, fade(@seam-color, 9%) 53%, transparent 72%);
+    background-size: 280% 280%;
+    mix-blend-mode: screen;
+    animation: seamDrift 46s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+
+.radio-page__shell {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 460px;
+}
+
+.radio-card {
+    background: fade(@white, 6%);
+    border: 1px solid fade(@white, 14%);
+    padding: @space-8 @space-6;
+    text-align: center;
+
+    h1 { font-family: @font-display; font-size: 2.1rem; }
+    p { color: fade(@white, 78%); }
+}
+
+.radio-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: fade(@white, 65%);
+    font-size: .84rem;
+    text-decoration: none;
+    margin-bottom: @space-5;
+
+    &:hover { color: @white; }
+}
+
+.radio-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: @font-mono;
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    background: @primary-tint;
+    color: @primary-deep;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: @space-5;
+}
+
+.radio-brand img { max-width: 96px; margin: 0 auto @space-4; display: block; }
+
+.radio-meta {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: @space-4;
+    margin: @space-5 0;
+    font-size: .82rem;
+    color: fade(@white, 65%);
+
+    i { color: @primary-color; margin-right: 4px; }
+}
+
+.radio-equalizer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 4px;
+    height: 32px;
+    margin-bottom: @space-5;
+}
+
+.radio-bar {
+    width: 4px;
+    height: 8px;
+    background: fade(@white, 25%);
+    transition: height .2s ease, background .2s ease;
+
+    &.is-active {
+        background: @primary-color;
+        animation: radioBarPulse .9s ease-in-out infinite;
+        &:nth-child(2) { animation-delay: .1s; }
+        &:nth-child(3) { animation-delay: .2s; }
+        &:nth-child(4) { animation-delay: .15s; }
+        &:nth-child(5) { animation-delay: .05s; }
+        &:nth-child(6) { animation-delay: .25s; }
+    }
+}
+
+@keyframes radioBarPulse {
+    0%, 100% { height: 8px; }
+    50% { height: 28px; }
+}
+
+.radio-play-button {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: none;
+    background: @primary-color;
+    color: @white;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto @space-4;
+    cursor: pointer;
+    transition: transform .2s ease, background .2s ease;
+
+    &:hover { background: @primary-deep; transform: scale(1.06); }
+}
+
+.radio-help { font-size: .82rem; color: fade(@white, 55%); }
+
+.radio-link {
+    color: fade(@white, 65%);
+    text-decoration: underline;
+    &:hover { color: @white; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .radio-bar.is-active { animation: none; height: 16px; }
+}
+
 // --- BOTÓN FLOTANTE DE WHATSAPP ---
+.btn-whatsapp {
+    background-color: @whatsapp-green !important;
+    border: none !important;
+    color: @white !important;
+    transition: background-color .3s ease;
+
+    &:hover { background-color: @whatsapp-green-deep !important; }
+}
+
 .whatsapp-btn {
     position: fixed;
     bottom: 30px;
     right: 30px;
-    background-color: #25d366; 
+    background-color: @whatsapp-green;
     color: @white;
     width: 60px;
     height: 60px;
@@ -654,16 +1097,16 @@ h1, h2, h3, h4, h5, h6,
     justify-content: center;
     align-items: center;
     font-size: 2rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    z-index: 1000; 
+    box-shadow: 0 4px 14px fade(@dark-color, 32%); // elevación real: es flotante, no parte del documento
+    z-index: 1000;
     transition: all 0.3s ease;
     text-decoration: none;
 
     &:hover {
-        background-color: #128c7e; 
+        background-color: @whatsapp-green-deep;
         color: @white;
-        transform: scale(1.1); 
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        transform: scale(1.1);
+        box-shadow: 0 6px 18px fade(@dark-color, 40%);
     }
 }
 
@@ -703,39 +1146,16 @@ h1, h2, h3, h4, h5, h6,
         top: 100%;
         left: 0;
         right: 0;
-        padding: 20px;
-        border-radius: 0 0 10px 10px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        border-top: 1px solid #eee;
+        padding: @space-5;
+        border-radius: 0;
+        box-shadow: 0 12px 28px fade(@dark-color, 18%); // panel flotante real sobre el contenido
+        border-top: 1px solid @line;
         z-index: 1000;
     }
 
     .page-header {
         height: 200px; 
         h1.display-5 { font-size: 2rem; }
-    }
-
-    .events-wrap .event-item {
-        display: block !important; 
-        text-align: center;
-        
-        .event-thumb { margin: 0 auto 15px auto; margin-right: 0 !important; }
-        .event-date {
-            margin: 0 auto 15px auto; 
-            margin-right: 0 !important;
-            flex-direction: row; 
-            width: 100%;
-            height: auto;
-            padding: 10px;
-            gap: 10px;
-            .day { font-size: 1.5rem; }
-            .month { margin-top: 0; }
-        }
-        .event-action {
-            margin-top: 20px;
-            margin-left: 0 !important;
-            .btn { width: 100%; }
-        }
     }
 
     .whatsapp-btn {
@@ -747,7 +1167,23 @@ h1, h2, h3, h4, h5, h6,
     }
 
     .main-footer {
-        text-align: center; 
+        text-align: center;
+    }
+
+    .next-event-bar {
+        #countdown { font-size: 2.4rem; }
+    }
+
+    .radio-card {
+        padding: @space-6 @space-4;
+    }
+
+    .ministry-cta {
+        padding: @space-6 0;
+    }
+
+    .sermon-list-stack {
+        max-height: 340px;
     }
 }
 
@@ -833,41 +1269,36 @@ h1, h2, h3, h4, h5, h6,
 }
 
 // --- CALENDARIO DE LIMPIEZA ---
-// Variables para el calendario
-@color-celeste: #007bb5; 
-@color-carmin: #D90429;  
-
 .limpieza-section {
   .calendario-limpieza-wrap {
       max-width: 850px;
       margin: 0 auto;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-      border: 1px solid #eee;
+      background: @white;
+      border-radius: 0;
+      .hairline();
       overflow: hidden;
 
       .cal-header {
-          background: @color-celeste;
-          color: white;
-          padding: 15px 20px;
+          background: @dark-color;
+          color: @white;
+          padding: @space-4 @space-5;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-bottom: 4px solid @color-carmin;
+          border-bottom: 3px solid @primary-color;
 
-          h4 { font-size: 1.25rem; }
+          h4 { font-family: @font-display; font-size: 1.25rem; }
       }
 
       .cal-dias-semana {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
-          background: #f8f9fa;
+          background: @surface-sunken;
           text-align: center;
           font-weight: bold;
-          padding: 10px 0;
-          border-bottom: 1px solid #ddd;
-          color: #555;
+          padding: @space-3 0;
+          border-bottom: 1px solid @line;
+          color: @ink-soft;
           font-size: 0.9rem;
       }
 
@@ -876,32 +1307,33 @@ h1, h2, h3, h4, h5, h6,
           grid-template-columns: repeat(7, 1fr);
           grid-auto-rows: minmax(90px, auto);
           gap: 1px;
-          background: #eee; 
+          background: @line;
 
           .cal-celda {
-              background: #fff;
-              padding: 5px;
+              background: @white;
+              padding: @space-2;
               display: flex;
               flex-direction: column;
               transition: background 0.2s;
 
-              &:hover { background: #fafafa; }
-              &.vacia { background: #fdfdfd; }
+              &:hover { background: @surface-sunken; }
+              &.vacia { background: fade(@surface-sunken, 60%); }
 
               .numero-dia {
+                  font-family: @font-mono;
                   font-weight: bold;
-                  color: #333;
+                  color: @dark-color;
                   align-self: flex-end;
                   font-size: 0.9rem;
-                  margin-bottom: 5px;
+                  margin-bottom: @space-2;
               }
 
               .turno-badge {
-                  background: rgba(@color-carmin, 0.1);
-                  color: @color-carmin;
+                  background: @primary-tint;
+                  color: @primary-deep;
                   font-size: 0.75rem;
-                  padding: 4px;
-                  border-radius: 4px;
+                  padding: @space-1;
+                  border-radius: @radius-control;
                   text-align: center;
                   font-weight: 600;
                   line-height: 1.2;

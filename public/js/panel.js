@@ -300,7 +300,7 @@ function resetSermonForm() {
     document.getElementById('sermonId').value = '';
     const submitButton = document.getElementById('btn-guardar-sermon');
     submitButton.textContent = 'Guardar Sermon';
-    submitButton.style.backgroundColor = '#D90429';
+    submitButton.classList.remove('btn-state-edit');
 }
 
 function resetEventForm() {
@@ -314,7 +314,7 @@ function resetEventForm() {
     }
     const submitButton = document.getElementById('btn-guardar-evento');
     submitButton.textContent = 'Guardar Evento';
-    submitButton.style.backgroundColor = '#D90429';
+    submitButton.classList.remove('btn-state-edit');
 }
 
 function resetPasswordForm(keepOpen) {
@@ -388,7 +388,7 @@ function prepareSermonEdit(sermonId) {
 
     const submitButton = document.getElementById('btn-guardar-sermon');
     submitButton.textContent = 'Actualizar Sermon';
-    submitButton.style.backgroundColor = '#0080FF';
+    submitButton.classList.add('btn-state-edit');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -512,7 +512,7 @@ function prepareEventEdit(eventId) {
 
     const submitButton = document.getElementById('btn-guardar-evento');
     submitButton.textContent = 'Actualizar Evento';
-    submitButton.style.backgroundColor = '#0080FF';
+    submitButton.classList.add('btn-state-edit');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 

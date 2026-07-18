@@ -6,119 +6,11 @@
     <title>Acceso Restringido - IPUB Tupiza</title>
     <link rel="icon" href="/images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --panel-bg: #f5f1eb;
-            --panel-surface: rgba(255, 255, 255, 0.9);
-            --panel-ink: #1d2433;
-            --panel-muted: #6f7787;
-            --panel-line: rgba(29, 36, 51, 0.08);
-            --panel-red: #D90429;
-            --panel-blue: #0080FF;
-            --panel-shadow: 0 24px 55px rgba(17, 24, 39, 0.08);
-        }
-
-        body {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            font-family: "Manrope", sans-serif;
-            color: var(--panel-ink);
-            background:
-                radial-gradient(circle at top left, rgba(0, 128, 255, 0.08), transparent 28%),
-                radial-gradient(circle at top right, rgba(217, 4, 41, 0.08), transparent 24%),
-                linear-gradient(180deg, #faf7f2 0%, var(--panel-bg) 100%);
-        }
-
-        .login-card {
-            max-width: 430px;
-            width: 100%;
-            padding: 2.6rem;
-            border-radius: 28px;
-            box-shadow: var(--panel-shadow);
-            background: var(--panel-surface);
-            border: 1px solid var(--panel-line);
-            backdrop-filter: blur(14px);
-        }
-
-        .brand {
-            color: var(--panel-ink);
-            font-family: "Fraunces", serif;
-            font-weight: 700;
-            font-size: 2.1rem;
-            text-align: center;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.03em;
-        }
-
-        .brand span { color: var(--panel-red); }
-
-        .login-eyebrow {
-            display: block;
-            margin-bottom: 0.65rem;
-            text-align: center;
-            color: var(--panel-muted);
-            font-size: 0.74rem;
-            font-weight: 700;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-        }
-
-        .login-subtitle {
-            color: var(--panel-muted);
-            text-align: center;
-            margin-bottom: 1.8rem;
-        }
-
-        .form-label {
-            color: #8690a3 !important;
-            font-size: 0.72rem !important;
-            font-weight: 800 !important;
-            letter-spacing: 0.15em;
-        }
-
-        .form-control {
-            min-height: 52px;
-            border-radius: 16px;
-            border: 1px solid rgba(29, 36, 51, 0.1);
-            background: #fcfcfd;
-            box-shadow: none !important;
-        }
-
-        .form-control:focus {
-            border-color: rgba(0, 128, 255, 0.24);
-        }
-
-        #btn-login {
-            min-height: 50px;
-            border: 0;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #c81336 0%, var(--panel-red) 100%) !important;
-            box-shadow: 0 14px 28px rgba(217, 4, 41, 0.14);
-        }
-
-        #btn-login:hover {
-            transform: translateY(-1px);
-        }
-
-        @media (max-width: 576px) {
-            .login-card {
-                padding: 1.5rem;
-                border-radius: 24px;
-            }
-
-            .brand {
-                font-size: 1.8rem;
-            }
-        }
-    </style>
+    <link rel="preload" href="/fonts/worksans-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/alegreya-800.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/css/admin.css?v=20260718">
 </head>
-<body>
+<body class="admin-login-body">
     <div class="login-card">
         <span class="login-eyebrow">Panel interno</span>
         <div class="brand">IPUB<span>ADMIN</span></div>
@@ -133,7 +25,7 @@
                 <label for="password" class="form-label fw-bold text-secondary small">CONTRASENA</label>
                 <input type="password" id="password" class="form-control" placeholder="********" required>
             </div>
-            <button id="btn-login" type="submit" class="btn w-100 text-white fw-bold py-2" style="background-color: #D90429;">Ingresar al Panel</button>
+            <button id="btn-login" type="submit" class="btn btn-admin-primary w-100 fw-bold py-2">Ingresar al Panel</button>
 
             <div id="error-msg" class="text-danger mt-3 text-center small fw-bold" style="display: none;"></div>
         </form>

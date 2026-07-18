@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "node test/run-tests.cjs",
-    "build:css": "lessc less/main.less public/css/style.css"
+    "build:css": "lessc less/main.less public/css/style.css && lessc less/admin.less public/css/admin.css"
   },
   "keywords": [],
   "author": "",

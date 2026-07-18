@@ -1,0 +1,54 @@
+// ==========================================
+// MIXINS COMPARTIDOS — usados por main.less (público) y admin.less (panel).
+// Un solo lugar para el motivo animado y la disciplina de hairline.
+// ==========================================
+
+.bg-cover(@url) {
+    background-image: url(@url);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+// El "seam": único motivo animado del sitio. Un destello cálido que cruza
+// muy lento una superficie de tinta. Se repite igual en cada lugar donde
+// aparece — eso es lo que lo hace sentir como un sistema y no como efectos
+// sueltos por sección. @intensity va de 0 a 1; @z es el z-index del glint.
+.seam-glint(@intensity: .22, @speed: 42s, @z: 0) {
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(100deg,
+            transparent 30%,
+            fade(@seam-color, (@intensity * 100)) 48%,
+            fade(@seam-color, (@intensity * 45)) 53%,
+            transparent 72%);
+        background-size: 280% 280%;
+        mix-blend-mode: screen;
+        animation: seamDrift @speed ease-in-out infinite alternate;
+        pointer-events: none;
+        z-index: @z;
+    }
+}
+
+// Superficie de tinta completa con el seam integrado (page-header, barra de
+// servicio, admin topbar). Para el hero, que ya tiene video real, se usa
+// .seam-glint() solo, como una capa encima del video en vez de reemplazarlo.
+.seam-surface(@intensity: .22, @speed: 42s, @bg: @dark-color) {
+    position: relative;
+    overflow: hidden;
+    background: @bg;
+    .seam-glint(@intensity, @speed, 0);
+}
+
+@keyframes seamDrift {
+    from { background-position: 0% 50%; }
+    to   { background-position: 100% 50%; }
+}
+
+// Estructura en vez de sombra: helper para hairline, se usa en vez de
+// box-shadow en toda tarjeta/panel nuevo o retocado.
+.hairline(@side: all) when (@side = all) { border: 1px solid @line; }
+.hairline(@side) when (@side = top) { border-top: 1px solid @line; }
+.hairline(@side) when (@side = bottom) { border-bottom: 1px solid @line; }

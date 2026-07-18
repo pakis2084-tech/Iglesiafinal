@@ -1,36 +1,63 @@
 // ==========================================
-// VARIABLES DE MARCA — IPUB Tupiza
-// Un acento (carmín), una tinta (azul evolucionado a ink),
-// papel cálido, y colores de ministerio como sub-marcas contenidas.
+// VARIABLES DE MARCA — IPUB Tupiza (sistema v2)
+// Un acento, una tinta, un motivo animado (el "seam"), una escala de
+// espaciado fija. Nada de valores sueltos fuera de este archivo.
 // ==========================================
 
-// --- Color base (compartido en todo el sitio) ---
-@primary-color:   #D2102E; // Carmín — acento único (antes #D90429, mismo carácter, ligeramente afinado)
+// --- Color base (compartido en todo el sitio, público Y admin) ---
+@primary-color:   #D2102E; // Carmín — único acento interactivo (botones, links, foco)
 @primary-deep:    #A80C24; // Carmín oscuro — hover/estados activos
 @primary-tint:    #FBE7E9; // Carmín muy claro — fondos de badges/eyebrows
 
-@dark-color:      #12182B; // Tinta — texto, footer, títulos (antes azul noche #0080FF usado como color de texto)
-@ink-soft:        #4B5468; // Texto secundario
-@ink-faint:       #8890A0; // Texto terciario / metadatos
+@dark-color:      #14192A; // Tinta — texto, superficies oscuras, footer
+@ink-soft:        #565F72; // Texto secundario
+@ink-faint:       #8992A3; // Texto terciario / metadatos
 
-@light-bg:        #F7F6F3; // Papel cálido (antes gris frío #f4f6f8)
-@surface-sunken:  #EFEDE7; // Superficie hundida (inputs, fondos alternos)
-@text-muted:      #6c757d;
+@light-bg:        #F2F1EC; // Papel — piedra cálida, no crema (evita el cliché beige+serif)
+@surface-sunken:  #E9E7E0; // Superficie hundida (inputs, fondos alternos)
+@text-muted:      #6c757d; // Alias de compatibilidad con utilidades Bootstrap existentes
 @white:           #ffffff;
 
-@hero-overlay: rgba(18, 24, 43, .55); // Oscuridad sobre video/foto, tintada a la tinta de marca
+// Verde de WhatsApp: excepción deliberada de marca ajena (no del sistema
+// IPUB), se usa solo en CTAs que abren WhatsApp — convención reconocible.
+@whatsapp-green:      #25d366;
+@whatsapp-green-deep: #128c7e;
+
+// Estructura: TODO lo que antes era box-shadow pasa a ser un hairline.
+@line:        rgba(20, 25, 42, .14);
+@line-strong: rgba(20, 25, 42, .28);
+
+@hero-overlay: rgba(20, 25, 42, .55); // Oscuridad sobre video/foto, tintada a la tinta de marca
 
 // --- Ministerios: sub-marcas contenidas (no compiten con el acento) ---
 @ministry-escuela: #2F8F5B; // Escuela Dominical
 @ministry-jovenes: #0B6FD6; // Jóvenes
 @ministry-damas:   @primary-color; // Damas Dorcas (mismo carmín de marca)
 
+// --- El "seam": color exclusivo del motivo animado. Nunca en texto,
+// botones ni badges — solo en el destello que cruza las superficies de tinta.
+@seam-color: #E8A33D;
+
 // --- Tipografía ---
 @font-display: 'Alegreya', Georgia, 'Iowan Old Style', serif;
 @font-body:    'Work Sans', -apple-system, 'Segoe UI', sans-serif;
 @font-mono:    'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
 
-// --- Forma ---
-@radius-s: 8px;
-@radius-m: 14px;
-@radius-l: 26px;
+// --- Forma: una sola regla. Controles interactivos = radio suave.
+// Todo lo estructural (tarjetas, paneles, banners) = esquina recta (0).
+@radius-control: 8px;
+
+// --- Escala de espaciado fija — todo margin/padding nuevo sale de aquí ---
+@space-1: 4px;
+@space-2: 8px;
+@space-3: 12px;
+@space-4: 16px;
+@space-5: 24px;
+@space-6: 32px;
+@space-7: 48px;
+@space-8: 64px;
+@space-9: 96px;
+
+// --- Breakpoints (referencia — Bootstrap ya trae md/lg, esto es para el resto) ---
+@bp-mobile: 768px;
+@bp-tablet: 992px;

@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (!document.getElementById('modalMediaEvento')) {
-            document.body.insertAdjacentHTML('beforeend', '<div class="modal fade" id="modalMediaEvento" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content bg-transparent border-0"><div class="modal-header border-0 pb-0 justify-content-end"><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar" style="filter: invert(1);"></button></div><div class="modal-body text-center"><div id="eventoMediaContent"></div><div class="mt-4"><button id="btnCompartirModal" class="btn btn-light rounded-pill px-4 py-2 fw-bold shadow"><i class="fas fa-share-alt me-2" style="color: #D90429;"></i> Compartir</button></div></div></div></div></div>');
+            document.body.insertAdjacentHTML('beforeend', '<div class="modal fade" id="modalMediaEvento" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content bg-transparent border-0"><div class="modal-header border-0 pb-0 justify-content-end"><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar" style="filter: invert(1);"></button></div><div class="modal-body text-center"><div id="eventoMediaContent"></div><div class="mt-4"><button id="btnCompartirModal" class="btn btn-light rounded-pill px-4 py-2 fw-bold"><i class="fas fa-share-alt me-2" style="color: #D2102E;"></i> Compartir</button></div></div></div></div></div>');
         }
 
         const abrirMediaEvento = ({ tipo, src, titulo, idEvento }) => {

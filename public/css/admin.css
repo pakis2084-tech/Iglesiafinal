@@ -1,0 +1,451 @@
+@font-face {
+  font-family: 'Alegreya';
+  src: url('/fonts/alegreya-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Alegreya';
+  src: url('/fonts/alegreya-500italic.woff2') format('woff2');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Alegreya';
+  src: url('/fonts/alegreya-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Alegreya';
+  src: url('/fonts/alegreya-800.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Work Sans';
+  src: url('/fonts/worksans-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Work Sans';
+  src: url('/fonts/worksans-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Work Sans';
+  src: url('/fonts/worksans-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Work Sans';
+  src: url('/fonts/worksans-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrainsmono-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrainsmono-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@keyframes seamDrift {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #F2F1EC;
+  color: #14192A;
+  font-family: 'Work Sans', -apple-system, 'Segoe UI', sans-serif;
+}
+.login-card {
+  max-width: 420px;
+  width: 100%;
+  padding: 48px 32px;
+  background: #ffffff;
+  border: 1px solid rgba(20, 25, 42, 0.14);
+  border-radius: 0;
+}
+.brand {
+  font-family: 'Alegreya', Georgia, 'Iowan Old Style', serif;
+  font-weight: 800;
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+  color: #14192A;
+}
+.brand span {
+  color: #D2102E;
+}
+.login-eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  text-align: center;
+  color: #8992A3;
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.login-subtitle {
+  color: #8992A3;
+  text-align: center;
+  margin-bottom: 32px;
+}
+.admin-login-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.sidebar {
+  min-height: 100vh;
+  padding: 32px 16px;
+  background: #ffffff;
+  border-right: 1px solid rgba(20, 25, 42, 0.14);
+}
+.panel-brand {
+  margin-bottom: 32px;
+  padding: 4px 8px 16px;
+  border-bottom: 1px solid rgba(20, 25, 42, 0.14);
+}
+.panel-brand__eyebrow {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: #8992A3;
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.panel-brand h4 {
+  margin: 0;
+  font-family: 'Alegreya', Georgia, 'Iowan Old Style', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #14192A;
+}
+.panel-brand h4 span {
+  color: #D2102E;
+}
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  color: #8992A3;
+  text-decoration: none;
+  border-radius: 0;
+  border-left: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+  font-weight: 600;
+}
+.sidebar a i {
+  width: 1.8rem;
+  text-align: center;
+  color: #8992A3;
+  transition: color 0.2s ease;
+}
+.sidebar a:hover {
+  color: #14192A;
+}
+.sidebar a.active {
+  color: #14192A;
+  border-left-color: #D2102E;
+  background: #FBE7E9;
+}
+.sidebar a.active i {
+  color: #D2102E;
+}
+.content-area {
+  padding: 48px 32px;
+}
+.panel-topbar {
+  margin-bottom: 24px;
+}
+.panel-topbar__eyebrow {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: #8992A3;
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+#titulo-seccion {
+  margin: 0;
+  font-family: 'Alegreya', Georgia, 'Iowan Old Style', serif;
+  font-size: clamp(1.6rem, 2vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+#rol-badge {
+  position: relative;
+  overflow: hidden;
+  background: #14192A;
+  display: inline-flex;
+  padding: 10px 16px;
+  border-radius: 0;
+  color: #ffffff !important;
+  background: #14192A !important;
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+#rol-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(232, 163, 61, 0.08) 48%, rgba(232, 163, 61, 0.036) 53%, transparent 72%);
+  background-size: 280% 280%;
+  mix-blend-mode: screen;
+  animation: seamDrift 80s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+.seccion-panel {
+  display: none;
+}
+.seccion-activa {
+  display: block;
+}
+.mensaje-no-leido {
+  border-left: 3px solid #D2102E;
+  background-color: #FBE7E9;
+}
+.card {
+  border: 1px solid rgba(20, 25, 42, 0.14) !important;
+  border-radius: 0 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+.card-header {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(20, 25, 42, 0.14) !important;
+  padding: 16px 24px !important;
+  color: #14192A !important;
+  font-weight: 700;
+}
+.card-body {
+  padding: 24px !important;
+}
+.form-label {
+  color: #8992A3 !important;
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1em;
+}
+.form-control,
+.form-select {
+  min-height: 48px;
+  border-radius: 8px;
+  border: 1px solid rgba(20, 25, 42, 0.14);
+  background: #F2F1EC;
+  box-shadow: none !important;
+}
+textarea.form-control {
+  min-height: 100px;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: #D2102E;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(210, 16, 46, 0.14) !important;
+}
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: none !important;
+}
+.btn-outline-dark {
+  border-color: rgba(20, 25, 42, 0.14);
+  color: #14192A;
+  background: #ffffff;
+}
+.btn-outline-dark:hover {
+  border-color: #D2102E;
+  color: #A80C24;
+  background: #ffffff;
+}
+.btn-admin-primary {
+  background-color: #D2102E !important;
+  color: #ffffff !important;
+  border: none !important;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.btn-admin-primary:hover {
+  background-color: #A80C24 !important;
+}
+.btn-admin-primary:active {
+  transform: translateY(1px);
+}
+.btn-admin-dark {
+  background-color: #14192A !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+.btn-admin-dark:hover {
+  background-color: #212946 !important;
+}
+.btn-state-edit {
+  background-color: #14192A !important;
+}
+#btn-guardar-password,
+#btn-guardar-sermon,
+#btn-guardar-evento {
+  min-height: 46px;
+  border: 0;
+  border-radius: 8px;
+}
+.table {
+  margin-bottom: 0;
+  font-variant-numeric: tabular-nums;
+}
+.table thead th {
+  background: #F2F1EC;
+  color: #8992A3;
+  border-bottom: 1px solid rgba(20, 25, 42, 0.14);
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.table td,
+.table th {
+  border-color: rgba(20, 25, 42, 0.14);
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.table-hover tbody tr:hover {
+  background: #F2F1EC;
+}
+.table-responsive {
+  border-radius: 0;
+}
+h4.fw-bold.mb-3 {
+  margin-top: 4px;
+  color: #14192A;
+  font-family: 'Alegreya', Georgia, 'Iowan Old Style', serif;
+  font-size: 1.15rem;
+}
+small.text-muted,
+#password-feedback,
+#ev-categoria-help {
+  color: #8992A3 !important;
+}
+@media (max-width: 768px) {
+  .sidebar {
+    min-height: auto;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 8px 6px;
+    background: #ffffff;
+    border-top: 1px solid rgba(20, 25, 42, 0.14);
+    border-right: none;
+  }
+  .panel-brand {
+    display: none;
+  }
+  .sidebar a {
+    display: block;
+    margin: 0 2px;
+    padding: 7px 4px 6px;
+    text-align: center;
+    font-size: 0.66rem;
+    line-height: 1.15;
+    flex: 1;
+    border-left: none;
+    border-top: 2px solid transparent;
+  }
+  .sidebar a.active {
+    border-top-color: #D2102E;
+    border-left-color: transparent;
+  }
+  .sidebar a i {
+    display: block;
+    width: 34px;
+    height: 34px;
+    margin: 0 auto 4px;
+    font-size: 1rem;
+  }
+  .content-area {
+    padding: 16px;
+    padding-bottom: 92px;
+  }
+  .panel-topbar {
+    align-items: flex-start !important;
+    gap: 12px;
+  }
+  #titulo-seccion {
+    font-size: 1.4rem;
+  }
+  .content-area .btn {
+    font-size: 0.84rem;
+    padding: 0.58rem 0.95rem !important;
+  }
+  .content-area .btn-sm {
+    font-size: 0.78rem;
+    padding: 0.44rem 0.72rem !important;
+  }
+  .content-area .card-body {
+    padding: 16px !important;
+  }
+  .content-area .form-control,
+  .content-area .form-select {
+    font-size: 0.95rem;
+    min-height: 46px;
+  }
+  #badge-mensajes {
+    position: absolute;
+    top: 0;
+    right: 15%;
+    font-size: 0.6rem;
+    padding: 3px 5px;
+  }
+  .login-card {
+    padding: 24px;
+  }
+  .brand {
+    font-size: 1.7rem;
+  }
+}
