@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Alabanza Viva | Radio IPUB Tupiza</title>
+    <meta name="description" content="Escucha la radio en vivo de IPUB Tupiza con adoraci&oacute;n, palabra y compa&ntilde;&iacute;a espiritual durante el d&iacute;a.">
+    <link rel="canonical" href="https://ipubtupiza.org/alabanza">
+    <meta property="og:title" content="Alabanza Viva | Radio IPUB Tupiza">
+    <meta property="og:description" content="Radio en vivo de IPUB Tupiza para acompa&ntilde;arte con adoraci&oacute;n, mensaje y ambiente de fe.">
+    <meta property="og:image" content="https://ipubtupiza.org/images/social-cover.svg">
+    <meta property="og:url" content="https://ipubtupiza.org/alabanza">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="IPUB Tupiza">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Alabanza Viva | Radio IPUB Tupiza">
+    <meta name="twitter:description" content="Escucha la radio en vivo de la iglesia en Tupiza.">
+    <meta name="twitter:image" content="https://ipubtupiza.org/images/social-cover.svg">
+    <meta name="theme-color" content="#D90429">
+    <link rel="icon" href="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=20260320">
+</head>
+<body class="radio-page">
+    <div class="radio-page__glow"></div>
+
+    <main class="radio-page__shell">
+        <section class="radio-card">
+            <a class="radio-back-link" href="/">
+                <i class="fas fa-arrow-left"></i>
+                Volver al sitio
+            </a>
+
+            <span class="radio-badge">
+                <i class="fas fa-broadcast-tower"></i>
+                Radio en vivo
+            </span>
+
+            <div class="radio-brand">
+                <img src="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" alt="IPUB Tupiza">
+            </div>
+
+            <h1 class="fw-bold mb-2">Alabanza Viva</h1>
+            <p class="mb-0">La transmisi&oacute;n de IPUB Tupiza para acompa&ntilde;arte con adoraci&oacute;n, mensaje y un ambiente de fe durante el d&iacute;a.</p>
+
+            <div class="radio-meta">
+                <span><i class="fas fa-location-dot"></i> Tupiza</span>
+                <span><i class="fas fa-headphones"></i> Audio en tiempo real</span>
+                <span><i class="fas fa-heart"></i> 24/7</span>
+            </div>
+
+            <div class="radio-equalizer" id="ecualizador" aria-hidden="true">
+                <div class="radio-bar"></div>
+                <div class="radio-bar"></div>
+                <div class="radio-bar"></div>
+                <div class="radio-bar"></div>
+                <div class="radio-bar"></div>
+                <div class="radio-bar"></div>
+            </div>
+
+            <audio id="audio-player" src="https://stream.zeno.fm/czqu7ezk0hhvv" preload="none"></audio>
+
+            <button class="radio-play-button" id="btn-toggle" aria-label="Reproducir o pausar radio">
+                <i class="fas fa-play" id="icono-btn"></i>
+            </button>
+            
+            <p class="radio-help mb-0">Si el navegador bloquea la reproducci&oacute;n autom&aacute;tica, toca el bot&oacute;n o cualquier parte de la pantalla para iniciar.</p>
+            <p class="mt-3 mb-0 small"><a class="radio-link" href="https://stream.zeno.fm/czqu7ezk0hhvv" target="_blank" rel="noopener noreferrer">Abrir stream directo</a></p>
+        </section>
+    </main>
+
+    <script>
+        const reproductor = document.getElementById('audio-player');
+        const btnToggle = document.getElementById('btn-toggle');
+        const iconoBtn = document.getElementById('icono-btn');
+        const barras = document.querySelectorAll('.radio-bar');
+        let yaSono = false;
+
+        function actualizarInterfaz(reproduciendo) {
+            iconoBtn.classList.toggle('fa-play', !reproduciendo);
+            iconoBtn.classList.toggle('fa-pause', reproduciendo);
+            barras.forEach((barra) => barra.classList.toggle('is-active', reproduciendo));
+        }
+
+        function iniciarRadio() {
+            if (!reproductor.paused) {
+                return;
+            }
+
+            actualizarInterfaz(true);
+            reproductor.play().then(() => {
+                yaSono = true;
+            }).catch(() => {
+                actualizarInterfaz(false);
+            });
+        }
+
+        btnToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            yaSono = true;
+
+            if (reproductor.paused) {
+                iniciarRadio();
+            } else {
+                actualizarInterfaz(false);
+                reproductor.pause();
+            }
+        });
+
+        function iniciarAlabanzaAuto() {
+            if (!yaSono && reproductor.paused) {
+                iniciarRadio();
+                document.removeEventListener('click', iniciarAlabanzaAuto);
+                document.removeEventListener('touchstart', iniciarAlabanzaAuto);
+            }
+        }
+
+        document.addEventListener('click', iniciarAlabanzaAuto);
+        document.addEventListener('touchstart', iniciarAlabanzaAuto);
+    </script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventos | IPUB Tupiza</title>
+    <meta name="description" content="Consulta la agenda de actividades de IPUB Tupiza, filtra por ministerio y revisa el rol de limpieza actualizado.">
+    <link rel="canonical" href="https://ipubtupiza.org/eventos">
+    <meta property="og:title" content="Eventos | IPUB Tupiza">
+    <meta property="og:description" content="Agenda de actividades, eventos por ministerio y calendario de apoyo para la iglesia en Tupiza.">
+    <meta property="og:image" content="https://ipubtupiza.org/images/social-cover.svg">
+    <meta property="og:url" content="https://ipubtupiza.org/eventos">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="IPUB Tupiza">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Eventos | IPUB Tupiza">
+    <meta name="twitter:description" content="Consulta la agenda de actividades y el rol de limpieza de la iglesia.">
+    <meta name="twitter:image" content="https://ipubtupiza.org/images/social-cover.svg">
+    <link rel="icon" href="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" type="image/png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#D90429">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=20260320">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/"><img src="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" alt="Logo IPUB" style="max-height: 50px;"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contacto">Contacto</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/nosotros">Historia</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/sermon">Sermones</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/eventos">Eventos</a></li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle fw-bold text-dark" href="#" id="navbarMinisterios" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Ministerios
+                        </a>
+                        <ul class="dropdown-menu border-0 shadow" aria-labelledby="navbarMinisterios" style="border-radius: 12px; margin-top: 10px;">
+                            <li><a class="dropdown-item py-2" href="/escuela"><i class="fas fa-child me-2" style="color: #28a745;"></i> Escuela Dominical</a></li>
+                            <li><a class="dropdown-item py-2" href="/jovenes"><i class="fas fa-fire me-2" style="color: #0080FF;"></i> J&oacute;venes</a></li>
+                            <li><a class="dropdown-item py-2" href="/damas"><i class="fas fa-praying-hands me-2" style="color: #D90429;"></i> Damas Dorcas</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item ms-lg-2">
+                        <a class="nav-link text-danger fw-bold" href="/alabanza" target="_blank">
+                            <i class="fas fa-broadcast-tower"></i> Radio
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
+                        <a class="btn btn-primary rounded-pill px-4" href="https://wa.me/59172541143?text=Hola,%20me%20gustar%C3%ADa%20saber%20c%C3%B3mo%20puedo%20hacer%20una%20donaci%C3%B3n%20o%20diezmo%20a%20la%20iglesia." target="_blank">
+                            Donar
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <section class="page-header page-header--eventos d-flex align-items-center justify-content-center text-white">
+        <div class="container text-center z-2">
+            <h1 class="fw-bold display-5">Calendario de Actividades</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb justify-content-center bg-transparent p-0 m-0">
+                    <li class="breadcrumb-item"><a href="index.html" class="text-white-50 text-decoration-none">Inicio</a></li>
+                    <li class="breadcrumb-item active text-white" aria-current="page">Eventos</li>
+                </ol>
+            </nav>
+        </div>
+    </section>
+
+    <section class="events-wrap pt-5 pb-4 bg-light">
+        <div class="container">
+            <div class="section-intro-panel events-intro-panel mb-4">
+                <div class="row g-4 align-items-center">
+                    <div class="col-12">
+                        <span class="eyebrow">Agenda</span>
+                        <h2 class="mb-3">Actividades de la iglesia</h2>
+                        <p class="mb-0">Aqu&iacute; encontrar&aacute;s los eventos y anuncios de IPUB Tupiza para toda la congregaci&oacute;n.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container text-center mb-4 pt-2">
+            <div class="btn-group flex-wrap shadow-sm rounded-pill overflow-hidden bg-white p-1" role="group" aria-label="Filtro de categorias">
+                
+                <input type="radio" class="btn-check filtro-btn" name="filtroEventos" id="btn-todos" value="todos" autocomplete="off" checked>
+                <label class="btn btn-outline-primary border-0 rounded-pill px-4 fw-bold" for="btn-todos">Todos</label>
+
+                <input type="radio" class="btn-check filtro-btn" name="filtroEventos" id="btn-general" value="general" autocomplete="off">
+                <label class="btn btn-outline-primary border-0 rounded-pill px-4 fw-bold" for="btn-general">General</label>
+
+                <input type="radio" class="btn-check filtro-btn" name="filtroEventos" id="btn-jovenes" value="jovenes" autocomplete="off">
+                <label class="btn btn-outline-primary border-0 rounded-pill px-4 fw-bold" for="btn-jovenes">J&oacute;venes</label>
+
+                <input type="radio" class="btn-check filtro-btn" name="filtroEventos" id="btn-damas" value="damas" autocomplete="off">
+                <label class="btn btn-outline-primary border-0 rounded-pill px-4 fw-bold" for="btn-damas">Damas Dorcas</label>
+
+                <input type="radio" class="btn-check filtro-btn" name="filtroEventos" id="btn-escuela" value="escuela" autocomplete="off">
+                <label class="btn btn-outline-primary border-0 rounded-pill px-4 fw-bold" for="btn-escuela">Escuela Dominical</label>
+
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="events-utility-strip d-flex flex-wrap justify-content-center gap-3 mb-4">
+                <a class="quick-link-pill" href="#contenedor-eventos"><i class="fas fa-calendar-alt me-2"></i> Ver agenda</a>
+                <a class="quick-link-pill" href="#rol-de-limpieza"><i class="fas fa-broom me-2"></i> Ir al rol de limpieza</a>
+                <a class="quick-link-pill" href="https://wa.me/59172541143?text=Hola,%20quisiera%20consultar%20sobre%20los%20pr%C3%B3ximos%20eventos%20de%20la%20iglesia." target="_blank"><i class="fab fa-whatsapp me-2"></i> Consultar por WhatsApp</a>
+            </div>
+        </div>
+
+        <div class="container py-2">
+            <div class="row g-4" id="contenedor-eventos">
+                <div class="text-center text-muted py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Cargando la agenda de la iglesia...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="next-event-bar py-5 text-white">
+        <div class="container text-center">
+            <span class="eyebrow eyebrow-light mb-3">Servicio Compartido</span>
+            <h2 class="mb-2 text-white">Rol de Limpieza</h2>
+            <p class="mb-0 text-white-50 mx-auto" style="max-width: 640px;">Una forma pr&aacute;ctica de organizarnos y servir juntos. El calendario est&aacute; pensado para revisarlo r&aacute;pido desde celular o compartirlo por WhatsApp.</p>
+        </div>
+    </section>
+
+    <section id="rol-de-limpieza" class="limpieza-section py-5 bg-light">
+    <div class="container">
+        <div class="section-intro-panel limpieza-intro-card mb-4">
+            <div class="row g-4 align-items-center">
+                <div class="col-12">
+                    <span class="eyebrow">Rol de Limpieza</span>
+                    <h3 class="mb-3">Organizaci&oacute;n mensual</h3>
+                    <p class="mb-0">Consulta aqu&iacute; el rol de limpieza y comp&aacute;rtelo cuando sea necesario.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="calendario-limpieza-wrap shadow-lg">
+            
+            <div class="cal-header">
+                <button id="prev-month" class="btn btn-sm btn-light text-primary fw-bold">&laquo; Ant</button>
+                <h4 id="mes-anio-display" class="mb-0 fw-bold">Calculando...</h4>
+                <button id="next-month" class="btn btn-sm btn-light text-primary fw-bold">Sig &raquo;</button>
+            </div>
+            
+            <div class="cal-dias-semana">
+                <div>Lun</div><div>Mar</div><div>Mi&eacute;</div><div>Jue</div><div>Vie</div><div>S&aacute;b</div><div>Dom</div>
+            </div>
+            
+            <div id="cal-grid" class="cal-grid">
+            </div>
+
+            <div class="p-4 bg-white text-center border-top">
+                <button id="btnCompartirLimpieza" class="btn btn-lg fw-bold text-white px-4 px-md-5 rounded-pill shadow" style="background-color: #25D366; border: none;">
+                    <i class="fab fa-whatsapp me-2" style="font-size: 1.3rem;"></i> Compartir Rol de Limpieza
+                </button>
+                <p class="text-muted small mt-2 mb-0">Comparte el calendario actualizado con la congregaci&oacute;n</p>
+            </div>
+
+        </div>
+
+    </div>
+    </section>
+
+    <footer class="main-footer pt-5 pb-2 text-white"><div class="container">
+            <div class="row pb-4">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5 class="footer-title mb-3">SOBRE NOSOTROS</h5>
+                    <p class="small text-white-50">Desde nuestra fundaci&oacute;n en 1997, hemos recorrido un camino de fe, pruebas y victorias. Esta es la historia de c&oacute;mo Dios ha sostenido su obra en nuestra ciudad a trav&eacute;s de los a&ntilde;os y sus siervos.</p>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <h5 class="footer-title mb-3">LINKS R&Aacute;PIDOS</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="nosotros.html">Nuestra Historia</a></li>
+                        <li><a href="https://wa.me/59172541143?text=Hola,%20quisiera%20informaci%C3%B3n%20sobre%20diezmos%20y%20donaciones." target="_blank">Donaciones</a></li>
+                        <li><a href="contacto.html">Peticiones de Oraci&oacute;n</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-12 mb-4">
+                    <h5 class="footer-title mb-3">CONTACTO</h5>
+                    <p class="small mb-1"><i class="fas fa-map-marker-alt me-2 text-primary"></i> H78M+2HM, Tupiza</p>
+                    <p class="small"><i class="fas fa-envelope me-2 text-primary"></i> ipubtupiza@gmail.com</p>
+                </div>
+            </div>
+            <div class="copyright text-center border-top border-secondary pt-3">
+                <small class="text-white-50">&copy; 2026 IGLESIA PENTECOSTAL UNIDA DE BOLIVIA. Todos los derechos reservados.</small>
+            </div>
+        </div>
+    </footer>
+    <a href="https://wa.me/59172541143?text=Hola,%20me%20gustar%C3%ADa%20recibir%20m%C3%A1s%20informaci%C3%B3n%20sobre%20los%20horarios%20de%20la%20iglesia." class="whatsapp-btn" target="_blank" rel="noopener noreferrer">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js?v=20260319b"></script>
+</body>
+</html>

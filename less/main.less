@@ -1,0 +1,771 @@
+// out: ../public/css/style.css
+// --- 1. VARIABLES (Tema: Native Church) ---
+// COLORES PERSONALIZADOS
+@primary-color: #D90429;    // CARMÍN (Para botones, acciones y detalles)
+@dark-color:    #0080FF;    // AZUL NOCHE (Para el Footer, Textos y Títulos)
+@light-bg: #f4f6f8;         // Gris muy claro para secciones
+@text-muted: #6c757d;
+@white: #ffffff;
+@hero-overlay: rgba(0, 0, 0, 0.6); // Oscuridad sobre la foto del hero
+
+// --- 2. MIXINS ---
+.bg-cover(@url) {
+    background-image: url(@url);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+// --- 3. ESTILOS GLOBALES ---
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: @dark-color;
+    overflow-x: hidden;
+}
+
+// Sobrescribir Bootstrap Primary Color
+.text-primary { color: @primary-color !important; }
+.bg-primary { background-color: @primary-color !important; }
+
+.btn-primary {
+    background-color: @primary-color;
+    border-color: @primary-color;
+    padding: 10px 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    
+    &:hover {
+        background-color: darken(@primary-color, 10%);
+        border-color: darken(@primary-color, 10%);
+        transform: translateY(-2px);
+    }
+}
+
+// --- 4. COMPONENTES ---
+
+// Navbar Branding
+.navbar-brand {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+}
+
+// --- HERO SECTION (Portada con Video Responsivo) ---
+.hero-section {
+    position: relative;
+    min-height: 100vh; // Ocupa toda la altura de la pantalla
+    overflow: hidden;  // Evita que el video se salga de los bordes
+    display: flex;
+    align-items: center;
+
+    #bg-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover; // ¡ESTA ES LA MAGIA RESPONSIVA!
+        z-index: 0;
+    }
+
+    .overlay-oscuro {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: @hero-overlay; 
+        z-index: 1;
+    }
+
+    .container {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .sub-heading {
+        font-weight: 600;
+        letter-spacing: 3px;
+        color: rgba(255,255,255,0.8);
+    }
+}
+
+// Countdown Bar
+.next-event-bar {
+    background-color: @primary-color;
+}
+
+// Features Section (Icon Boxes)
+.features-section {
+    background-color: @light-bg;
+
+    .feature-card {
+        background: @white;
+        border-radius: 10px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-bottom: 4px solid transparent;
+
+        .icon-circle {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto;
+            background-color: lighten(@primary-color, 38%);
+            color: @primary-color;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+        }
+
+        h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem; }
+        
+        .read-more {
+            text-decoration: none;
+            color: @primary-color;
+            font-weight: 700;
+            
+            i { transition: margin-left 0.2s; }
+        }
+
+        &:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-bottom-color: @primary-color;
+
+            .icon-circle {
+                background-color: @primary-color;
+                color: @white;
+            }
+            .read-more i { margin-left: 8px; }
+        }
+    }
+}
+
+// Sermons Section
+.sermons-section {
+    .section-header .divider {
+        width: 60px; height: 3px; background: @primary-color; margin: 15px 0;
+    }
+
+    .sermon-card {
+        background: @white;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: box-shadow 0.3s ease;
+        
+        // Imagen Destacada (Video)
+        .card-img-wrap {
+            overflow: hidden;
+            img { transition: transform 0.5s ease; }
+            
+            .play-btn-overlay {
+                position: absolute;
+                top: 50%; left: 50%;
+                transform: translate(-50%, -50%);
+                width: 60px; height: 60px;
+                border: 2px solid @white;
+                border-radius: 50%;
+                color: @white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.2rem;
+                background: rgba(0,0,0,0.3);
+                transition: all 0.3s;
+                
+                &:hover { background: @primary-color; border-color: @primary-color; }
+            }
+        }
+
+        // Miniaturas (Lista)
+        &.small-card {
+            .small-thumb {
+                width: 100px; height: 100px; flex-shrink: 0;
+                img { width: 100%; height: 100%; object-fit: cover; }
+                
+                .overlay-icon {
+                    position: absolute; bottom: 0; right: 0;
+                    background: @primary-color; color: @white;
+                    width: 30px; height: 30px;
+                    display: flex; align-items: center; justify-content: center;
+                    border-top-left-radius: 5px;
+                }
+            }
+        }
+
+        &:hover {
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            .card-img-wrap img { transform: scale(1.05); }
+        }
+    }
+}
+
+// Footer
+.main-footer {
+    background-color: #1a1a1a;
+    
+    .footer-title {
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+        font-weight: 700;
+        color: @white;
+        border-bottom: 2px solid @primary-color;
+        display: inline-block;
+        padding-bottom: 5px;
+    }
+
+    .footer-links a {
+        color: #aaa;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: block;
+        margin-bottom: 8px;
+
+        &:hover { color: @primary-color; padding-left: 5px; }
+    }
+}
+
+// --- ESTILOS DE PÁGINAS INTERNAS ---
+
+// Page Header (Diferente al Hero del Home)
+.page-header {
+    height: 300px; // Más corto que el home
+    position: relative;
+    background-color: @dark-color; // Color de respaldo
+    // Imagen diferente para secciones internas (más sobria)
+    .bg-cover('https://images.unsplash.com/photo-1445620466293-d6316372abbd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.7); // Un poco más oscuro para que se lea el título
+    }
+
+    h1 {
+        letter-spacing: 2px;
+    }
+}
+
+// Estilos del Formulario de Contacto
+.contact-wrap {
+    
+    // Inputs personalizados
+    .form-control {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        padding: 12px 15px;
+        border-radius: 5px;
+        transition: all 0.3s;
+
+        &:focus {
+            background-color: #fff;
+            border-color: @primary-color; // Borde naranja al escribir
+            box-shadow: 0 0 0 0.25rem rgba(214, 90, 49, 0.15); // Sombra naranja suave
+        }
+    }
+
+    // Caja de información lateral
+    .contact-info-box {
+        border-left: 4px solid @primary-color; // Detalle visual a la izquierda
+    }
+}
+
+// Mapa en escala de grises (Toque "Pro")
+.map-section {
+    filter: grayscale(100%); // Hace el mapa blanco y negro
+    transition: filter 0.5s;
+
+    &:hover {
+        filter: grayscale(0%); // Al pasar el mouse vuelve a color
+    }
+}
+
+// --- NAVBAR SCROLLED EFFECT ---
+
+// Estado normal
+.navbar {
+    transition: all 0.4s ease;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+// Estado cuando bajas con el scroll
+.navbar.scrolled {
+    padding-top: 5px;   
+    padding-bottom: 5px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1); 
+    background-color: rgba(255, 255, 255, 0.95) !important; 
+}
+
+// --- PÁGINA DE DETALLE (SERMÓN) ---
+
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%; // Proporción 16:9
+    height: 0;
+    background-color: #000; // Fondo negro mientras carga
+
+    iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.sidebar-widget {
+    border: 1px solid #eee; 
+    
+    .category-list li {
+        border-bottom: 1px solid #e0e0e0;
+        padding: 10px 0;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        a {
+            text-decoration: none;
+            color: @text-muted;
+            display: flex;
+            justify-content: space-between; 
+            transition: color 0.2s;
+
+            span { 
+                background-color: #fff;
+                border: 1px solid #ddd;
+                padding: 0 8px;
+                border-radius: 10px;
+                font-size: 0.8rem;
+            }
+
+            &:hover {
+                color: @primary-color;
+                span {
+                    border-color: @primary-color;
+                    color: @primary-color;
+                }
+            }
+        }
+    }
+}
+
+.blockquote {
+    font-style: italic;
+    color: @dark-color;
+    background-color: lighten(@light-bg, 2%);
+}
+
+// --- PÁGINA DE EVENTOS ---
+
+.events-wrap {
+    .event-item {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid transparent; 
+
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-left-color: @primary-color; 
+
+            .event-date {
+                background-color: @primary-color;
+                color: #fff;
+                .month { color: rgba(255,255,255,0.8); }
+            }
+        }
+    }
+
+    .event-date {
+        min-width: 90px;
+        height: 90px;
+        background-color: #f8f9fa; 
+        border: 1px solid #e9ecef;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.3s ease;
+
+        .day {
+            font-size: 2rem;
+            line-height: 1;
+            color: @dark-color;
+        }
+
+        .month {
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: @text-muted;
+            margin-top: 5px;
+        }
+    }
+
+    .event-thumb img {
+        width: 150px;
+        height: 100px;
+        object-fit: cover;
+    }
+}
+
+@media (max-width: 768px) {
+    .events-wrap {
+        .event-thumb img {
+            width: 100%; 
+            height: auto;
+        }
+        .event-date {
+            width: 100%; 
+            height: auto;
+            padding: 10px;
+            margin-bottom: 15px;
+            flex-direction: row; 
+            gap: 10px;
+            
+            .day { font-size: 1.5rem; }
+            .month { margin-top: 0; align-self: center; }
+        }
+    }
+}
+
+// --- PRELOADER ---
+
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: @white; 
+    z-index: 9999; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease, visibility 0.5s ease; 
+
+    &.fade-out {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .loader-content {
+        text-align: center;
+        
+        p {
+            margin-top: 15px;
+            color: @text-muted;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: pulse 1.5s infinite; 
+        }
+    }
+
+    .spinner {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto;
+        border: 5px solid #f3f3f3; 
+        border-top: 5px solid @primary-color; 
+        border-radius: 50%;
+        animation: spin 1s linear infinite; 
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+// --- BOTÓN FLOTANTE DE WHATSAPP ---
+.whatsapp-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #25d366; 
+    color: @white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000; 
+    transition: all 0.3s ease;
+    text-decoration: none;
+
+    &:hover {
+        background-color: #128c7e; 
+        color: @white;
+        transform: scale(1.1); 
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    }
+}
+
+// ==========================================
+// RESPONSIVE DESIGN (MEDIA QUERIES)
+// ==========================================
+
+@media (max-width: 768px) {
+    body {
+        font-size: 15px; 
+    }
+    
+    section {
+        padding-top: 40px !important; 
+        padding-bottom: 40px !important;
+    }
+
+    .hero-section {
+        height: auto !important; 
+        min-height: 500px;       
+        padding: 80px 0;         
+        text-align: center;
+
+        h1.display-3 {
+            font-size: 2.5rem; 
+        }
+
+        .btn-lg {
+            width: 100%;       
+            margin-bottom: 10px;
+        }
+    }
+
+    .navbar-collapse {
+        background-color: @white;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        border-top: 1px solid #eee;
+        z-index: 1000;
+    }
+
+    .page-header {
+        height: 200px; 
+        h1.display-5 { font-size: 2rem; }
+    }
+
+    .events-wrap .event-item {
+        display: block !important; 
+        text-align: center;
+        
+        .event-thumb { margin: 0 auto 15px auto; margin-right: 0 !important; }
+        .event-date {
+            margin: 0 auto 15px auto; 
+            margin-right: 0 !important;
+            flex-direction: row; 
+            width: 100%;
+            height: auto;
+            padding: 10px;
+            gap: 10px;
+            .day { font-size: 1.5rem; }
+            .month { margin-top: 0; }
+        }
+        .event-action {
+            margin-top: 20px;
+            margin-left: 0 !important;
+            .btn { width: 100%; }
+        }
+    }
+
+    .whatsapp-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .main-footer {
+        text-align: center; 
+    }
+}
+
+// --- LÍNEA DE TIEMPO (HISTORIA) ---
+.timeline-section {
+    position: relative;
+
+    .timeline {
+        position: relative;
+        max-width: 900px;
+        margin: 0 auto;
+
+        &::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background-color: #e9ecef; 
+            top: 0;
+            bottom: 0;
+            left: 20px; 
+            margin-left: -2px;
+            border-radius: 2px;
+        }
+    }
+
+    .timeline-item {
+        padding: 10px 10px 40px 50px; 
+        position: relative;
+        background-color: inherit;
+        width: 100%;
+
+        .timeline-dot {
+            width: 20px;
+            height: 20px;
+            background-color: @white;
+            border: 4px solid @primary-color; 
+            border-radius: 50%;
+            position: absolute;
+            left: 20px;
+            top: 15px; 
+            transform: translateX(-50%);
+            z-index: 1;
+            transition: all 0.3s;
+        }
+
+        .timeline-date {
+            display: inline-block;
+            background-color: @dark-color; 
+            color: @white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .timeline-content {
+            border-left: 3px solid @primary-color; 
+            transition: transform 0.3s ease;
+            h4 { color: @dark-color; }
+            &:hover { transform: translateX(5px); }
+        }
+
+        &:hover .timeline-dot {
+            background-color: @primary-color;
+            transform: translateX(-50%) scale(1.3);
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .timeline-section {
+        .timeline::after { left: 15px; }
+        .timeline-item {
+            padding: 10px 10px 30px 40px; 
+            .timeline-dot {
+                left: 15px; 
+                width: 16px; 
+                height: 16px;
+            }
+        }
+    }
+}
+
+// --- CALENDARIO DE LIMPIEZA ---
+// Variables para el calendario
+@color-celeste: #007bb5; 
+@color-carmin: #D90429;  
+
+.limpieza-section {
+  .calendario-limpieza-wrap {
+      max-width: 850px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      border: 1px solid #eee;
+      overflow: hidden;
+
+      .cal-header {
+          background: @color-celeste;
+          color: white;
+          padding: 15px 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 4px solid @color-carmin;
+
+          h4 { font-size: 1.25rem; }
+      }
+
+      .cal-dias-semana {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          background: #f8f9fa;
+          text-align: center;
+          font-weight: bold;
+          padding: 10px 0;
+          border-bottom: 1px solid #ddd;
+          color: #555;
+          font-size: 0.9rem;
+      }
+
+      .cal-grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          grid-auto-rows: minmax(90px, auto);
+          gap: 1px;
+          background: #eee; 
+
+          .cal-celda {
+              background: #fff;
+              padding: 5px;
+              display: flex;
+              flex-direction: column;
+              transition: background 0.2s;
+
+              &:hover { background: #fafafa; }
+              &.vacia { background: #fdfdfd; }
+
+              .numero-dia {
+                  font-weight: bold;
+                  color: #333;
+                  align-self: flex-end;
+                  font-size: 0.9rem;
+                  margin-bottom: 5px;
+              }
+
+              .turno-badge {
+                  background: rgba(@color-carmin, 0.1);
+                  color: @color-carmin;
+                  font-size: 0.75rem;
+                  padding: 4px;
+                  border-radius: 4px;
+                  text-align: center;
+                  font-weight: 600;
+                  line-height: 1.2;
+                  margin-top: auto;
+              }
+          }
+      }
+  }
+}
+
+@media (max-width: 768px) {
+  .limpieza-section .calendario-limpieza-wrap .cal-grid .cal-celda {
+      min-height: 70px;
+      padding: 3px;
+      .turno-badge {
+          font-size: 0.65rem;
+          padding: 2px;
+      }
+  }
+}

@@ -1,0 +1,4 @@
+node_modules/
+cloudflared
+auth_info_baileys/
+.env
