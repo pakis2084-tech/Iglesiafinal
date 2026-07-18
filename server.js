@@ -14,7 +14,6 @@ const PRIVATE_PANEL_FILE = path.join(__dirname, 'privado', 'panel.html');
 const DEFAULT_UPLOADS_DIR = path.join(PUBLIC_DIR, 'uploads', 'eventos');
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
-const BODY_PAYLOAD_LIMIT = '75mb';
 const CONTENT_ROLES = ['admin', 'pastor', 'editor'];
 const EVENT_MANAGER_ROLES = [...CONTENT_ROLES, 'damas_admin'];
 const MESSAGE_ROLES = ['admin', 'pastor'];
@@ -23,6 +22,8 @@ const LOCKED_EVENT_CATEGORIES = {
     damas_admin: 'damas'
 };
 const DEFAULT_TRUST_PROXY = 'loopback';
+const DEFAULT_BODY_LIMIT = '100kb';
+const UPLOAD_BODY_LIMIT = '75mb';
 const DEFAULT_RATE_LIMITS = {
     loginPerIp: {
         windowMs: 10 * 60 * 1000,
@@ -776,8 +777,17 @@ function createApp(options = {}) {
         next();
     });
 
-    app.use(express.urlencoded({ limit: BODY_PAYLOAD_LIMIT, extended: true }));
-    app.use(express.json({ limit: BODY_PAYLOAD_LIMIT }));
+    const defaultUrlencodedParser = express.urlencoded({ limit: DEFAULT_BODY_LIMIT, extended: true });
+    const defaultJsonParser = express.json({ limit: DEFAULT_BODY_LIMIT });
+    const uploadJsonParser = express.json({ limit: UPLOAD_BODY_LIMIT });
+
+    app.use((req, res, next) => {
+        // Las rutas de eventos/sermones aceptan imagenes y video en base64,
+        // el resto de la API usa un limite pequeno para evitar cuerpos abusivos.
+        const isUploadRoute = /^\/api\/(eventos|sermones)(\/|$)/.test(req.path) && ['POST', 'PUT'].includes(req.method);
+        return (isUploadRoute ? uploadJsonParser : defaultJsonParser)(req, res, next);
+    });
+    app.use(defaultUrlencodedParser);
     app.use((error, req, res, next) => {
         if (error && error.type === 'entity.too.large') {
             return sendApiError(res, 413, 'La solicitud excede el tamano permitido.');
@@ -1062,13 +1072,28 @@ function createApp(options = {}) {
     return { app, db, uploadsDir, dbFile };
 }
 
+function installProcessErrorGuards() {
+    // El bot de WhatsApp corre en este mismo proceso: un error no capturado
+    // ahi no debe tumbar el servidor web. Se registra y el proceso continua.
+    process.on('unhandledRejection', (reason) => {
+        console.error('❌ Promesa rechazada sin manejar:', reason);
+    });
+    process.on('uncaughtException', (error) => {
+        console.error('❌ Excepcion no capturada:', error);
+    });
+}
+
 function startServer(options = {}) {
     const port = options.port || Number(process.env.PORT) || 8080;
     const host = options.host || '0.0.0.0';
     const { app, db } = createApp(options);
 
+    installProcessErrorGuards();
+
     // 3. INYECTAMOS EL BOT AQUÍ (Añadido)
-    iniciarBot(db);
+    iniciarBot(db).catch((error) => {
+        console.error('❌ No se pudo iniciar el bot de WhatsApp:', error);
+    });
 
     return app.listen(port, host, () => {
         console.log('=========================================');
