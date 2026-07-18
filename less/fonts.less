@@ -1,0 +1,28 @@
+// ==========================================
+// TIPOGRAFÍA AUTO-HOSPEDADA
+// Alegreya (display, con moderación) + Work Sans (cuerpo/UI) + JetBrains Mono (datos)
+// Archivos en /public/fonts — nada de Google Fonts vía <link> en producción.
+// ==========================================
+
+.font-face(@family, @file, @weight, @style: normal) {
+    @font-face {
+        font-family: @family;
+        src: url('/fonts/@{file}.woff2') format('woff2');
+        font-weight: @weight;
+        font-style: @style;
+        font-display: swap;
+    }
+}
+
+.font-face('Alegreya', 'alegreya-500', 500);
+.font-face('Alegreya', 'alegreya-500italic', 500, italic);
+.font-face('Alegreya', 'alegreya-700', 700);
+.font-face('Alegreya', 'alegreya-800', 800);
+
+.font-face('Work Sans', 'worksans-400', 400);
+.font-face('Work Sans', 'worksans-500', 500);
+.font-face('Work Sans', 'worksans-600', 600);
+.font-face('Work Sans', 'worksans-700', 700);
+
+.font-face('JetBrains Mono', 'jetbrainsmono-500', 500);
+.font-face('JetBrains Mono', 'jetbrainsmono-600', 600);

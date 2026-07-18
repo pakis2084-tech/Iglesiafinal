@@ -1,12 +1,7 @@
 // out: ../public/css/style.css
-// --- 1. VARIABLES (Tema: Native Church) ---
-// COLORES PERSONALIZADOS
-@primary-color: #D90429;    // CARMÍN (Para botones, acciones y detalles)
-@dark-color:    #0080FF;    // AZUL NOCHE (Para el Footer, Textos y Títulos)
-@light-bg: #f4f6f8;         // Gris muy claro para secciones
-@text-muted: #6c757d;
-@white: #ffffff;
-@hero-overlay: rgba(0, 0, 0, 0.6); // Oscuridad sobre la foto del hero
+// --- 1. VARIABLES Y TIPOGRAFÍA (Tema: Native Church) ---
+@import "variables.less";
+@import "fonts.less";
 
 // --- 2. MIXINS ---
 .bg-cover(@url) {
@@ -18,9 +13,34 @@
 
 // --- 3. ESTILOS GLOBALES ---
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: @font-body;
     color: @dark-color;
     overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6,
+.display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+    font-family: @font-display;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.eyebrow,
+.sub-heading,
+.ministry-link-card__eyebrow {
+    font-family: @font-mono;
+    font-size: .74rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 // Sobrescribir Bootstrap Primary Color
@@ -73,7 +93,9 @@ body {
         left: 0;
         width: 100%;
         height: 100%;
-        background: @hero-overlay; 
+        background:
+            linear-gradient(0deg, rgba(11, 14, 26, .75) 0%, rgba(11, 14, 26, 0) 45%),
+            @hero-overlay;
         z-index: 1;
     }
 
@@ -81,63 +103,150 @@ body {
         position: relative;
         z-index: 2;
     }
-    
+
     .sub-heading {
-        font-weight: 600;
-        letter-spacing: 3px;
-        color: rgba(255,255,255,0.8);
+        color: rgba(255, 255, 255, .78);
     }
 }
 
-// Countdown Bar
+// Countdown Bar — degradé de tinta a carmín con un brillo que respira lentamente
 .next-event-bar {
-    background-color: @primary-color;
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(140% 160% at 15% -20%, fade(@primary-color, 55%) 0%, transparent 55%),
+        linear-gradient(115deg, @dark-color 0%, darken(@dark-color, 4%) 100%);
+    background-size: 180% 180%, 100% 100%;
+    background-position: 0% 0%, center;
+    animation: emberBreathe 26s ease-in-out infinite alternate;
+
+    #countdown {
+        font-family: @font-mono;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.02em;
+    }
 }
 
-// Features Section (Icon Boxes)
+@keyframes emberBreathe {
+    from { background-position: 0% 0%, center; }
+    to   { background-position: 22% 12%, center; }
+}
+
+// Features Section — fila editorial con divisores, sin tarjetas idénticas con círculo
 .features-section {
     background-color: @light-bg;
 
+    .row { text-align: left; }
+
     .feature-card {
-        background: @white;
-        border-radius: 10px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border-bottom: 4px solid transparent;
+        background: transparent;
+        border-radius: 0;
+        border-top: 2px solid fade(@dark-color, 10%);
+        border-bottom: none;
+        padding-top: 28px !important;
+        transition: border-color .3s ease;
 
         .icon-circle {
-            width: 70px;
-            height: 70px;
-            margin: 0 auto;
-            background-color: lighten(@primary-color, 38%);
+            width: 44px;
+            height: 44px;
+            margin: 0 0 22px;
+            background-color: @primary-tint;
             color: @primary-color;
-            border-radius: 50%;
+            border-radius: @radius-s;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
+            font-size: 1.1rem;
             transition: all 0.3s ease;
         }
 
-        h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem; }
-        
+        h3 { font-size: 1.35rem; font-weight: 700; margin-bottom: .75rem; }
+
+        p.text-muted { color: @ink-soft !important; max-width: 34ch; }
+
         .read-more {
             text-decoration: none;
-            color: @primary-color;
-            font-weight: 700;
-            
+            color: @primary-deep;
+            font-weight: 600;
+
             i { transition: margin-left 0.2s; }
         }
 
         &:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-            border-bottom-color: @primary-color;
+            border-top-color: @primary-color;
 
             .icon-circle {
                 background-color: @primary-color;
                 color: @white;
             }
             .read-more i { margin-left: 8px; }
+        }
+    }
+}
+
+// Ministerios que acompañan cada etapa — sub-marcas por color, vía --card-accent inline
+.home-ministry-spotlight {
+    .eyebrow {
+        display: block;
+        color: @primary-deep;
+        margin-bottom: 10px;
+    }
+
+    .ministry-link-card {
+        --card-accent: @primary-color;
+        display: block;
+        height: 100%;
+        background: @white;
+        border-radius: @radius-m;
+        border: 1px solid fade(@dark-color, 8%);
+        border-top: 3px solid var(--card-accent);
+        padding: 30px 28px 26px;
+        text-decoration: none;
+        color: @dark-color;
+        transition: transform .3s ease, box-shadow .3s ease;
+
+        &__icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: @radius-s;
+            background: color-mix(in srgb, var(--card-accent) 14%, white);
+            color: var(--card-accent);
+            font-size: 1.2rem;
+            margin-bottom: 18px;
+        }
+
+        &__eyebrow {
+            display: block;
+            color: var(--card-accent);
+            margin-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: @dark-color;
+        }
+
+        &__arrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 20px;
+            font-family: @font-body;
+            font-weight: 600;
+            font-size: .88rem;
+            color: var(--card-accent);
+
+            i { transition: margin-left .2s ease; font-size: .78rem; }
+        }
+
+        &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 34px -20px fade(@dark-color, 35%);
+
+            .ministry-link-card__arrow i { margin-left: 5px; }
         }
     }
 }
@@ -228,24 +337,68 @@ body {
 
 // --- ESTILOS DE PÁGINAS INTERNAS ---
 
-// Page Header (Diferente al Hero del Home)
+// Page Header — escena propia (cielo de atardecer andino + siluetas de mesetas
+// tipo El Sillar), en vez de la foto de stock genérica. Animación ambiental,
+// no ligada al scroll, con respaldo estático si se pide reducir movimiento.
 .page-header {
+    --ph-glow: @primary-color;
     height: 300px; // Más corto que el home
     position: relative;
-    background-color: @dark-color; // Color de respaldo
-    // Imagen diferente para secciones internas (más sobria)
-    .bg-cover('https://images.unsplash.com/photo-1445620466293-d6316372abbd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+    overflow: hidden;
+    isolation: isolate;
+    background:
+        radial-gradient(130% 100% at 18% 115%, color-mix(in srgb, var(--ph-glow) 55%, transparent) 0%, transparent 58%),
+        linear-gradient(195deg, #1c2440 0%, @dark-color 52%, #0b0e1a 100%);
+    background-size: 170% 170%, 100% 100%;
+    background-position: 0% 0%, center;
+    animation: phEmberDrift 34s ease-in-out infinite alternate;
 
     &::before {
         content: '';
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0, 0, 0, 0.7); // Un poco más oscuro para que se lea el título
+        background: rgba(11, 14, 26, .38);
+        z-index: 1;
     }
 
-    h1 {
-        letter-spacing: 2px;
+    &::after {
+        content: '';
+        position: absolute;
+        left: -5%; right: -5%; bottom: 0;
+        height: 46%;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Cpolygon points='0,120 0,78 36,78 36,46 84,46 84,64 132,64 132,30 190,30 190,58 238,58 238,20 300,20 300,66 344,66 344,42 400,42 400,120' fill='rgba(11,14,26,0.9)'/%3E%3C/svg%3E");
+        background-repeat: repeat-x;
+        background-size: 420px 100%;
+        background-position: 0 bottom;
+        opacity: .8;
+        animation: phCanyonDrift 80s linear infinite;
+        z-index: 1;
     }
+
+    .container { position: relative; z-index: 2; }
+
+    h1 {
+        font-family: @font-display;
+        letter-spacing: -0.01em;
+    }
+
+    &.page-header--jovenes  { --ph-glow: @ministry-jovenes; }
+    &.page-header--damas    { --ph-glow: @ministry-damas; }
+    &.page-header--escuela  { --ph-glow: @ministry-escuela; }
+}
+
+@keyframes phEmberDrift {
+    from { background-position: 0% 0%, center; }
+    to   { background-position: 26% 14%, center; }
+}
+
+@keyframes phCanyonDrift {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-420px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-header, .page-header::after { animation: none !important; }
 }
 
 // Estilos del Formulario de Contacto

@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test/run-tests.cjs"
+    "test": "node test/run-tests.cjs",
+    "build:css": "lessc less/main.less public/css/style.css"
   },
   "keywords": [],
   "author": "",
@@ -21,5 +22,8 @@
     "lowdb": "^1.0.0",
     "node-cron": "^4.6.0",
     "qrcode-terminal": "^0.12.0"
+  },
+  "devDependencies": {
+    "less": "^4.7.0"
   }
 }

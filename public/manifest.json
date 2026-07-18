@@ -4,8 +4,8 @@
   "description": "Iglesia Pentecostal Unida de Bolivia - Tupiza",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#D90429",
+  "background_color": "#F7F6F3",
+  "theme_color": "#D2102E",
   "icons": [
     {
       "src": "images/cropped-IPUB-BOLVIA-ICO-1-300x175.png",
