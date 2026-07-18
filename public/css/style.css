@@ -1403,6 +1403,78 @@ h6,
   .sermon-list-stack {
     max-height: 340px;
   }
+  .section-intro-panel {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .features-section .row {
+    text-align: center;
+  }
+  .feature-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .feature-card .icon-circle {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .feature-card p.text-muted {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .home-ministry-spotlight .ministry-link-card {
+    text-align: center;
+  }
+  .home-ministry-spotlight .ministry-link-card__icon {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .ministry-story-card {
+    text-align: center;
+    border-left: none;
+    border-top: 3px solid var(--story-accent, #D2102E);
+  }
+  .ministry-story-card__quote {
+    border-left: none;
+    border-top: 2px solid var(--story-accent, #D2102E);
+  }
+  .ministry-stat-grid {
+    text-align: center;
+  }
+  .history-stat-card {
+    text-align: center;
+    align-items: center;
+  }
+  .sermon-feature-body {
+    text-align: center;
+  }
+  .sermon-feature-body .sermon-meta-row,
+  .sermon-feature-body .sermon-actions {
+    justify-content: center;
+  }
+  .sermon-feature-body .sermon-content {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .event-board-card__body {
+    text-align: center;
+  }
+  .event-board-card__body .d-flex.flex-wrap.gap-2 {
+    justify-content: center;
+  }
+  .event-board-card__body .event-board-card__description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .event-card-actions {
+    justify-content: center;
+  }
+  .events-empty-state,
+  .sermon-empty-state {
+    text-align: center;
+  }
 }
 .timeline-section {
   position: relative;

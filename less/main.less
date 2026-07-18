@@ -1185,6 +1185,76 @@ h1, h2, h3, h4, h5, h6,
     .sermon-list-stack {
         max-height: 340px;
     }
+
+    // --- CENTRADO EN MÓVIL ---
+    // El sitio usa alineación izquierda a propósito en desktop (evita el
+    // look de plantilla). En una sola columna angosta eso se siente
+    // descuadrado, así que en móvil se centra el contenido editorial.
+    // Los formularios, tablas y el panel de admin NO se centran: ahí la
+    // alineación izquierda es la correcta por legibilidad y usabilidad.
+
+    .section-intro-panel {
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .features-section .row { text-align: center; }
+
+    .feature-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .icon-circle { margin-left: auto; margin-right: auto; }
+        p.text-muted { margin-left: auto; margin-right: auto; }
+    }
+
+    .home-ministry-spotlight .ministry-link-card {
+        text-align: center;
+
+        &__icon { margin-left: auto; margin-right: auto; }
+    }
+
+    .ministry-story-card {
+        text-align: center;
+        border-left: none;
+        border-top: 3px solid var(--story-accent, @primary-color);
+
+        &__quote {
+            border-left: none;
+            border-top: 2px solid var(--story-accent, @primary-color);
+        }
+    }
+
+    .ministry-stat-grid {
+        text-align: center;
+    }
+
+    .history-stat-card {
+        text-align: center;
+        align-items: center;
+    }
+
+    .sermon-feature-body {
+        text-align: center;
+
+        .sermon-meta-row, .sermon-actions { justify-content: center; }
+        .sermon-content { margin-left: auto; margin-right: auto; }
+    }
+
+    .event-board-card__body {
+        text-align: center;
+
+        .d-flex.flex-wrap.gap-2 { justify-content: center; }
+        .event-board-card__description { margin-left: auto; margin-right: auto; }
+    }
+
+    .event-card-actions { justify-content: center; }
+
+    .events-empty-state, .sermon-empty-state {
+        text-align: center;
+    }
 }
 
 // --- LÍNEA DE TIEMPO (HISTORIA) ---
