@@ -220,6 +220,23 @@ h1, h2, h3, h4, h5, h6,
     }
 }
 
+// Sobre Nosotros — foto real (placeholder por ahora) + intro asimétrica
+.about-section__photo {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 8 / 9;
+    object-fit: cover;
+    border: 1px solid @line;
+}
+
+@media (max-width: 991px) {
+    .about-section__intro-row {
+        text-align: center;
+
+        .about-section__photo { max-width: 420px; margin: 0 auto; }
+    }
+}
+
 // Features Section — fila editorial con divisores, sin tarjetas idénticas con círculo
 .features-section {
     background-color: @light-bg;
@@ -554,10 +571,67 @@ h1, h2, h3, h4, h5, h6,
     }
 }
 
+// Cómo llegar + Contacto — cierre de la landing, misma superficie de tinta + seam
+.contact-cta {
+    .seam-surface(.20, 44s, @dark-color);
+
+    .container { position: relative; z-index: 1; }
+
+    &__intro h2 { color: @white; }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: @space-4;
+        max-width: 960px;
+        margin: 0 auto;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: @space-3;
+        padding: @space-4;
+        border: 1px solid fade(@white, 14%);
+        color: @white;
+        text-decoration: none;
+        transition: border-color .2s ease, background-color .2s ease;
+
+        i { font-size: 1.2rem; color: @primary-color; flex-shrink: 0; }
+
+        &:hover {
+            border-color: @primary-color;
+            background: fade(@white, 4%);
+            color: @white;
+        }
+    }
+
+    &__label {
+        display: block;
+        font-family: @font-mono;
+        font-size: .68rem;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: fade(@white, 55%);
+    }
+
+    &__value {
+        display: block;
+        font-weight: 600;
+        font-size: .94rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .contact-cta__grid { grid-template-columns: 1fr; }
+}
+
 // Footer
 .main-footer {
-    background-color: #1a1a1a;
-    
+    background-color: @dark-color;
+
+    .footer-brand { max-height: 44px; }
+
     .footer-title {
         font-size: 0.9rem;
         letter-spacing: 1px;

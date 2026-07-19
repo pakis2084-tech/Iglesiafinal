@@ -105,13 +105,27 @@
 
     <section class="about-section py-5">
         <div class="container py-4">
-            <div class="section-intro-panel text-center mb-5">
-                <span class="eyebrow">Qui&eacute;nes somos</span>
-                <h2 class="mb-3">29 a&ntilde;os de fe en Tupiza</h2>
-                <p class="mb-0 mx-auto" style="max-width: 640px;">Desde 1997 hemos recorrido un camino de fe, pruebas y victorias. Hoy somos una familia firme en la Palabra, sirviendo a nuestra ciudad con las puertas abiertas.</p>
+            <div class="row g-5 align-items-center about-section__intro-row">
+                <div class="col-lg-5">
+                    <!-- TODO: reemplazar por una foto real de la congregacion/templo. Placeholder generico. -->
+                    <img
+                        src="https://picsum.photos/seed/ipub-tupiza-comunidad/800/900"
+                        alt="Comunidad de IPUB Tupiza reunida en un culto"
+                        class="about-section__photo"
+                        loading="lazy"
+                        width="800"
+                        height="900">
+                </div>
+                <div class="col-lg-7">
+                    <div class="section-intro-panel">
+                        <span class="eyebrow">Qui&eacute;nes somos</span>
+                        <h2 class="mb-3">29 a&ntilde;os de fe en Tupiza</h2>
+                        <p class="mb-0">Desde 1997 hemos recorrido un camino de fe, pruebas y victorias. Hoy somos una familia firme en la Palabra, sirviendo a nuestra ciudad con las puertas abiertas.</p>
+                    </div>
+                </div>
             </div>
 
-            <div class="row text-center">
+            <div class="row text-center mt-5">
                 <div class="col-md-4 mb-4">
                     <div class="feature-card p-4 h-100">
                         <div class="icon-circle mb-4">
@@ -239,12 +253,57 @@
         </div>
     </section>
 
+    <section class="contact-cta py-5 text-white">
+        <div class="container">
+            <div class="contact-cta__intro text-center mb-5">
+                <span class="eyebrow eyebrow-light">Visitanos</span>
+                <h2 class="text-white mb-2">&iquest;C&oacute;mo llegar?</h2>
+                <p class="text-white-50 mb-0">Si te perd&eacute;s en el camino, escr&iacute;benos y te ayudamos a llegar.</p>
+            </div>
+
+            <div class="contact-cta__grid">
+                <a class="contact-cta__item" href="https://www.google.com/maps/search/?api=1&amp;query=H78M%2B2HM+Tupiza+Bolivia" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <span class="contact-cta__label">Ubicaci&oacute;n</span>
+                        <span class="contact-cta__value">H78M+2HM, Tupiza</span>
+                    </div>
+                </a>
+                <a class="contact-cta__item" href="tel:+59172541143">
+                    <i class="fas fa-phone-alt"></i>
+                    <div>
+                        <span class="contact-cta__label">Tel&eacute;fono</span>
+                        <span class="contact-cta__value">+591 72541143</span>
+                    </div>
+                </a>
+                <a class="contact-cta__item" href="mailto:ipubtupiza@gmail.com">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <span class="contact-cta__label">Email</span>
+                        <span class="contact-cta__value">ipubtupiza@gmail.com</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="text-center mt-5">
+                <a href="https://wa.me/59172541143?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20IPUB%20Tupiza." class="btn btn-primary btn-lg px-5" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-whatsapp me-2"></i>Escr&iacute;benos por WhatsApp
+                </a>
+            </div>
+        </div>
+    </section>
+
     <footer class="main-footer pt-5 pb-2 text-white">
         <div class="container">
             <div class="row pb-4">
                 <div class="col-lg-4 col-md-6 mb-4">
-                    <h5 class="footer-title mb-3">SOBRE NOSOTROS</h5>
-                    <p class="small text-white-50">Desde nuestra fundaci&oacute;n en 1997, hemos recorrido un camino de fe, pruebas y victorias. Esta es la historia de c&oacute;mo Dios ha sostenido su obra en nuestra ciudad a trav&eacute;s de los a&ntilde;os y sus siervos.</p>
+                    <img src="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" alt="Logo IPUB Tupiza" class="footer-brand mb-3">
+                    <p class="small text-white-50 mb-3">Una familia de fe en Tupiza desde 1997.</p>
+                    <div class="socials">
+                        <a href="https://www.facebook.com/share/18Bz1oMgGF/" class="text-white me-3" aria-label="Facebook de IPUB Tupiza"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/ipubtupiza?igsh=MWQ4dWR4aGRlM3JtMw==" class="text-white me-3" aria-label="Instagram de IPUB Tupiza"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.youtube.com/channel/UCKy1W7jBAjTsGBoqxIdB21g" class="text-white" aria-label="YouTube de IPUB Tupiza"><i class="fab fa-youtube"></i></a>
+                    </div>
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <h5 class="footer-title mb-3">LINKS R&Aacute;PIDOS</h5>
@@ -257,6 +316,7 @@
                 <div class="col-lg-4 col-md-12 mb-4">
                     <h5 class="footer-title mb-3">CONTACTO</h5>
                     <p class="small mb-1"><i class="fas fa-map-marker-alt me-2 text-primary"></i> H78M+2HM, Tupiza</p>
+                    <p class="small mb-1"><i class="fas fa-phone-alt me-2 text-primary"></i> +591 72541143</p>
                     <p class="small"><i class="fas fa-envelope me-2 text-primary"></i> ipubtupiza@gmail.com</p>
                 </div>
             </div>

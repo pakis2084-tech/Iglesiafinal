@@ -312,6 +312,22 @@ h6,
     font-size: 1.9rem;
   }
 }
+.about-section__photo {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 9;
+  object-fit: cover;
+  border: 1px solid rgba(20, 25, 42, 0.14);
+}
+@media (max-width: 991px) {
+  .about-section__intro-row {
+    text-align: center;
+  }
+  .about-section__intro-row .about-section__photo {
+    max-width: 420px;
+    margin: 0 auto;
+  }
+}
 .features-section {
   background-color: #F2F1EC;
 }
@@ -733,8 +749,79 @@ h6,
 .sermons-section .sermon-card:hover .card-img-wrap img {
   transform: scale(1.05);
 }
+.contact-cta {
+  position: relative;
+  overflow: hidden;
+  background: #14192A;
+}
+.contact-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(232, 163, 61, 0.2) 48%, rgba(232, 163, 61, 0.09) 53%, transparent 72%);
+  background-size: 280% 280%;
+  mix-blend-mode: screen;
+  animation: seamDrift 44s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+.contact-cta .container {
+  position: relative;
+  z-index: 1;
+}
+.contact-cta__intro h2 {
+  color: #ffffff;
+}
+.contact-cta__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.contact-cta__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.contact-cta__item i {
+  font-size: 1.2rem;
+  color: #D2102E;
+  flex-shrink: 0;
+}
+.contact-cta__item:hover {
+  border-color: #D2102E;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+}
+.contact-cta__label {
+  display: block;
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.contact-cta__value {
+  display: block;
+  font-weight: 600;
+  font-size: 0.94rem;
+}
+@media (max-width: 768px) {
+  .contact-cta__grid {
+    grid-template-columns: 1fr;
+  }
+}
 .main-footer {
-  background-color: #1a1a1a;
+  background-color: #14192A;
+}
+.main-footer .footer-brand {
+  max-height: 44px;
 }
 .main-footer .footer-title {
   font-size: 0.9rem;
