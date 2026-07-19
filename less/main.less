@@ -146,6 +146,80 @@ h1, h2, h3, h4, h5, h6,
     }
 }
 
+// Horarios de servicio (home) — misma superficie de tinta + seam, con el
+// horario real de cultos y la cuenta regresiva al próximo.
+.service-hours {
+    .seam-surface(.20, 42s, @dark-color);
+    scroll-margin-top: 90px; // para que el ancla del hero no lo tape la navbar
+
+    .container { position: relative; z-index: 1; }
+
+    &__intro h2 { color: @white; }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: @space-3;
+        max-width: 900px;
+        margin: 0 auto @space-7;
+    }
+
+    &__item {
+        text-align: center;
+        padding: @space-4 @space-2;
+        border: 1px solid fade(@white, 14%);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        &--sunday { border-color: fade(@primary-color, 60%); }
+    }
+
+    &__day {
+        font-family: @font-mono;
+        font-size: .72rem;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: fade(@white, 60%);
+    }
+
+    &__time {
+        font-family: @font-display;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    &__countdown { text-align: center; }
+
+    &__countdown-label {
+        display: block;
+        font-family: @font-mono;
+        font-size: .76rem;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: fade(@white, 55%);
+        margin-bottom: @space-2;
+    }
+
+    &__countdown-value {
+        font-family: @font-mono;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        font-size: 2.4rem;
+        letter-spacing: -0.02em;
+    }
+}
+
+@media (max-width: 768px) {
+    .service-hours__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .service-hours__countdown-value {
+        font-size: 1.9rem;
+    }
+}
+
 // Features Section — fila editorial con divisores, sin tarjetas idénticas con círculo
 .features-section {
     background-color: @light-bg;
