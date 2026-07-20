@@ -401,6 +401,46 @@ h6,
     margin-right: auto;
   }
 }
+.faq-accordion {
+  max-width: 760px;
+}
+.faq-item {
+  border-bottom: 1px solid rgba(20, 25, 42, 0.14);
+}
+.faq-item:first-child {
+  border-top: 1px solid rgba(20, 25, 42, 0.14);
+}
+.faq-item__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 24px 0;
+  text-align: left;
+  font-family: 'Alegreya', Georgia, 'Iowan Old Style', serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #14192A;
+}
+.faq-item__trigger i {
+  flex-shrink: 0;
+  color: #D2102E;
+  font-size: 0.85rem;
+  transition: transform 0.25s ease;
+}
+.faq-item__trigger:not(.collapsed) i {
+  transform: rotate(45deg);
+}
+.faq-item__panel p {
+  color: #565F72;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  padding: 0 32px 24px 0;
+  margin: 0;
+}
 .features-section {
   background-color: #F2F1EC;
 }

@@ -318,6 +318,51 @@ h1, h2, h3, h4, h5, h6,
     }
 }
 
+// FAQ (home) — acordeón propio sobre el motor de collapse de Bootstrap,
+// con la línea "hairline, no sombra" del resto del sitio.
+.faq-accordion {
+    max-width: 760px;
+}
+
+.faq-item {
+    border-bottom: 1px solid @line;
+
+    &:first-child { border-top: 1px solid @line; }
+
+    &__trigger {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: @space-4;
+        width: 100%;
+        background: none;
+        border: none;
+        padding: @space-5 0;
+        text-align: left;
+        font-family: @font-display;
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: @dark-color;
+
+        i {
+            flex-shrink: 0;
+            color: @primary-color;
+            font-size: .85rem;
+            transition: transform .25s ease;
+        }
+
+        &:not(.collapsed) i { transform: rotate(45deg); }
+    }
+
+    &__panel p {
+        color: @ink-soft;
+        font-size: .96rem;
+        line-height: 1.6;
+        padding: 0 @space-6 @space-5 0;
+        margin: 0;
+    }
+}
+
 // Features Section — fila editorial con divisores, sin tarjetas idénticas con círculo
 .features-section {
     background-color: @light-bg;
