@@ -373,6 +373,10 @@ h6,
     font-size: 1.9rem;
   }
 }
+.about-section {
+  padding-top: 96px;
+  padding-bottom: 96px;
+}
 .about-section__photo {
   width: 100%;
   height: auto;
