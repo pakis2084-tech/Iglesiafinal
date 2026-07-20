@@ -49,13 +49,6 @@ h1, h2, h3, h4, h5, h6,
     border: 1px solid @line !important;
 }
 
-// Excepción: overlays realmente flotantes (menú desplegable) sí llevan una
-// sombra funcional, tintada a la tinta de marca en vez de negro puro.
-.dropdown-menu.shadow {
-    border: none !important;
-    box-shadow: 0 14px 32px fade(@dark-color, 20%) !important;
-}
-
 .btn.shadow, .btn.shadow-sm, .btn.shadow-lg {
     border: none !important;
 }
@@ -1070,12 +1063,7 @@ body.nav-open .navbar {
     position: fixed;
     inset: 0;
     z-index: 1100;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: @space-8;
-    padding: @space-6;
+    overflow-y: auto;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-16px);
@@ -1088,9 +1076,23 @@ body.nav-open .navbar {
         transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s linear;
     }
 
-    &__links {
+    // Wrapper con min-height:100% en vez de centrado por flex directo en el
+    // contenedor con scroll: así el contenido que excede la pantalla queda
+    // siempre alcanzable desde arriba (flexbox centrado + overflow recorta
+    // el excedente superior y lo vuelve inalcanzable).
+    &__inner {
         position: relative;
         z-index: 1;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: @space-8;
+        padding: @space-6;
+    }
+
+    &__links {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1110,8 +1112,6 @@ body.nav-open .navbar {
     }
 
     &__footer {
-        position: relative;
-        z-index: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1719,7 +1719,7 @@ body.nav-open { overflow: hidden; }
     }
 
     .nav-overlay__links { gap: @space-3; }
-    .nav-overlay { gap: @space-6; }
+    .nav-overlay__inner { gap: @space-6; }
 
     .page-header {
         height: 200px; 

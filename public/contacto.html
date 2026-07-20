@@ -27,47 +27,40 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="/"><img src="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" alt="Logo IPUB" style="max-height: 38px;"></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+    <nav class="navbar">
+        <div class="container d-flex align-items-center justify-content-between">
+            <a class="navbar-brand" href="/"><img src="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" alt="Logo IPUB" style="max-height: 34px;"></a>
+            <button class="nav-toggle" type="button" id="navToggle" aria-expanded="false" aria-controls="navOverlay" aria-label="Abrir men&uacute;">
+                <span></span>
+                <span></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/contacto">Contacto</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/nosotros">Historia</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/sermon">Sermones</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/eventos">Eventos</a></li>
-                    
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle fw-bold text-dark" href="#" id="navbarMinisterios" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Ministerios
-                        </a>
-                        <ul class="dropdown-menu border-0 shadow" aria-labelledby="navbarMinisterios" style="border-radius: 12px; margin-top: 10px;">
-                            <li><a class="dropdown-item py-2" href="/escuela"><i class="fas fa-child me-2 text-ministry-escuela"></i> Escuela Dominical</a></li>
-                            <li><a class="dropdown-item py-2" href="/jovenes"><i class="fas fa-fire me-2 text-ministry-jovenes"></i> J&oacute;venes</a></li>
-                            <li><a class="dropdown-item py-2" href="/damas"><i class="fas fa-praying-hands me-2 text-ministry-damas"></i> Damas Dorcas</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="nav-item ms-lg-2">
-                        <a class="nav-link text-danger fw-bold" href="/alabanza" target="_blank">
-                            <i class="fas fa-broadcast-tower"></i> Radio
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
-                        <a class="btn btn-primary rounded-pill px-4" href="https://wa.me/59172541143?text=Hola,%20me%20gustar%C3%ADa%20saber%20c%C3%B3mo%20puedo%20hacer%20una%20donaci%C3%B3n%20o%20diezmo%20a%20la%20iglesia." target="_blank">
-                            Donar
-                        </a>
-                    </li>
-                </ul>
-
-            </div>
         </div>
     </nav>
+
+    <div class="nav-overlay" id="navOverlay">
+        <div class="nav-overlay__inner">
+        <nav class="nav-overlay__links" aria-label="Men&uacute; principal">
+            <a href="/">Inicio</a>
+            <a href="/contacto">Contacto</a>
+            <a href="/nosotros">Historia</a>
+            <a href="/sermon">Sermones</a>
+            <a href="/eventos">Eventos</a>
+            <a href="/jovenes">J&oacute;venes</a>
+            <a href="/damas">Damas Dorcas</a>
+            <a href="/escuela">Escuela Dominical</a>
+            <a href="/alabanza" target="_blank">Radio</a>
+        </nav>
+        <div class="nav-overlay__footer">
+            <a href="https://wa.me/59172541143?text=Hola,%20me%20gustar%C3%ADa%20saber%20c%C3%B3mo%20puedo%20hacer%20una%20donaci%C3%B3n%20o%20diezmo%20a%20la%20iglesia." class="btn btn-primary rounded-pill px-4" target="_blank" rel="noopener noreferrer">Donar</a>
+            <div class="nav-overlay__socials">
+                <a href="https://www.facebook.com/share/18Bz1oMgGF/" aria-label="Facebook de IPUB Tupiza"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.instagram.com/ipubtupiza?igsh=MWQ4dWR4aGRlM3JtMw==" aria-label="Instagram de IPUB Tupiza"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.youtube.com/channel/UCKy1W7jBAjTsGBoqxIdB21g" aria-label="YouTube de IPUB Tupiza"><i class="fab fa-youtube"></i></a>
+            </div>
+            <a href="tel:+59172541143" class="nav-overlay__phone"><i class="fas fa-phone-alt me-2"></i>+591 72541143</a>
+        </div>
+        </div>
+    </div>
 
 
     <section class="page-header page-header--contacto d-flex align-items-center justify-content-center text-white">
