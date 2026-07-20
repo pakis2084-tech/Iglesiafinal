@@ -1002,18 +1002,146 @@ h1, h2, h3, h4, h5, h6,
 
 // Estado normal
 .navbar {
-    transition: all 0.4s ease;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1200; // por encima de .nav-overlay (1100): el toggle debe verse y poder cerrarse con el overlay abierto
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.3s ease, padding 0.3s ease, border-color 0.3s ease;
+    padding-top: 18px;
+    padding-bottom: 18px;
 }
 
-// Estado cuando bajas con el scroll
+// Estado cuando bajas con el scroll: se vuelve una barra sólida y legible
 .navbar.scrolled {
-    padding-top: 6px;
-    padding-bottom: 6px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     border-bottom: 1px solid @line;
-    background-color: rgba(255, 255, 255, 0.95) !important;
+    background-color: rgba(255, 255, 255, 0.95);
 }
+
+// Con el overlay abierto, la barra vuelve a transparente aunque haya scroll
+// (el propio overlay ya aporta el fondo oscuro).
+body.nav-open .navbar {
+    background-color: transparent;
+    border-bottom-color: transparent;
+}
+
+// Menú hamburguesa propio (dos líneas, se transforma en X). Transparente
+// sobre el hero/page-header, oscuro cuando la barra ya es sólida.
+.nav-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    width: 30px;
+    height: 20px;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+    z-index: 1101;
+
+    span {
+        display: block;
+        height: 2px;
+        width: 100%;
+        background-color: @white;
+        transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .navbar.scrolled & span { background-color: @dark-color; }
+
+    &[aria-expanded="true"] span {
+        background-color: @white !important;
+    }
+    &[aria-expanded="true"] span:first-child { transform: translateY(4px) rotate(45deg); }
+    &[aria-expanded="true"] span:last-child { transform: translateY(-4px) rotate(-45deg); }
+}
+
+// Overlay de navegación a pantalla completa — reemplaza el dropdown/collapse
+// clásico por un panel oscuro con enlaces grandes, en vez de un menú
+// desplegable genérico.
+.nav-overlay {
+    .seam-surface(.14, 50s, @dark-color);
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: @space-8;
+    padding: @space-6;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-16px);
+    transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s linear 0.35s;
+
+    &.is-open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s linear;
+    }
+
+    &__links {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: @space-4;
+        text-align: center;
+
+        a {
+            font-family: @font-display;
+            font-weight: 700;
+            font-size: clamp(1.5rem, 4vw, 2.3rem);
+            color: @white;
+            text-decoration: none;
+            transition: color 0.2s ease;
+
+            &:hover { color: @seam-color; }
+        }
+    }
+
+    &__footer {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: @space-4;
+    }
+
+    &__socials {
+        display: flex;
+        gap: @space-4;
+
+        a {
+            color: rgba(255, 255, 255, .7);
+            font-size: 1.05rem;
+            transition: color 0.2s ease;
+
+            &:hover { color: @white; }
+        }
+    }
+
+    &__phone {
+        color: rgba(255, 255, 255, .55);
+        font-family: @font-mono;
+        font-size: .82rem;
+        text-decoration: none;
+
+        &:hover { color: @white; }
+    }
+}
+
+body.nav-open { overflow: hidden; }
 
 // --- PÁGINA DE DETALLE (SERMÓN) ---
 
@@ -1361,10 +1489,8 @@ h1, h2, h3, h4, h5, h6,
     100% { opacity: 0.5; }
 }
 
-// --- DETALLES SUELTOS: barra superior, redes, copyright ---
+// --- DETALLES SUELTOS: redes, copyright ---
 .bg-dark { background-color: @dark-color !important; }
-
-.top-bar { font-family: @font-mono; font-size: .78rem; letter-spacing: .02em; }
 
 .socials a {
     transition: color .2s ease, opacity .2s ease;
@@ -1592,18 +1718,8 @@ h1, h2, h3, h4, h5, h6,
         }
     }
 
-    .navbar-collapse {
-        background-color: @white;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        padding: @space-5;
-        border-radius: 0;
-        box-shadow: 0 12px 28px fade(@dark-color, 18%); // panel flotante real sobre el contenido
-        border-top: 1px solid @line;
-        z-index: 1000;
-    }
+    .nav-overlay__links { gap: @space-3; }
+    .nav-overlay { gap: @space-6; }
 
     .page-header {
         height: 200px; 

@@ -208,6 +208,21 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', window.scrollY > 50));
     }
 
+    const navToggle = document.getElementById('navToggle');
+    const navOverlay = document.getElementById('navOverlay');
+    if (navToggle && navOverlay) {
+        const setOpen = (open) => {
+            navOverlay.classList.toggle('is-open', open);
+            navToggle.setAttribute('aria-expanded', String(open));
+            document.body.classList.toggle('nav-open', open);
+        };
+        navToggle.addEventListener('click', () => setOpen(!navOverlay.classList.contains('is-open')));
+        navOverlay.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') setOpen(false);
+        });
+    }
+
     const contenedorSermones = document.getElementById('contenedor-sermones');
     if (contenedorSermones) {
         fetch('/api/sermones')

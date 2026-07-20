@@ -1184,15 +1184,146 @@ h6,
   filter: grayscale(0%);
 }
 .navbar {
-  transition: all 0.4s ease;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1200;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background-color 0.3s ease, padding 0.3s ease, border-color 0.3s ease;
+  padding-top: 18px;
+  padding-bottom: 18px;
 }
 .navbar.scrolled {
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid rgba(20, 25, 42, 0.14);
-  background-color: rgba(255, 255, 255, 0.95) !important;
+  background-color: rgba(255, 255, 255, 0.95);
+}
+body.nav-open .navbar {
+  background-color: transparent;
+  border-bottom-color: transparent;
+}
+.nav-toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  width: 30px;
+  height: 20px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  z-index: 1101;
+}
+.nav-toggle span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: #ffffff;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+.navbar.scrolled .nav-toggle span {
+  background-color: #14192A;
+}
+.nav-toggle[aria-expanded="true"] span {
+  background-color: #ffffff !important;
+}
+.nav-toggle[aria-expanded="true"] span:first-child {
+  transform: translateY(4px) rotate(45deg);
+}
+.nav-toggle[aria-expanded="true"] span:last-child {
+  transform: translateY(-4px) rotate(-45deg);
+}
+.nav-overlay {
+  position: relative;
+  overflow: hidden;
+  background: #14192A;
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 64px;
+  padding: 32px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-16px);
+  transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s linear 0.35s;
+}
+.nav-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(232, 163, 61, 0.14) 48%, rgba(232, 163, 61, 0.063) 53%, transparent 72%);
+  background-size: 280% 280%;
+  mix-blend-mode: screen;
+  animation: seamDrift 50s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+.nav-overlay.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s linear;
+}
+.nav-overlay__links {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.nav-overlay__links a {
+  font-family: 'Alegreya', Georgia, 'Iowan Old Style', serif;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 4vw, 2.3rem);
+  color: #ffffff;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.nav-overlay__links a:hover {
+  color: #E8A33D;
+}
+.nav-overlay__footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.nav-overlay__socials {
+  display: flex;
+  gap: 16px;
+}
+.nav-overlay__socials a {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.05rem;
+  transition: color 0.2s ease;
+}
+.nav-overlay__socials a:hover {
+  color: #ffffff;
+}
+.nav-overlay__phone {
+  color: rgba(255, 255, 255, 0.55);
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+.nav-overlay__phone:hover {
+  color: #ffffff;
+}
+body.nav-open {
+  overflow: hidden;
 }
 .video-container {
   position: relative;
@@ -1586,11 +1717,6 @@ h6,
 .bg-dark {
   background-color: #14192A !important;
 }
-.top-bar {
-  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
-  font-size: 0.78rem;
-  letter-spacing: 0.02em;
-}
 .socials a {
   transition: color 0.2s ease, opacity 0.2s ease;
 }
@@ -1826,17 +1952,11 @@ h6,
   .hero-section .hero-cta.btn-lg {
     width: 100%;
   }
-  .navbar-collapse {
-    background-color: #ffffff;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    padding: 24px;
-    border-radius: 0;
-    box-shadow: 0 12px 28px rgba(20, 25, 42, 0.18);
-    border-top: 1px solid rgba(20, 25, 42, 0.14);
-    z-index: 1000;
+  .nav-overlay__links {
+    gap: 12px;
+  }
+  .nav-overlay {
+    gap: 32px;
   }
   .page-header {
     height: 200px;
