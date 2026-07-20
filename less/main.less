@@ -277,6 +277,47 @@ h1, h2, h3, h4, h5, h6,
     }
 }
 
+// Pastor / liderazgo (home) — foto grande + bio corta, mismo patrón de
+// imagen+texto que Quiénes somos pero con la imagen al lado opuesto.
+.pastor-section {
+    &__photo {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 7 / 8.6;
+        object-fit: cover;
+        border: 1px solid @line;
+    }
+
+    &__badge {
+        display: inline-block;
+        border: 1px solid @line;
+        border-radius: 999px;
+        padding: 6px 18px;
+        font-family: @font-body;
+        font-weight: 600;
+        font-size: .68rem;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: @primary-deep;
+        margin-bottom: @space-4;
+    }
+
+    &__bio {
+        color: @ink-soft;
+        font-size: 1.02rem;
+        max-width: 52ch;
+    }
+}
+
+@media (max-width: 991px) {
+    .pastor-section__row {
+        text-align: center;
+
+        .pastor-section__photo { max-width: 380px; margin: 0 auto; }
+        .pastor-section__bio { margin-left: auto; margin-right: auto; }
+    }
+}
+
 // Features Section — fila editorial con divisores, sin tarjetas idénticas con círculo
 .features-section {
     background-color: @light-bg;

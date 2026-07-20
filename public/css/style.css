@@ -363,6 +363,44 @@ h6,
     margin: 0 auto;
   }
 }
+.pastor-section__photo {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 7 / 8.6;
+  object-fit: cover;
+  border: 1px solid rgba(20, 25, 42, 0.14);
+}
+.pastor-section__badge {
+  display: inline-block;
+  border: 1px solid rgba(20, 25, 42, 0.14);
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-family: 'Work Sans', -apple-system, 'Segoe UI', sans-serif;
+  font-weight: 600;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #A80C24;
+  margin-bottom: 16px;
+}
+.pastor-section__bio {
+  color: #565F72;
+  font-size: 1.02rem;
+  max-width: 52ch;
+}
+@media (max-width: 991px) {
+  .pastor-section__row {
+    text-align: center;
+  }
+  .pastor-section__row .pastor-section__photo {
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  .pastor-section__row .pastor-section__bio {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
 .features-section {
   background-color: #F2F1EC;
 }
