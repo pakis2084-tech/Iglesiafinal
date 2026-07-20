@@ -1045,73 +1045,58 @@ h6,
 .sermons-section .sermon-card:hover .card-img-wrap img {
   transform: scale(1.05);
 }
-.contact-cta {
-  position: relative;
-  overflow: hidden;
-  background: #14192A;
+.contact-section {
+  scroll-margin-top: 80px;
 }
-.contact-cta::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(100deg, transparent 30%, rgba(232, 163, 61, 0.2) 48%, rgba(232, 163, 61, 0.09) 53%, transparent 72%);
-  background-size: 280% 280%;
-  mix-blend-mode: screen;
-  animation: seamDrift 44s ease-in-out infinite alternate;
-  pointer-events: none;
-  z-index: 0;
+.contact-info-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
 }
-.contact-cta .container {
-  position: relative;
-  z-index: 1;
-}
-.contact-cta__intro h2 {
-  color: #ffffff;
-}
-.contact-cta__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  max-width: 960px;
-  margin: 0 auto;
-}
-.contact-cta__item {
+.contact-info-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #ffffff;
+  gap: 16px;
+  padding: 16px 24px;
+  border: 1px solid rgba(20, 25, 42, 0.14);
+  color: #14192A;
   text-decoration: none;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease;
 }
-.contact-cta__item i {
-  font-size: 1.2rem;
+.contact-info-item i {
+  font-size: 1.15rem;
   color: #D2102E;
   flex-shrink: 0;
+  width: 20px;
+  text-align: center;
 }
-.contact-cta__item:hover {
+.contact-info-item:hover {
   border-color: #D2102E;
-  background: rgba(255, 255, 255, 0.04);
-  color: #ffffff;
+  color: #14192A;
 }
-.contact-cta__label {
+.contact-info-item__label {
   display: block;
   font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
   font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+  color: #8992A3;
 }
-.contact-cta__value {
+.contact-info-item__value {
   display: block;
   font-weight: 600;
   font-size: 0.94rem;
 }
-@media (max-width: 768px) {
-  .contact-cta__grid {
-    grid-template-columns: 1fr;
-  }
+.contact-info-item--whatsapp {
+  border-color: rgba(37, 211, 102, 0.4);
+  background: rgba(37, 211, 102, 0.06);
+}
+.contact-info-item--whatsapp i {
+  color: #128c7e;
+}
+.contact-info-item--whatsapp:hover {
+  border-color: #128c7e;
 }
 .main-footer {
   background-color: #14192A;
@@ -1200,12 +1185,12 @@ h6,
 }
 .navbar {
   transition: all 0.4s ease;
-  padding-top: 15px;
-  padding-bottom: 15px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 .navbar.scrolled {
-  padding-top: 5px;
-  padding-bottom: 5px;
+  padding-top: 6px;
+  padding-bottom: 6px;
   border-bottom: 1px solid rgba(20, 25, 42, 0.14);
   background-color: rgba(255, 255, 255, 0.95) !important;
 }

@@ -168,8 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCountdown();
     }
 
-    const contactForm = document.querySelector('form');
-    if (contactForm && window.location.pathname.includes('contacto')) {
+    document.querySelectorAll('.church-contact-form').forEach((contactForm) => {
         contactForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const btn = contactForm.querySelector('button');
@@ -177,15 +176,17 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.innerText = 'Enviando mensaje...';
             btn.disabled = true;
 
+            const campo = (name) => contactForm.querySelector(`[name="${name}"]`)?.value || '';
+
             try {
                 const response = await fetch('/api/mensajes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        nombre: document.getElementById('nombre').value,
-                        contacto: document.getElementById('contacto').value,
-                        mensaje: document.getElementById('mensaje').value,
-                        website: document.getElementById('website') ? document.getElementById('website').value : ''
+                        nombre: campo('nombre'),
+                        contacto: campo('contacto'),
+                        mensaje: campo('mensaje'),
+                        website: campo('website')
                     })
                 });
                 const data = await response.json();
@@ -200,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.disabled = false;
             }
         });
-    }
+    });
 
     const navbar = document.querySelector('.navbar');
     if (navbar) {

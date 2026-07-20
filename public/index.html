@@ -33,7 +33,7 @@
         </div>
     </div>
 
-    <div class="top-bar bg-dark text-white py-2 small">
+    <div class="top-bar bg-dark text-white py-1 small d-none d-md-block">
         <div class="container d-flex justify-content-between align-items-center">
             <span><i class="fas fa-phone-alt me-2"></i> +591 72541143</span>
             <div class="socials">
@@ -46,7 +46,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="/"><img src="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" alt="Logo IPUB" style="max-height: 50px;"></a>
+            <a class="navbar-brand" href="/"><img src="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" alt="Logo IPUB" style="max-height: 38px;"></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -285,7 +285,7 @@
 
             <div class="faq-accordion mx-auto" id="faqAccordion">
                 <div class="faq-item">
-                    <button class="faq-item__trigger" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="false" aria-controls="faq1">
+                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="false" aria-controls="faq1">
                         &iquest;Cu&aacute;les son los horarios de los cultos?
                         <i class="fas fa-plus" aria-hidden="true"></i>
                     </button>
@@ -295,7 +295,7 @@
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-item__trigger" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2">
+                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2">
                         &iquest;Necesito avisar antes de venir?
                         <i class="fas fa-plus" aria-hidden="true"></i>
                     </button>
@@ -305,7 +305,7 @@
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-item__trigger" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3">
+                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3">
                         &iquest;Tienen espacios para ni&ntilde;os, j&oacute;venes y mujeres?
                         <i class="fas fa-plus" aria-hidden="true"></i>
                     </button>
@@ -315,7 +315,7 @@
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-item__trigger" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">
+                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">
                         &iquest;C&oacute;mo puedo bautizarme o aprender m&aacute;s sobre la fe?
                         <i class="fas fa-plus" aria-hidden="true"></i>
                     </button>
@@ -325,17 +325,17 @@
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-item__trigger" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false" aria-controls="faq5">
+                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false" aria-controls="faq5">
                         &iquest;C&oacute;mo llego a la iglesia?
                         <i class="fas fa-plus" aria-hidden="true"></i>
                     </button>
                     <div id="faq5" class="collapse faq-item__panel" data-bs-parent="#faqAccordion">
-                        <p class="mb-0">Estamos en H78M+2HM, Tupiza. Puedes ver la ubicaci&oacute;n exacta en la secci&oacute;n &iquest;C&oacute;mo llegar? m&aacute;s abajo o escribirnos si te perdiste en el camino.</p>
+                        <p class="mb-0">Estamos en H78M+2HM, Tupiza. Puedes ver la ubicaci&oacute;n exacta en la secci&oacute;n Contacto m&aacute;s abajo o escribirnos si te perdiste en el camino.</p>
                     </div>
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-item__trigger" type="button" data-bs-toggle="collapse" data-bs-target="#faq6" aria-expanded="false" aria-controls="faq6">
+                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6" aria-expanded="false" aria-controls="faq6">
                         &iquest;C&oacute;mo puedo dar mi diezmo u ofrenda?
                         <i class="fas fa-plus" aria-hidden="true"></i>
                     </button>
@@ -347,42 +347,72 @@
         </div>
     </section>
 
-    <section class="contact-cta py-5 text-white">
-        <div class="container">
-            <div class="contact-cta__intro text-center mb-5">
-                <span class="eyebrow eyebrow-light">Visitanos</span>
-                <h2 class="text-white mb-2">&iquest;C&oacute;mo llegar?</h2>
-                <p class="text-white-50 mb-0">Si te perd&eacute;s en el camino, escr&iacute;benos y te ayudamos a llegar.</p>
+    <section id="contacto" class="contact-section py-5 bg-white">
+        <div class="container py-4">
+            <div class="section-intro-panel mx-auto text-center mb-5">
+                <h2 class="mb-2">Hablemos</h2>
+                <p class="mb-0">Escr&iacute;benos, visitanos o mand&aacute;nos un mensaje directo. Te respondemos.</p>
             </div>
 
-            <div class="contact-cta__grid">
-                <a class="contact-cta__item" href="https://www.google.com/maps/search/?api=1&amp;query=H78M%2B2HM+Tupiza+Bolivia" target="_blank" rel="noopener noreferrer">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <div>
-                        <span class="contact-cta__label">Ubicaci&oacute;n</span>
-                        <span class="contact-cta__value">H78M+2HM, Tupiza</span>
-                    </div>
-                </a>
-                <a class="contact-cta__item" href="tel:+59172541143">
-                    <i class="fas fa-phone-alt"></i>
-                    <div>
-                        <span class="contact-cta__label">Tel&eacute;fono</span>
-                        <span class="contact-cta__value">+591 72541143</span>
-                    </div>
-                </a>
-                <a class="contact-cta__item" href="mailto:ipubtupiza@gmail.com">
-                    <i class="fas fa-envelope"></i>
-                    <div>
-                        <span class="contact-cta__label">Email</span>
-                        <span class="contact-cta__value">ipubtupiza@gmail.com</span>
-                    </div>
-                </a>
-            </div>
+            <div class="row g-5">
+                <div class="col-lg-7">
+                    <form class="church-contact-form contact-wrap">
+                        <div class="row">
+                            <div style="position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden;" aria-hidden="true">
+                                <label for="home-website">No llenar este campo</label>
+                                <input type="text" id="home-website" name="website" class="form-control" autocomplete="off" tabindex="-1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="home-nombre" class="form-label text-muted small fw-bold">NOMBRE COMPLETO</label>
+                                <input type="text" id="home-nombre" name="nombre" class="form-control" placeholder="Ej: Juan P&eacute;rez" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="home-contacto" class="form-label text-muted small fw-bold">TEL&Eacute;FONO O EMAIL</label>
+                                <input type="text" id="home-contacto" name="contacto" class="form-control" placeholder="Ej: 72541143 o juan@email.com" required>
+                            </div>
+                            <div class="col-12 mb-4">
+                                <label for="home-mensaje" class="form-label text-muted small fw-bold">MENSAJE</label>
+                                <textarea id="home-mensaje" name="mensaje" class="form-control" rows="5" placeholder="Escribe tu petici&oacute;n de oraci&oacute;n o mensaje aqu&iacute;..." required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5">Enviar Mensaje</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
 
-            <div class="text-center mt-5">
-                <a href="https://wa.me/59172541143?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20IPUB%20Tupiza." class="btn btn-primary btn-lg px-5" target="_blank" rel="noopener noreferrer">
-                    <i class="fab fa-whatsapp me-2"></i>Escr&iacute;benos por WhatsApp
-                </a>
+                <div class="col-lg-5">
+                    <div class="contact-info-stack">
+                        <a class="contact-info-item" href="https://www.google.com/maps/search/?api=1&amp;query=H78M%2B2HM+Tupiza+Bolivia" target="_blank" rel="noopener noreferrer">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <span class="contact-info-item__label">Ubicaci&oacute;n</span>
+                                <span class="contact-info-item__value">H78M+2HM, Tupiza</span>
+                            </div>
+                        </a>
+                        <a class="contact-info-item" href="tel:+59172541143">
+                            <i class="fas fa-phone-alt"></i>
+                            <div>
+                                <span class="contact-info-item__label">Tel&eacute;fono</span>
+                                <span class="contact-info-item__value">+591 72541143</span>
+                            </div>
+                        </a>
+                        <a class="contact-info-item" href="mailto:ipubtupiza@gmail.com">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <span class="contact-info-item__label">Email</span>
+                                <span class="contact-info-item__value">ipubtupiza@gmail.com</span>
+                            </div>
+                        </a>
+                        <a class="contact-info-item contact-info-item--whatsapp" href="https://wa.me/59172541143?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20IPUB%20Tupiza." target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-whatsapp"></i>
+                            <div>
+                                <span class="contact-info-item__label">Directo</span>
+                                <span class="contact-info-item__value">Escr&iacute;benos por WhatsApp</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

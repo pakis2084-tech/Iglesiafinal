@@ -29,7 +29,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="/"><img src="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" alt="Logo IPUB" style="max-height: 50px;"></a>
+            <a class="navbar-brand" href="/"><img src="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" alt="Logo IPUB" style="max-height: 38px;"></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -132,23 +132,23 @@
 
                 <div class="col-lg-8">
                     <h3 class="mb-4 fw-bold">Env&iacute;anos un Mensaje</h3>
-                    <form>
+                    <form class="church-contact-form">
                         <div class="row">
                             <div style="position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden;" aria-hidden="true">
                                 <label for="website">No llenar este campo</label>
-                                <input type="text" id="website" class="form-control" autocomplete="off" tabindex="-1">
+                                <input type="text" id="website" name="website" class="form-control" autocomplete="off" tabindex="-1">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="nombre" class="form-label text-muted small fw-bold">NOMBRE COMPLETO</label>
-                                <input type="text" id="nombre" class="form-control" placeholder="Ej: Juan P&eacute;rez" required>
+                                <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Ej: Juan P&eacute;rez" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="contacto" class="form-label text-muted small fw-bold">TEL&Eacute;FONO O EMAIL</label>
-                                <input type="text" id="contacto" class="form-control" placeholder="Ej: 72541143 o juan@email.com" required>
+                                <input type="text" id="contacto" name="contacto" class="form-control" placeholder="Ej: 72541143 o juan@email.com" required>
                             </div>
                             <div class="col-12 mb-4">
                                 <label for="mensaje" class="form-label text-muted small fw-bold">MENSAJE</label>
-                                <textarea id="mensaje" class="form-control" rows="5" placeholder="Escribe tu petici&oacute;n de oraci&oacute;n o mensaje aqu&iacute;..." required></textarea>
+                                <textarea id="mensaje" name="mensaje" class="form-control" rows="5" placeholder="Escribe tu petici&oacute;n de oraci&oacute;n o mensaje aqu&iacute;..." required></textarea>
                             </div>
                             <div class="col-12">
                                 <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5">Enviar Mensaje</button>
