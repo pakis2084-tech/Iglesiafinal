@@ -242,6 +242,75 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
+    const eventosCarouselTrack = document.getElementById('eventosCarouselTrack');
+    if (eventosCarouselTrack) {
+        const categoriasCarousel = {
+            general: { label: 'General', chipClass: 'events-carousel-card__chip--general' },
+            jovenes: { label: 'Jovenes', chipClass: 'events-carousel-card__chip--jovenes' },
+            damas: { label: 'Damas Dorcas', chipClass: 'events-carousel-card__chip--damas' },
+            escuela: { label: 'Escuela Dominical', chipClass: 'events-carousel-card__chip--escuela' }
+        };
+        const prevBtn = document.getElementById('eventosCarouselPrev');
+        const nextBtn = document.getElementById('eventosCarouselNext');
+
+        const actualizarNavCarousel = () => {
+            if (!prevBtn || !nextBtn) return;
+            prevBtn.disabled = eventosCarouselTrack.scrollLeft <= 4;
+            nextBtn.disabled = eventosCarouselTrack.scrollLeft + eventosCarouselTrack.clientWidth >= eventosCarouselTrack.scrollWidth - 4;
+        };
+
+        fetch('/api/eventos')
+            .then((respuesta) => respuesta.json())
+            .then((eventos) => {
+                if (!eventos.length) {
+                    eventosCarouselTrack.innerHTML = '<div class="events-carousel-empty"><i class="fas fa-calendar-plus fa-2x text-primary mb-3"></i><p class="mb-0 text-muted">La proxima agenda se publicara aqui.</p></div>';
+                    return;
+                }
+
+                const proximos = [...eventos].sort((a, b) => parseDateValue(a.fecha) - parseDateValue(b.fecha)).slice(0, 6);
+
+                eventosCarouselTrack.innerHTML = proximos.map((evento) => {
+                    const meta = categoriasCarousel[evento.categoria || 'general'] || categoriasCarousel.general;
+                    const imagen = normalizeImageUrl(evento.imagen, '');
+                    const placeholderHtml = '<div class="events-carousel-card__placeholder"><i class="fas fa-calendar-alt" aria-hidden="true"></i><span>Foto pr&oacute;ximamente</span></div>';
+                    const media = imagen
+                        ? `<img src="${imagen}" alt="${escapeHtml(evento.titulo || 'Evento')}" loading="lazy" data-fallback="true">`
+                        : placeholderHtml;
+                    const idSeguro = String(evento.id || 'evento').replace(/[^a-zA-Z0-9_-]/g, '');
+
+                    return `<article class="events-carousel-card">
+                        <div class="events-carousel-card__media">
+                            ${media}
+                            <span class="events-carousel-card__date">${escapeHtml(evento.fecha || 'Por confirmar')} &middot; ${escapeHtml(evento.hora || 'Por confirmar')}</span>
+                            <span class="events-carousel-card__chip ${meta.chipClass}">${meta.label}</span>
+                        </div>
+                        <div class="events-carousel-card__body">
+                            <h3 class="events-carousel-card__title">${escapeHtml(evento.titulo || 'Evento')}</h3>
+                            <p class="events-carousel-card__excerpt">${escapeHtml(evento.descripcion || 'Pronto compartiremos mas detalles de esta actividad.')}</p>
+                            <a href="/eventos?evento=${idSeguro}" class="events-carousel-card__link">Ver evento <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                        </div>
+                    </article>`;
+                }).join('');
+
+                eventosCarouselTrack.querySelectorAll('img[data-fallback="true"]').forEach((img) => {
+                    img.addEventListener('error', () => {
+                        img.outerHTML = '<div class="events-carousel-card__placeholder"><i class="fas fa-calendar-alt" aria-hidden="true"></i><span>Foto pr&oacute;ximamente</span></div>';
+                    }, { once: true });
+                });
+
+                if (prevBtn && nextBtn) {
+                    const paso = () => (eventosCarouselTrack.querySelector('.events-carousel-card')?.offsetWidth || 340) + 28;
+                    prevBtn.addEventListener('click', () => eventosCarouselTrack.scrollBy({ left: -paso(), behavior: 'smooth' }));
+                    nextBtn.addEventListener('click', () => eventosCarouselTrack.scrollBy({ left: paso(), behavior: 'smooth' }));
+                    eventosCarouselTrack.addEventListener('scroll', actualizarNavCarousel);
+                    actualizarNavCarousel();
+                }
+            })
+            .catch(() => {
+                eventosCarouselTrack.innerHTML = '<div class="events-carousel-empty"><p class="mb-0 text-muted">No fue posible cargar la agenda. Intenta recargar la pagina.</p></div>';
+            });
+    }
+
     const contenedorEventos = document.getElementById('contenedor-eventos');
     if (contenedorEventos) {
         let listaEventosGlobal = [];
