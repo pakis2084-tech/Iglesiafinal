@@ -98,7 +98,6 @@ h6,
   letter-spacing: -0.01em;
 }
 .eyebrow,
-.sub-heading,
 .ministry-link-card__eyebrow {
   font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
   font-size: 0.74rem;
@@ -198,7 +197,6 @@ h6,
   max-width: 720px;
 }
 .hero-section .hero-badge {
-  gap: 8px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 999px;
   padding: 6px 20px;
@@ -208,18 +206,6 @@ h6,
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #E8A33D;
-}
-.hero-section .hero-badge::before {
-  content: '';
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #E8A33D;
-  display: inline-block;
-}
-.hero-section .sub-heading {
-  color: rgba(255, 255, 255, 0.72);
-  letter-spacing: 0.22em;
 }
 .hero-section .hero-title {
   font-size: clamp(2.6rem, 6vw, 4.6rem);
@@ -251,21 +237,6 @@ h6,
 .hero-section .hero-cta:hover {
   background-color: #ffffff;
   color: #14192A;
-}
-.hero-section .hero-secondary-link {
-  font-family: 'Work Sans', -apple-system, 'Segoe UI', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.68);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-.hero-section .hero-secondary-link i {
-  margin-left: 4px;
-  font-size: 0.8em;
-}
-.hero-section .hero-secondary-link:hover {
-  color: #ffffff;
 }
 .next-event-bar {
   position: relative;

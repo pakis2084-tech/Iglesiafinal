@@ -19,7 +19,6 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .eyebrow,
-.sub-heading,
 .ministry-link-card__eyebrow {
     font-family: @font-mono;
     font-size: .74rem;
@@ -122,7 +121,6 @@ h1, h2, h3, h4, h5, h6,
     }
 
     .hero-badge {
-        gap: @space-2;
         border: 1px solid rgba(255, 255, 255, .35);
         border-radius: 999px;
         padding: 6px 20px;
@@ -132,20 +130,6 @@ h1, h2, h3, h4, h5, h6,
         letter-spacing: .16em;
         text-transform: uppercase;
         color: @seam-color;
-
-        &::before {
-            content: '';
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: @seam-color;
-            display: inline-block;
-        }
-    }
-
-    .sub-heading {
-        color: rgba(255, 255, 255, .72);
-        letter-spacing: .22em;
     }
 
     .hero-title {
@@ -183,18 +167,6 @@ h1, h2, h3, h4, h5, h6,
         }
     }
 
-    .hero-secondary-link {
-        font-family: @font-body;
-        font-size: .85rem;
-        font-weight: 500;
-        color: rgba(255, 255, 255, .68);
-        text-decoration: none;
-        transition: color .2s ease;
-
-        i { margin-left: @space-1; font-size: .8em; }
-
-        &:hover { color: @white; }
-    }
 }
 
 // Barra de "Próximo servicio" — misma superficie de tinta + seam que el resto
