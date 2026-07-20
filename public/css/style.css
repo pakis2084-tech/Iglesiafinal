@@ -189,15 +189,48 @@ h6,
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(0deg, rgba(20, 25, 42, 0.75) 0%, transparent 45%), rgba(20, 25, 42, 0.55);
+  background: radial-gradient(ellipse 70% 60% at 50% 45%, rgba(20, 25, 42, 0.35), rgba(20, 25, 42, 0.84) 75%), linear-gradient(0deg, rgba(20, 25, 42, 0.78) 0%, transparent 45%);
   z-index: 1;
 }
 .hero-section .container {
   position: relative;
   z-index: 2;
+  max-width: 720px;
+}
+.hero-section .hero-badge {
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  padding: 6px 20px;
+  font-family: 'Work Sans', -apple-system, 'Segoe UI', sans-serif;
+  font-weight: 600;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #E8A33D;
+}
+.hero-section .hero-badge::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #E8A33D;
+  display: inline-block;
 }
 .hero-section .sub-heading {
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 0.22em;
+}
+.hero-section .hero-title {
+  font-size: clamp(2.6rem, 6vw, 4.6rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+}
+.hero-section .hero-title em {
+  font-style: italic;
+  font-weight: 500;
+  color: #E8A33D;
 }
 .hero-section .hero-lead {
   font-size: 1.15rem;
@@ -205,6 +238,34 @@ h6,
   max-width: 46ch;
   margin-left: auto;
   margin-right: auto;
+}
+.hero-section .hero-cta {
+  border-width: 1.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+.hero-section .hero-cta i {
+  margin-right: 8px;
+}
+.hero-section .hero-cta:hover {
+  background-color: #ffffff;
+  color: #14192A;
+}
+.hero-section .hero-secondary-link {
+  font-family: 'Work Sans', -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.68);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.hero-section .hero-secondary-link i {
+  margin-left: 4px;
+  font-size: 0.8em;
+}
+.hero-section .hero-secondary-link:hover {
+  color: #ffffff;
 }
 .next-event-bar {
   position: relative;
@@ -1527,19 +1588,23 @@ h6,
   }
   .hero-section {
     height: auto !important;
-    min-height: 500px;
+    min-height: 100vh;
     padding: 80px 0;
     text-align: center;
   }
-  .hero-section h1.display-3 {
-    font-size: 2.5rem;
+  .hero-section .hero-badge {
+    font-size: 0.62rem;
+    padding: 5px 14px;
+    margin-bottom: 16px !important;
+  }
+  .hero-section .hero-title {
+    font-size: clamp(2.1rem, 9vw, 2.8rem);
   }
   .hero-section .hero-lead {
     font-size: 1rem;
   }
-  .hero-section .btn-lg {
+  .hero-section .hero-cta.btn-lg {
     width: 100%;
-    margin-bottom: 10px;
   }
   .navbar-collapse {
     background-color: #ffffff;
