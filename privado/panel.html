@@ -22,6 +22,7 @@
                 </div>
                 <a id="btn-menu-sermones" class="active" data-tab="sermones"><i class="fas fa-video me-2"></i> Sermones</a>
                 <a id="btn-menu-eventos" data-tab="eventos"><i class="far fa-calendar-alt me-2"></i> Eventos</a>
+                <a id="btn-menu-limpieza" data-tab="limpieza"><i class="fas fa-broom me-2"></i> Limpieza</a>
                 <a id="btn-menu-mensajes" data-tab="mensajes"><i class="fas fa-envelope me-2"></i> Mensajes <span id="badge-mensajes" class="badge bg-danger ms-2" style="display:none;">0</span></a>
                 <a id="btn-logout"><i class="fas fa-sign-out-alt me-2"></i> Salir</a>
             </div>
@@ -198,6 +199,44 @@
                                     <tbody id="lista-eventos-admin"></tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="seccion-limpieza" class="seccion-panel">
+                    <div class="card shadow-sm border-0 mb-5">
+                        <div class="card-header bg-white fw-bold py-3 text-secondary">
+                            <i class="fas fa-broom me-2 text-primary"></i> Rol de Limpieza
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="formLimpieza">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold small text-muted">FECHA BASE</label>
+                                        <input type="date" id="limpieza-fechaBase" class="form-control" required>
+                                        <small class="text-muted">Lunes de referencia desde el que se calcula la rotacion.</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold small text-muted">INDICE BASE</label>
+                                        <input type="number" id="limpieza-indiceBase" class="form-control" min="0" step="1" required>
+                                        <small class="text-muted">Posicion del equipo que le toca en la fecha base.</small>
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label class="form-label fw-bold small text-muted">AGREGAR INTEGRANTE</label>
+                                        <div class="input-group">
+                                            <input type="text" id="limpieza-nuevo-nombre" class="form-control" placeholder="Ej: Hna. Fernanda y familia" maxlength="100">
+                                            <button id="btn-agregar-integrante" type="button" class="btn btn-outline-primary"><i class="fas fa-plus me-1"></i>Agregar</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 mb-4">
+                                        <label class="form-label fw-bold small text-muted">INTEGRANTES (EN ORDEN DE ROTACION)</label>
+                                        <ul id="lista-limpieza-integrantes" class="list-group"></ul>
+                                    </div>
+                                    <div class="col-12 text-end">
+                                        <button id="btn-guardar-limpieza" type="submit" class="btn btn-admin-primary fw-bold px-4">Guardar Equipo de Limpieza</button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

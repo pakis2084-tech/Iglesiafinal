@@ -2,6 +2,7 @@ const state = {
     session: null,
     sermons: [],
     events: [],
+    equipoLimpieza: { equipo: [], fechaBase: '', indiceBase: 0 },
     editingSermonId: '',
     editingEventId: '',
     inactivityTimer: null
@@ -10,6 +11,7 @@ const state = {
 const tabTitles = {
     sermones: 'Gestion de Sermones',
     eventos: 'Agenda de Eventos',
+    limpieza: 'Rol de Limpieza',
     mensajes: 'Bandeja de Entrada'
 };
 
@@ -63,6 +65,7 @@ async function initPanel() {
     await Promise.all([
         state.session.permissions.canManageSermons ? loadSermons() : Promise.resolve(),
         state.session.permissions.canManageEvents ? loadEvents() : Promise.resolve(),
+        state.session.permissions.canManageLimpieza ? loadLimpieza() : Promise.resolve(),
         state.session.permissions.canManageMessages ? loadMessages() : Promise.resolve()
     ]);
 
@@ -70,7 +73,9 @@ async function initPanel() {
         ? 'mensajes'
         : window.location.hash === '#eventos'
             ? 'eventos'
-            : 'sermones';
+            : window.location.hash === '#limpieza'
+                ? 'limpieza'
+                : 'sermones';
     changeTab(requestedTab);
 }
 
@@ -82,6 +87,7 @@ function applySessionUi() {
 
     toggleSectionAccess('sermones', Boolean(state.session.permissions.canManageSermons));
     toggleSectionAccess('eventos', Boolean(state.session.permissions.canManageEvents));
+    toggleSectionAccess('limpieza', Boolean(state.session.permissions.canManageLimpieza));
     if (!state.session.permissions.canManageMessages) {
         toggleSectionAccess('mensajes', false);
     } else {
@@ -115,6 +121,7 @@ function getAvailableTabs() {
     const tabs = [];
     if (state.session.permissions.canManageSermons) tabs.push('sermones');
     if (state.session.permissions.canManageEvents) tabs.push('eventos');
+    if (state.session.permissions.canManageLimpieza) tabs.push('limpieza');
     if (state.session.permissions.canManageMessages) tabs.push('mensajes');
     return tabs;
 }
@@ -162,6 +169,8 @@ function changeTab(tab) {
 function bindForms() {
     document.getElementById('formSermon').addEventListener('submit', handleSermonSubmit);
     document.getElementById('formEvento').addEventListener('submit', handleEventSubmit);
+    document.getElementById('formLimpieza').addEventListener('submit', handleLimpiezaSubmit);
+    document.getElementById('btn-agregar-integrante').addEventListener('click', handleAgregarIntegranteLimpieza);
     document.getElementById('formPassword').addEventListener('submit', handlePasswordSubmit);
     document.getElementById('toggle-password-form').addEventListener('click', togglePasswordForm);
 }
@@ -528,6 +537,125 @@ async function deleteEvent(eventId) {
     }
 
     await loadEvents();
+}
+
+async function loadLimpieza() {
+    const data = await fetchJson('/api/equipo-limpieza');
+    state.equipoLimpieza = data && Array.isArray(data.equipo)
+        ? data
+        : { equipo: [], fechaBase: '', indiceBase: 0 };
+    renderLimpiezaForm();
+}
+
+function renderLimpiezaForm() {
+    document.getElementById('limpieza-fechaBase').value = state.equipoLimpieza.fechaBase || '';
+    document.getElementById('limpieza-indiceBase').value = Number.isFinite(state.equipoLimpieza.indiceBase)
+        ? state.equipoLimpieza.indiceBase
+        : 0;
+    renderLimpiezaLista();
+}
+
+function renderLimpiezaLista() {
+    const lista = document.getElementById('lista-limpieza-integrantes');
+    lista.replaceChildren();
+
+    const equipo = state.equipoLimpieza.equipo;
+    if (equipo.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'list-group-item text-center text-muted';
+        li.textContent = 'No hay integrantes cargados.';
+        lista.appendChild(li);
+        return;
+    }
+
+    equipo.forEach((nombre, index) => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex align-items-center gap-2';
+
+        const posicion = document.createElement('span');
+        posicion.className = 'badge bg-secondary';
+        posicion.textContent = index + 1;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control form-control-sm';
+        input.maxLength = 100;
+        input.value = nombre;
+        input.addEventListener('input', () => {
+            state.equipoLimpieza.equipo[index] = input.value;
+        });
+
+        const btnUp = createIconButton('btn btn-sm btn-outline-secondary', 'Subir', 'fas fa-arrow-up');
+        btnUp.disabled = index === 0;
+        btnUp.addEventListener('click', () => moverIntegranteLimpieza(index, -1));
+
+        const btnDown = createIconButton('btn btn-sm btn-outline-secondary', 'Bajar', 'fas fa-arrow-down');
+        btnDown.disabled = index === equipo.length - 1;
+        btnDown.addEventListener('click', () => moverIntegranteLimpieza(index, 1));
+
+        const btnRemove = createIconButton('btn btn-sm btn-outline-danger', 'Quitar', 'fas fa-trash-alt');
+        btnRemove.addEventListener('click', () => quitarIntegranteLimpieza(index));
+
+        li.append(posicion, input, btnUp, btnDown, btnRemove);
+        lista.appendChild(li);
+    });
+}
+
+function moverIntegranteLimpieza(index, delta) {
+    const equipo = state.equipoLimpieza.equipo;
+    const nuevoIndex = index + delta;
+    if (nuevoIndex < 0 || nuevoIndex >= equipo.length) {
+        return;
+    }
+
+    const [item] = equipo.splice(index, 1);
+    equipo.splice(nuevoIndex, 0, item);
+    renderLimpiezaLista();
+}
+
+function quitarIntegranteLimpieza(index) {
+    state.equipoLimpieza.equipo.splice(index, 1);
+    renderLimpiezaLista();
+}
+
+function handleAgregarIntegranteLimpieza() {
+    const input = document.getElementById('limpieza-nuevo-nombre');
+    const nombre = input.value.trim();
+    if (!nombre) {
+        return;
+    }
+
+    state.equipoLimpieza.equipo.push(nombre);
+    input.value = '';
+    renderLimpiezaLista();
+}
+
+async function handleLimpiezaSubmit(event) {
+    event.preventDefault();
+
+    const submitButton = document.getElementById('btn-guardar-limpieza');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Guardando...';
+
+    const payload = {
+        equipo: state.equipoLimpieza.equipo,
+        fechaBase: document.getElementById('limpieza-fechaBase').value,
+        indiceBase: Number(document.getElementById('limpieza-indiceBase').value)
+    };
+
+    try {
+        const data = await fetchJson('/api/equipo-limpieza', {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+        });
+        state.equipoLimpieza = data.equipoLimpieza;
+        renderLimpiezaForm();
+    } catch (error) {
+        handleRequestError(error);
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Guardar Equipo de Limpieza';
+    }
 }
 
 async function loadMessages() {

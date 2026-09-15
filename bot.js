@@ -167,6 +167,38 @@ async function handleIncomingMessage(sock, db, msg, commandRateLimited) {
     }
 }
 
+function calcularTurnoLimpiezaHoy(fecha, equipo, fechaBaseStr, indiceBase) {
+    // Misma logica de rotacion que generarCalendarioLimpieza() en public/js/app.js:
+    // NO cambiar este calculo sin cambiar tambien el de app.js, o se van a desincronizar.
+    if (!Array.isArray(equipo) || equipo.length === 0 || !fechaBaseStr) {
+        return '';
+    }
+
+    const diaSemana = fecha.getDay();
+    if (![0, 2, 4, 6].includes(diaSemana)) {
+        return '';
+    }
+
+    const [anioBase, mesBase, diaBase] = fechaBaseStr.split('-').map(Number);
+    const fechaBase = new Date(anioBase, mesBase - 1, diaBase);
+
+    const diasParaRestar = diaSemana === 0 ? 6 : diaSemana - 1;
+    const lunesEstaSemana = new Date(fecha);
+    lunesEstaSemana.setDate(fecha.getDate() - diasParaRestar);
+    lunesEstaSemana.setHours(0, 0, 0, 0);
+
+    const semanasPasadas = Math.floor((lunesEstaSemana.getTime() - fechaBase.getTime()) / (1000 * 60 * 60 * 24 * 7));
+    let offsetDia = 0;
+    if (diaSemana === 4) offsetDia = 1;
+    if (diaSemana === 6) offsetDia = 2;
+    if (diaSemana === 0) offsetDia = 3;
+
+    let indiceSemanaAct = (indiceBase + (semanasPasadas * 4)) % equipo.length;
+    if (indiceSemanaAct < 0) indiceSemanaAct = (indiceSemanaAct % equipo.length) + equipo.length;
+    const indiceFinal = (indiceSemanaAct + offsetDia) % equipo.length;
+    return equipo[indiceFinal] || '';
+}
+
 function registerScheduledJobs(sockHolder, db) {
     // -----------------------------------------------------
     // AUTOMATIZACIONES Y VERSÍCULOS DIARIOS (AHORA CON IMÁGENES ALEATORIAS)
@@ -238,12 +270,13 @@ function registerScheduledJobs(sockHolder, db) {
     // Recordatorio Limpieza (8:00 AM L-S)
     safeCronJob('0 8 * * 1-6', async () => {
         db.read();
-        const roles = db.get('roles_limpieza').value() || [];
-        const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        const hoy = dias[new Date().getDay()];
-        const rolHoy = roles.find((r) => r.dia.toLowerCase() === hoy.toLowerCase());
-        if (rolHoy) {
-            await sockHolder.sock.sendMessage(idGrupo, { text: `📢 *RECORDATORIO*\n\nHoy le toca la limpieza a: *${rolHoy.encargados}*. ¡Gracias! 🙌` });
+        const equipo = db.get('equipoLimpieza').value() || [];
+        const fechaBaseStr = db.get('fechaBase').value() || '';
+        const indiceBaseValor = Number(db.get('indiceBase').value());
+        const indiceBase = Number.isInteger(indiceBaseValor) ? indiceBaseValor : 0;
+        const turnoHoy = calcularTurnoLimpiezaHoy(new Date(), equipo, fechaBaseStr, indiceBase);
+        if (turnoHoy) {
+            await sockHolder.sock.sendMessage(idGrupo, { text: `📢 *RECORDATORIO*\n\nHoy le toca la limpieza a: *${turnoHoy}*. ¡Gracias! 🙌` });
         }
     });
 
