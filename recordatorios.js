@@ -156,4 +156,14 @@ async function enviarRecordatoriosDiarios(db, sock, idGrupo) {
     }
 }
 
-module.exports = { enviarRecordatoriosDiarios };
+module.exports = {
+    enviarRecordatoriosDiarios,
+    // Exportadas para reusar en el comando interactivo de bot.js (lista de
+    // eventos por WhatsApp) sin duplicar el calculo de fechas ni la
+    // resolucion de URL de imagen. No tocar la logica interna de estas
+    // funciones sin revisar tambien enviarRecordatoriosDiarios.
+    resolverUrlImagen,
+    formatearFechaLocal,
+    sumarDias,
+    DIAS_VENTANA_EVENTOS
+};
