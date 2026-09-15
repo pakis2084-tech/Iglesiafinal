@@ -4,3 +4,5 @@ auth_info_baileys/
 .env
 db.json
 .vscode/sftp.json
+db.json.backup-*
+*.bak
