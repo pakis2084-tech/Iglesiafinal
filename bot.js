@@ -268,7 +268,7 @@ function registerScheduledJobs(sockHolder, db) {
     });
 
     // Recordatorio Limpieza (8:00 AM L-S)
-    safeCronJob('0 8 * * 1-6', async () => {
+    safeCronJob('0 8 * * 0-6', async () => {
         db.read();
         const equipo = db.get('equipoLimpieza').value() || [];
         const fechaBaseStr = db.get('fechaBase').value() || '';
