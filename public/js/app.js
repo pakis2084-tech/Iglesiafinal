@@ -71,7 +71,7 @@ function generarCalendarioLimpieza() {
     if (!calGrid || !mesAnioDisplay) return;
 
     const equipo = [
-        'Hna. Teofila y familia', 'Hna. Roxana y familia', 'Hna. Florita y familia',
+        'Hna. Teofila y familia', 'Hna. Fernanda y familia', 'Hna. Roxana y familia', 'Hna. Florita y familia',
         'Hna. Wendy y familia', 'Hna. Laura y familia', 'Hna. Mary y familia',
         'Hna. Ruth y familia', 'Hna. Maria y familia', 'Hna. Julia y familia',
         'Hno. Agustin y Hno. Cecilio', 'Hna. Delia y familia', 'Hna. Prima y familia',
@@ -85,7 +85,7 @@ function generarCalendarioLimpieza() {
     calGrid.innerHTML = '';
 
     const fechaBase = new Date(2026, 2, 2);
-    const indiceBase = 10;
+    const indiceBase = 3;
     const primerDiaMes = new Date(year, month, 1);
     const ultimoDiaMes = new Date(year, month + 1, 0);
     const diaSemanaInicio = primerDiaMes.getDay();
