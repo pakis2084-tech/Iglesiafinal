@@ -1,6 +1,7 @@
 const DIAS_VENTANA_EVENTOS = 7;
-const SITIO_EVENTOS_URL = 'https://ipubtupiza.org/eventos';
-const SITIO_SERMON_URL = 'https://ipubtupiza.org/sermon';
+const BASE_URL = 'https://ipubtupiza.org';
+const SITIO_EVENTOS_URL = `${BASE_URL}/eventos`;
+const SITIO_SERMON_URL = `${BASE_URL}/sermon`;
 
 function formatearFechaLocal(fecha) {
     const anio = fecha.getFullYear();
@@ -29,6 +30,15 @@ function registrarAviso(db, tipo, id) {
     db.get('avisosEnviados')
         .push({ tipo, id, enviadoEn: new Date().toISOString() })
         .write();
+}
+
+function resolverUrlImagen(imagen) {
+    if (/^https?:\/\//i.test(imagen)) {
+        return imagen;
+    }
+
+    const rutaRelativa = imagen.startsWith('/') ? imagen : `/${imagen}`;
+    return `${BASE_URL}${rutaRelativa}`;
 }
 
 function construirMensajeEvento(evento) {
@@ -80,6 +90,22 @@ async function enviarMensajeSeguro(sock, idGrupo, texto, descripcionError) {
     }
 }
 
+async function enviarEventoPendiente(sock, idGrupo, evento) {
+    const texto = construirMensajeEvento(evento);
+    const descripcionError = `recordatorio del evento "${evento.titulo}"`;
+
+    if (evento.imagen) {
+        try {
+            await sock.sendMessage(idGrupo, { image: { url: resolverUrlImagen(evento.imagen) }, caption: texto });
+            return true;
+        } catch (error) {
+            console.error(`❌ Error enviando imagen del ${descripcionError}, se intenta como texto plano:`, error);
+        }
+    }
+
+    return enviarMensajeSeguro(sock, idGrupo, texto, descripcionError);
+}
+
 async function enviarRecordatoriosDiarios(db, sock, idGrupo) {
     let eventosPendientes = [];
     let sermonesPendientes = [];
@@ -101,12 +127,7 @@ async function enviarRecordatoriosDiarios(db, sock, idGrupo) {
     }
 
     for (const evento of eventosPendientes) {
-        const enviado = await enviarMensajeSeguro(
-            sock,
-            idGrupo,
-            construirMensajeEvento(evento),
-            `recordatorio del evento "${evento.titulo}"`
-        );
+        const enviado = await enviarEventoPendiente(sock, idGrupo, evento);
 
         if (enviado) {
             try {
