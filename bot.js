@@ -1,6 +1,7 @@
 const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 const cron = require('node-cron');
+const { enviarRecordatoriosDiarios } = require('./recordatorios.js');
 
 const RECONNECT_BASE_DELAY_MS = 2000;
 const RECONNECT_MAX_DELAY_MS = 60000;
@@ -250,6 +251,11 @@ function registerScheduledJobs(sockHolder, db) {
     safeCronJob('30 8 * * 0', async () => {
         const imageUrl = 'https://i.pinimg.com/736x/8f/c9/2e/8fc92e212d2fb449e7b2f0a149f1db89.jpg';
         await sockHolder.sock.sendMessage(idGrupo, { image: { url: imageUrl }, caption: '🌅 *¡FELIZ DOMINGO!* 🌅\n\nLos esperamos hoy en los servicios. 🙏⛪\n🔗 https://ipubtupiza.org' });
+    });
+
+    // Recordatorios de Eventos y Sermones nuevos (8:30 AM)
+    safeCronJob('30 8 * * *', async () => {
+        await enviarRecordatoriosDiarios(db, sockHolder.sock, idGrupo);
     });
 }
 
