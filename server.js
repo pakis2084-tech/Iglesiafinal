@@ -21,6 +21,18 @@ const EVENT_CATEGORIES = new Set(['general', 'jovenes', 'damas', 'escuela']);
 const LOCKED_EVENT_CATEGORIES = {
     damas_admin: 'damas'
 };
+const MAX_LIMPIEZA_NOMBRE_LENGTH = 100;
+// Estado hardcodeado que tenia public/js/app.js al momento de mover el
+// equipo de limpieza a db.json (incluye a Hna. Fernanda, indiceBase 3).
+const DEFAULT_EQUIPO_LIMPIEZA = [
+    'Hna. Teofila y familia', 'Hna. Fernanda y familia', 'Hna. Roxana y familia', 'Hna. Florita y familia',
+    'Hna. Wendy y familia', 'Hna. Laura y familia', 'Hna. Mary y familia',
+    'Hna. Ruth y familia', 'Hna. Maria y familia', 'Hna. Julia y familia',
+    'Hno. Agustin y Hno. Cecilio', 'Hna. Delia y familia', 'Hna. Prima y familia',
+    'Hna. Miriam y familia', 'Hna. Elsa y familia'
+];
+const DEFAULT_LIMPIEZA_FECHA_BASE = '2026-03-02';
+const DEFAULT_LIMPIEZA_INDICE_BASE = 3;
 const DEFAULT_TRUST_PROXY = 'loopback';
 const DEFAULT_BODY_LIMIT = '100kb';
 const UPLOAD_BODY_LIMIT = '75mb';
@@ -147,12 +159,14 @@ function getRolePermissions(role) {
     const canManageSermons = CONTENT_ROLES.includes(role);
     const canManageEvents = EVENT_MANAGER_ROLES.includes(role);
     const canManageMessages = MESSAGE_ROLES.includes(role);
+    const canManageLimpieza = CONTENT_ROLES.includes(role);
 
     return {
         canManageContent: canManageSermons || canManageEvents,
         canManageSermons,
         canManageEvents,
         canManageMessages,
+        canManageLimpieza,
         lockedEventCategory
     };
 }
@@ -514,6 +528,23 @@ function migrateEventImages(db, uploadsDir) {
     }
 }
 
+function migrateEquipoLimpieza(db) {
+    // roles_limpieza (dia -> encargados) queda huerfana: nadie la pobló nunca.
+    // No se borra por si algo externo llegara a depender de ella, pero desde
+    // ahora la fuente de verdad del equipo de limpieza es equipoLimpieza.
+    if (!db.has('equipoLimpieza').value()) {
+        db.set('equipoLimpieza', DEFAULT_EQUIPO_LIMPIEZA).write();
+    }
+
+    if (!db.has('fechaBase').value()) {
+        db.set('fechaBase', DEFAULT_LIMPIEZA_FECHA_BASE).write();
+    }
+
+    if (!db.has('indiceBase').value()) {
+        db.set('indiceBase', DEFAULT_LIMPIEZA_INDICE_BASE).write();
+    }
+}
+
 function serializeSermon(sermon) {
     return {
         id: sanitizeIdentifier(sermon.id),
@@ -539,6 +570,15 @@ function serializeEvent(event) {
         video: normalizeImageReference(event.video),
         youtubeUrl: normalizeYoutubeUrl(event.youtubeUrl),
         descripcion: sanitizeText(event.descripcion, { maxLength: 1400, multiline: true })
+    };
+}
+
+function serializeEquipoLimpieza(data) {
+    const equipoOrigen = Array.isArray(data && data.equipo) ? data.equipo : [];
+    return {
+        equipo: equipoOrigen.map((nombre) => sanitizeText(nombre, { maxLength: MAX_LIMPIEZA_NOMBRE_LENGTH })).filter(Boolean),
+        fechaBase: sanitizeDate(data && data.fechaBase),
+        indiceBase: Number.isInteger(data && data.indiceBase) && data.indiceBase >= 0 ? data.indiceBase : 0
     };
 }
 
@@ -656,6 +696,36 @@ function validateEventPayload(payload, uploadsDir, currentImage, currentVideo) {
     return event;
 }
 
+function validateEquipoLimpiezaPayload(payload) {
+    const equipoRaw = Array.isArray(payload.equipo) ? payload.equipo : null;
+    if (!equipoRaw || equipoRaw.length === 0) {
+        throw new Error('El equipo de limpieza debe tener al menos un integrante.');
+    }
+
+    const equipo = equipoRaw.map((nombreOriginal) => {
+        const nombre = typeof nombreOriginal === 'string' ? nombreOriginal.trim() : '';
+        if (!nombre) {
+            throw new Error('Cada integrante debe tener un nombre valido.');
+        }
+        if (nombre.length > MAX_LIMPIEZA_NOMBRE_LENGTH) {
+            throw new Error(`Cada nombre debe tener maximo ${MAX_LIMPIEZA_NOMBRE_LENGTH} caracteres.`);
+        }
+        return sanitizeText(nombre, { maxLength: MAX_LIMPIEZA_NOMBRE_LENGTH });
+    });
+
+    const fechaBase = sanitizeDate(payload.fechaBase);
+    if (!fechaBase) {
+        throw new Error('La fecha base no es valida. Usa el formato AAAA-MM-DD.');
+    }
+
+    const indiceBase = Number(payload.indiceBase);
+    if (!Number.isInteger(indiceBase) || indiceBase < 0) {
+        throw new Error('El indice base debe ser un numero entero mayor o igual a 0.');
+    }
+
+    return { equipo, fechaBase, indiceBase };
+}
+
 function validateMessagePayload(payload) {
     const message = {
         nombre: validateRequiredText(payload.nombre, 'Nombre', { maxLength: 120 }),
@@ -764,6 +834,7 @@ function createApp(options = {}) {
     migrateUsers(db);
     ensureDefaultAdmin(db, seedAdminPassword);
     migrateEventImages(db, uploadsDir);
+    migrateEquipoLimpieza(db);
 
     const app = express();
     app.disable('x-powered-by');
@@ -1006,6 +1077,26 @@ function createApp(options = {}) {
         deleteManagedUpload(current.video, uploadsDir);
         db.get('eventos').remove({ id: eventId }).write();
         return res.json({ success: true });
+    });
+
+    app.get('/api/equipo-limpieza', (req, res) => {
+        res.json(serializeEquipoLimpieza({
+            equipo: db.get('equipoLimpieza').value(),
+            fechaBase: db.get('fechaBase').value(),
+            indiceBase: db.get('indiceBase').value()
+        }));
+    });
+
+    app.put('/api/equipo-limpieza', requireRole(CONTENT_ROLES), (req, res) => {
+        try {
+            const equipoLimpieza = validateEquipoLimpiezaPayload(req.body);
+            db.set('equipoLimpieza', equipoLimpieza.equipo).write();
+            db.set('fechaBase', equipoLimpieza.fechaBase).write();
+            db.set('indiceBase', equipoLimpieza.indiceBase).write();
+            return res.json({ success: true, equipoLimpieza: serializeEquipoLimpieza(equipoLimpieza) });
+        } catch (error) {
+            return sendApiError(res, 400, error.message);
+        }
     });
 
     app.post('/api/mensajes', applyRateLimit(messageTracker, rateLimits.messages.message), (req, res) => {

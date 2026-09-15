@@ -65,18 +65,30 @@ async function shareOrPrompt(payload, promptMessage) {
     prompt(promptMessage, payload.url);
 }
 
+let equipoLimpiezaData = null;
+
+function cargarEquipoLimpieza() {
+    const calGrid = document.getElementById('cal-grid');
+    fetch('/api/equipo-limpieza')
+        .then((respuesta) => respuesta.json())
+        .then((data) => {
+            equipoLimpiezaData = data;
+            generarCalendarioLimpieza();
+        })
+        .catch(() => {
+            if (calGrid) {
+                calGrid.innerHTML = '<p class="text-center text-muted w-100">No fue posible cargar el rol de limpieza.</p>';
+            }
+        });
+}
+
 function generarCalendarioLimpieza() {
     const calGrid = document.getElementById('cal-grid');
     const mesAnioDisplay = document.getElementById('mes-anio-display');
-    if (!calGrid || !mesAnioDisplay) return;
+    if (!calGrid || !mesAnioDisplay || !equipoLimpiezaData) return;
 
-    const equipo = [
-        'Hna. Teofila y familia', 'Hna. Fernanda y familia', 'Hna. Roxana y familia', 'Hna. Florita y familia',
-        'Hna. Wendy y familia', 'Hna. Laura y familia', 'Hna. Mary y familia',
-        'Hna. Ruth y familia', 'Hna. Maria y familia', 'Hna. Julia y familia',
-        'Hno. Agustin y Hno. Cecilio', 'Hna. Delia y familia', 'Hna. Prima y familia',
-        'Hna. Miriam y familia', 'Hna. Elsa y familia'
-    ];
+    const equipo = equipoLimpiezaData.equipo || [];
+    if (!equipo.length) return;
 
     const year = fechaVistaCalendario.getFullYear();
     const month = fechaVistaCalendario.getMonth();
@@ -84,8 +96,9 @@ function generarCalendarioLimpieza() {
     mesAnioDisplay.innerText = `${meses[month]} ${year}`;
     calGrid.innerHTML = '';
 
-    const fechaBase = new Date(2026, 2, 2);
-    const indiceBase = 3;
+    const [fbAnio, fbMes, fbDia] = String(equipoLimpiezaData.fechaBase || '').split('-').map(Number);
+    const fechaBase = new Date(fbAnio, (fbMes || 1) - 1, fbDia);
+    const indiceBase = Number(equipoLimpiezaData.indiceBase) || 0;
     const primerDiaMes = new Date(year, month, 1);
     const ultimoDiaMes = new Date(year, month + 1, 0);
     const diaSemanaInicio = primerDiaMes.getDay();
@@ -492,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    generarCalendarioLimpieza();
+    cargarEquipoLimpieza();
 
     const btnPrev = document.getElementById('prev-month');
     const btnNext = document.getElementById('next-month');
