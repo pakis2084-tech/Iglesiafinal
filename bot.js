@@ -1,7 +1,7 @@
 const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 const cron = require('node-cron');
-const { enviarRecordatoriosDiarios } = require('./recordatorios.js');
+const { enviarRecordatoriosDiarios, resolverUrlImagen, formatearFechaLocal, sumarDias, DIAS_VENTANA_EVENTOS } = require('./recordatorios.js');
 
 const RECONNECT_BASE_DELAY_MS = 2000;
 const RECONNECT_MAX_DELAY_MS = 60000;
@@ -106,6 +106,35 @@ async function iniciarBot(db) {
     registerScheduledJobs(sockHolder, db);
 }
 
+function construirLineaEvento(evento) {
+    const enlace = evento.youtubeUrl && evento.youtubeUrl.trim() !== '' ? evento.youtubeUrl : 'https://ipubtupiza.org';
+    return `🔹 *${evento.titulo}*\n📅 ${evento.fecha} - ⏰ ${evento.hora}\n🔗 ${enlace}`;
+}
+
+function filtrarEventosProximos(eventos) {
+    // Mismo criterio de ventana (hoy..+7 dias) que usa enviarRecordatoriosDiarios
+    // en recordatorios.js, para que el comando de WhatsApp y el cron diario
+    // muestren siempre el mismo conjunto de eventos.
+    const hoy = new Date();
+    const hoyStr = formatearFechaLocal(hoy);
+    const limiteStr = formatearFechaLocal(sumarDias(hoy, DIAS_VENTANA_EVENTOS));
+    return eventos.filter((evento) => evento && evento.fecha && evento.fecha >= hoyStr && evento.fecha <= limiteStr);
+}
+
+async function enviarImagenEventoConFallback(sock, from, evento) {
+    const caption = construirLineaEvento(evento);
+    try {
+        await sock.sendMessage(from, { image: { url: resolverUrlImagen(evento.imagen) }, caption });
+    } catch (error) {
+        console.error(`❌ Error enviando imagen del evento "${evento.titulo}" en el comando de eventos, se intenta como texto plano:`, error);
+        try {
+            await sock.sendMessage(from, { text: caption });
+        } catch (textError) {
+            console.error(`❌ Error enviando texto de respaldo del evento "${evento.titulo}":`, textError);
+        }
+    }
+}
+
 async function handleIncomingMessage(sock, db, msg, commandRateLimited) {
     if (!msg || !msg.message || msg.key.fromMe) return;
 
@@ -138,13 +167,18 @@ async function handleIncomingMessage(sock, db, msg, commandRateLimited) {
     }
 
     if (input === '1' || input.includes('eventos')) {
-        const eventos = db.get('eventos').value() || [];
+        const eventosProximos = filtrarEventosProximos(db.get('eventos').value() || []);
         let texto = '🗓️ *Próximos Eventos:*\n\n';
-        eventos.forEach((e) => {
-            const enlace = e.youtubeUrl && e.youtubeUrl.trim() !== '' ? e.youtubeUrl : 'https://ipubtupiza.org';
-            texto += `🔹 *${e.titulo}*\n📅 ${e.fecha} - ⏰ ${e.hora}\n🔗 ${enlace}\n\n`;
+        eventosProximos.forEach((evento) => {
+            texto += `${construirLineaEvento(evento)}\n\n`;
         });
         await sock.sendMessage(from, { text: texto });
+
+        for (const evento of eventosProximos) {
+            if (evento.imagen) {
+                await enviarImagenEventoConFallback(sock, from, evento);
+            }
+        }
     } else if (input === '2' || input.includes('roles')) {
         const roles = db.get('roles_limpieza').value() || [];
         let texto = '🧹 *Roles de Limpieza:*\n\n';
