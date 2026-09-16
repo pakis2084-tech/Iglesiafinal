@@ -1,7 +1,11 @@
 const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 const cron = require('node-cron');
+const fs = require('fs');
+const path = require('path');
 const { enviarRecordatoriosDiarios, resolverUrlImagen, formatearFechaLocal, sumarDias, DIAS_VENTANA_EVENTOS } = require('./recordatorios.js');
+
+const FRASES_MOTIVADORAS_FILE = path.join(__dirname, 'frases-motivadoras.json');
 
 const RECONNECT_BASE_DELAY_MS = 2000;
 const RECONNECT_MAX_DELAY_MS = 60000;
@@ -180,11 +184,14 @@ async function handleIncomingMessage(sock, db, msg, commandRateLimited) {
             }
         }
     } else if (input === '2' || input.includes('roles')) {
-        const roles = db.get('roles_limpieza').value() || [];
-        let texto = '🧹 *Roles de Limpieza:*\n\n';
-        roles.forEach((r) => {
-            texto += `*${r.dia}:* ${r.encargados}\n`;
-        });
+        const equipo = db.get('equipoLimpieza').value() || [];
+        const fechaBaseStr = db.get('fechaBase').value() || '';
+        const indiceBaseValor = Number(db.get('indiceBase').value());
+        const indiceBase = Number.isInteger(indiceBaseValor) ? indiceBaseValor : 0;
+        const turnoHoy = calcularTurnoLimpiezaHoy(new Date(), equipo, fechaBaseStr, indiceBase);
+        const texto = turnoHoy
+            ? `🧹 *Rol de Limpieza:*\n\nHoy le toca a: *${turnoHoy}*. ¡Gracias! 🙌`
+            : '🧹 *Rol de Limpieza:*\n\nHoy no hay turno de limpieza asignado.';
         await sock.sendMessage(from, { text: texto });
     } else if (input === '5') {
         await sock.sendMessage(from, { text: '🌐 *Página Oficial*\n🔗 https://ipubtupiza.org' });
@@ -231,6 +238,63 @@ function calcularTurnoLimpiezaHoy(fecha, equipo, fechaBaseStr, indiceBase) {
     if (indiceSemanaAct < 0) indiceSemanaAct = (indiceSemanaAct % equipo.length) + equipo.length;
     const indiceFinal = (indiceSemanaAct + offsetDia) % equipo.length;
     return equipo[indiceFinal] || '';
+}
+
+function obtenerFrasesMotivadoras() {
+    try {
+        const contenido = fs.readFileSync(FRASES_MOTIVADORAS_FILE, 'utf8');
+        const frases = JSON.parse(contenido);
+        if (!Array.isArray(frases)) {
+            return [];
+        }
+        return frases.filter((frase) => typeof frase === 'string' && frase.trim() !== '');
+    } catch (error) {
+        return [];
+    }
+}
+
+function barajarFrases(frases) {
+    const copia = [...frases];
+    for (let i = copia.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copia[i], copia[j]] = [copia[j], copia[i]];
+    }
+    return copia;
+}
+
+function generarNuevoCicloFrases(frases, ultimaUsada) {
+    const barajado = barajarFrases(frases);
+    if (frases.length > 1 && barajado[0] === ultimaUsada) {
+        // Evita que la primera frase del ciclo nuevo repita la ultima del ciclo anterior.
+        const indiceSwap = 1 + Math.floor(Math.random() * (barajado.length - 1));
+        [barajado[0], barajado[indiceSwap]] = [barajado[indiceSwap], barajado[0]];
+    }
+    return barajado;
+}
+
+function obtenerFraseDelDia(db, frases) {
+    if (!frases.length) {
+        return '';
+    }
+
+    if (!db.has('fraseState').value()) {
+        db.set('fraseState', { pendientes: [], ultimaUsada: '' }).write();
+    }
+
+    const estado = db.get('fraseState').value() || {};
+    // Si el archivo de frases cambio (el usuario reemplazo los placeholders),
+    // descartamos pendientes que ya no existen en la lista actual.
+    let pendientes = Array.isArray(estado.pendientes)
+        ? estado.pendientes.filter((frase) => frases.includes(frase))
+        : [];
+
+    if (pendientes.length === 0) {
+        pendientes = generarNuevoCicloFrases(frases, estado.ultimaUsada || '');
+    }
+
+    const [frase, ...resto] = pendientes;
+    db.set('fraseState', { pendientes: resto, ultimaUsada: frase }).write();
+    return frase;
 }
 
 function registerScheduledJobs(sockHolder, db) {
@@ -284,9 +348,19 @@ function registerScheduledJobs(sockHolder, db) {
         const v = versiculosMañana[Math.floor(Math.random() * versiculosMañana.length)];
         const img = imagenesMañana[Math.floor(Math.random() * imagenesMañana.length)];
 
+        let bloqueFrase = '';
+        try {
+            db.read();
+            const frases = obtenerFrasesMotivadoras();
+            const frase = obtenerFraseDelDia(db, frases);
+            bloqueFrase = frase ? `\n\n💡 _${frase}_` : '';
+        } catch (error) {
+            console.error('❌ Error obteniendo la frase motivadora del dia, se envia el versiculo sin ella:', error);
+        }
+
         await sockHolder.sock.sendMessage(idGrupo, {
             image: { url: img },
-            caption: `☀️ *¡BUENOS DÍAS IGLESIA!* ☀️\n\nEmpecemos este hermoso día con Su palabra:\n\n📖 ${v}\n\n¡Que tengas un día bendecido! 🙌\n🌐 https://ipubtupiza.org`
+            caption: `☀️ *¡BUENOS DÍAS IGLESIA!* ☀️\n\nEmpecemos este hermoso día con Su palabra:\n\n📖 ${v}\n\n¡Que tengas un día bendecido! 🙌\n🌐 https://ipubtupiza.org${bloqueFrase}`
         });
     });
 
