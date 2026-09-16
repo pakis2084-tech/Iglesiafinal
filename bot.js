@@ -180,11 +180,14 @@ async function handleIncomingMessage(sock, db, msg, commandRateLimited) {
             }
         }
     } else if (input === '2' || input.includes('roles')) {
-        const roles = db.get('roles_limpieza').value() || [];
-        let texto = '🧹 *Roles de Limpieza:*\n\n';
-        roles.forEach((r) => {
-            texto += `*${r.dia}:* ${r.encargados}\n`;
-        });
+        const equipo = db.get('equipoLimpieza').value() || [];
+        const fechaBaseStr = db.get('fechaBase').value() || '';
+        const indiceBaseValor = Number(db.get('indiceBase').value());
+        const indiceBase = Number.isInteger(indiceBaseValor) ? indiceBaseValor : 0;
+        const turnoHoy = calcularTurnoLimpiezaHoy(new Date(), equipo, fechaBaseStr, indiceBase);
+        const texto = turnoHoy
+            ? `🧹 *Rol de Limpieza:*\n\nHoy le toca a: *${turnoHoy}*. ¡Gracias! 🙌`
+            : '🧹 *Rol de Limpieza:*\n\nHoy no hay turno de limpieza asignado.';
         await sock.sendMessage(from, { text: texto });
     } else if (input === '5') {
         await sock.sendMessage(from, { text: '🌐 *Página Oficial*\n🔗 https://ipubtupiza.org' });
