@@ -416,7 +416,7 @@ async function enviarRecordatorioLimpieza(sockHolder, db) {
 }
 
 async function enviarRecordatoriosEventosSermones(sockHolder, db) {
-    await enviarRecordatoriosDiarios(db, sockHolder.sock, ID_GRUPO);
+    return enviarRecordatoriosDiarios(db, sockHolder.sock, ID_GRUPO);
 }
 
 const TAREAS_BOT = {

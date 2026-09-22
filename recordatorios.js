@@ -123,13 +123,16 @@ async function enviarRecordatoriosDiarios(db, sock, idGrupo) {
         sermonesPendientes = obtenerSermonesPendientes(db, hoyStr, ayerStr);
     } catch (error) {
         console.error('❌ Error leyendo eventos/sermones para recordatorios diarios:', error);
-        return;
+        return 0;
     }
+
+    let totalEnviados = 0;
 
     for (const evento of eventosPendientes) {
         const enviado = await enviarEventoPendiente(sock, idGrupo, evento);
 
         if (enviado) {
+            totalEnviados += 1;
             try {
                 registrarAviso(db, 'evento', evento.id);
             } catch (error) {
@@ -147,6 +150,7 @@ async function enviarRecordatoriosDiarios(db, sock, idGrupo) {
         );
 
         if (enviado) {
+            totalEnviados += 1;
             try {
                 registrarAviso(db, 'sermon', sermon.id);
             } catch (error) {
@@ -154,6 +158,8 @@ async function enviarRecordatoriosDiarios(db, sock, idGrupo) {
             }
         }
     }
+
+    return totalEnviados;
 }
 
 module.exports = {

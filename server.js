@@ -1311,7 +1311,16 @@ function createApp(options = {}) {
         try {
             // Reusa exactamente la misma funcion que ya usa el cron correspondiente
             // (ver TAREAS_BOT en bot.js) en vez de reimplementar el armado del mensaje.
-            await TAREAS_BOT[clave](botSockHolder, db);
+            const resultado = await TAREAS_BOT[clave](botSockHolder, db);
+
+            if (clave === 'eventosSermones' && resultado === 0) {
+                return res.json({
+                    success: true,
+                    sinNovedades: true,
+                    mensaje: 'No había eventos o sermones nuevos dentro de la ventana de días para anunciar. El sistema funciona bien, simplemente no hay nada que publicar ahora mismo.'
+                });
+            }
+
             return res.json({ success: true, mensaje: 'Mensaje enviado correctamente.' });
         } catch (error) {
             console.error(`❌ Error probando manualmente "${req.params.tipo}":`, error);
