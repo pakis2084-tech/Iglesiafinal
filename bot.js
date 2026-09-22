@@ -15,6 +15,14 @@ const MOTIVO_MAX_LENGTH = 500;
 
 const ID_GRUPO = '120363028628647608@g.us';
 
+// Imagenes locales para el versiculo de la manana/noche (reemplazan los
+// arrays hardcodeados de URLs de Pinterest, que Pinterest bloqueo con 403).
+// Se suben/borran desde el panel (Bot WhatsApp) via server.js. El cron de
+// "Domingo Imagen" reusa la carpeta de la manana (mismo horario/tematica),
+// no tiene carpeta propia.
+const UPLOADS_VERSICULOS_MANANA_DIR = path.join(__dirname, 'public', 'uploads', 'versiculos', 'manana');
+const UPLOADS_VERSICULOS_NOCHE_DIR = path.join(__dirname, 'public', 'uploads', 'versiculos', 'noche');
+
 const VERSICULOS_MANANA = [
     "Salmo 118:24: 'Este es el día que hizo Jehová; Nos gozaremos y alegraremos en él.'",
     "Lamentaciones 3:22-23: 'Nuevas son sus misericordias cada mañana; grande es tu fidelidad.'",
@@ -29,20 +37,6 @@ const VERSICULOS_NOCHE = [
     "Salmo 121:4: 'He aquí, no se adormecerá ni dormirá el que guarda a Israel.'",
     "Filipenses 4:13: 'Todo lo puedo en Cristo que me fortalece.'",
     "Juan 14:27: 'La paz os dejo, mi paz os doy; yo no os la doy como el mundo la da. No se turbe vuestro corazón.'"
-];
-
-const IMAGENES_MANANA = [
-    'https://i.pinimg.com/736x/8f/a9/39/8fa939e1a90c50a187ed3f2b48b11116.jpg',
-    'https://i.pinimg.com/736x/f6/cc/21/f6cc21edebba0b147e62a26c48de8d12.jpg',
-    'https://i.pinimg.com/736x/21/2e/52/212e52495d460e5dbb0973a5a7698cb0.jpg',
-    'https://i.pinimg.com/736x/e4/41/5b/e4415b22b101de83cc339fcc050d2899.jpg'
-];
-
-const IMAGENES_NOCHE = [
-    'https://i.pinimg.com/736x/6c/67/bf/6c67bf30db1f516a7509f6e3c3325026.jpg',
-    'https://i.pinimg.com/736x/1a/05/96/1a05963f2d22edfa5c2d3cf3cb877555.jpg',
-    'https://i.pinimg.com/736x/91/92/47/919247eb81f8f309a6327b9c97b2d5a1.jpg',
-    'https://i.pinimg.com/736x/82/38/c7/8238c7f7bc8765dc57bf9e8a8e1e779d.jpg'
 ];
 
 // Horario de respaldo si botConfig no tiene una entrada valida para esta
@@ -344,6 +338,40 @@ function obtenerFraseDelDia(db, frases) {
     return frase;
 }
 
+function elegirImagenAleatoria(directorio) {
+    try {
+        const archivos = fs.readdirSync(directorio).filter((nombre) => /\.(jpe?g|png|webp|gif)$/i.test(nombre));
+        if (archivos.length === 0) {
+            return '';
+        }
+        const elegido = archivos[Math.floor(Math.random() * archivos.length)];
+        return path.join(directorio, elegido);
+    } catch (error) {
+        // Carpeta inexistente u otro error de lectura: no es un fallo real,
+        // simplemente no hay imagen disponible todavia -> cae al fallback de texto.
+        return '';
+    }
+}
+
+async function enviarConImagenLocalYFallback(sockHolder, directorioImagenes, caption, descripcionError) {
+    const rutaImagen = elegirImagenAleatoria(directorioImagenes);
+
+    if (rutaImagen) {
+        try {
+            await sockHolder.sock.sendMessage(ID_GRUPO, { image: { url: rutaImagen }, caption });
+            return;
+        } catch (error) {
+            console.error(`❌ Error enviando imagen de ${descripcionError} (${rutaImagen}), se intenta como texto plano:`, error);
+        }
+    }
+
+    try {
+        await sockHolder.sock.sendMessage(ID_GRUPO, { text: caption });
+    } catch (error) {
+        console.error(`❌ Error enviando texto de respaldo de ${descripcionError}:`, error);
+    }
+}
+
 // -----------------------------------------------------
 // TAREAS DEL BOT: una funcion por cada entrada configurable de botConfig
 // (db.json). Cada una recibe (sockHolder, db) en vez de cerrar sobre esas
@@ -354,7 +382,6 @@ function obtenerFraseDelDia(db, frases) {
 
 async function enviarVersiculoManana(sockHolder, db) {
     const v = VERSICULOS_MANANA[Math.floor(Math.random() * VERSICULOS_MANANA.length)];
-    const img = IMAGENES_MANANA[Math.floor(Math.random() * IMAGENES_MANANA.length)];
 
     let bloqueFrase = '';
     try {
@@ -366,20 +393,14 @@ async function enviarVersiculoManana(sockHolder, db) {
         console.error('❌ Error obteniendo la frase motivadora del dia, se envia el versiculo sin ella:', error);
     }
 
-    await sockHolder.sock.sendMessage(ID_GRUPO, {
-        image: { url: img },
-        caption: `☀️ *¡BUENOS DÍAS IGLESIA!* ☀️\n\nEmpecemos este hermoso día con Su palabra:\n\n📖 ${v}\n\n¡Que tengas un día bendecido! 🙌\n🌐 https://ipubtupiza.org${bloqueFrase}`
-    });
+    const caption = `☀️ *¡BUENOS DÍAS IGLESIA!* ☀️\n\nEmpecemos este hermoso día con Su palabra:\n\n📖 ${v}\n\n¡Que tengas un día bendecido! 🙌\n🌐 https://ipubtupiza.org${bloqueFrase}`;
+    await enviarConImagenLocalYFallback(sockHolder, UPLOADS_VERSICULOS_MANANA_DIR, caption, 'versiculo de la mañana');
 }
 
 async function enviarVersiculoNoche(sockHolder) {
     const v = VERSICULOS_NOCHE[Math.floor(Math.random() * VERSICULOS_NOCHE.length)];
-    const img = IMAGENES_NOCHE[Math.floor(Math.random() * IMAGENES_NOCHE.length)];
-
-    await sockHolder.sock.sendMessage(ID_GRUPO, {
-        image: { url: img },
-        caption: `🌙 *DIOS TE BENDIGA ESTA NOCHE* 🌙\n\nAntes de descansar, recuerda:\n\n📖 ${v}\n\nConfía en Su poder para los días difíciles. ¡Descansa en Su paz! ✨`
-    });
+    const caption = `🌙 *DIOS TE BENDIGA ESTA NOCHE* 🌙\n\nAntes de descansar, recuerda:\n\n📖 ${v}\n\nConfía en Su poder para los días difíciles. ¡Descansa en Su paz! ✨`;
+    await enviarConImagenLocalYFallback(sockHolder, UPLOADS_VERSICULOS_NOCHE_DIR, caption, 'versiculo de la noche');
 }
 
 async function enviarRecordatorioLimpieza(sockHolder, db) {
@@ -453,10 +474,11 @@ function registerScheduledJobs(sockHolder, db) {
     });
 
     // Domingo Imagen (8:30 AM) - no es configurable desde el panel, queda igual.
+    // Reusa la carpeta de imagenes de la manana (mismo horario/tematica).
     safeCronJob('30 8 * * 0', async () => {
-        const imageUrl = 'https://i.pinimg.com/736x/8f/c9/2e/8fc92e212d2fb449e7b2f0a149f1db89.jpg';
-        await sockHolder.sock.sendMessage(ID_GRUPO, { image: { url: imageUrl }, caption: '🌅 *¡FELIZ DOMINGO!* 🌅\n\nLos esperamos hoy en los servicios. 🙏⛪\n🔗 https://ipubtupiza.org' });
+        const caption = '🌅 *¡FELIZ DOMINGO!* 🌅\n\nLos esperamos hoy en los servicios. 🙏⛪\n🔗 https://ipubtupiza.org';
+        await enviarConImagenLocalYFallback(sockHolder, UPLOADS_VERSICULOS_MANANA_DIR, caption, 'imagen de Domingo');
     });
 }
 
-module.exports = { iniciarBot, TAREAS_BOT };
+module.exports = { iniciarBot, TAREAS_BOT, UPLOADS_VERSICULOS_MANANA_DIR, UPLOADS_VERSICULOS_NOCHE_DIR };

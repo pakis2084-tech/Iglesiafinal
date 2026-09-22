@@ -23,6 +23,7 @@ const tabTitles = {
 };
 
 const BOT_CONFIG_KEYS = ['versiculoManana', 'versiculoNoche', 'limpieza', 'eventosSermones'];
+const TIPOS_IMAGENES_VERSICULO = { versiculoManana: 'manana', versiculoNoche: 'noche' };
 
 const categoryLabels = {
     general: 'General',
@@ -191,6 +192,9 @@ function bindForms() {
     });
     document.getElementById('btn-refrescar-estado-bot').addEventListener('click', () => {
         refrescarEstadoBot().catch(handleRequestError);
+    });
+    document.querySelectorAll('[data-subir-imagen]').forEach((boton) => {
+        boton.addEventListener('click', () => handleSubirImagenVersiculo(boton.dataset.subirImagen));
     });
     document.getElementById('formPassword').addEventListener('submit', handlePasswordSubmit);
     document.getElementById('toggle-password-form').addEventListener('click', togglePasswordForm);
@@ -683,7 +687,121 @@ async function loadBotConfig() {
     const data = await fetchJson('/api/bot-config');
     state.botConfig = data || state.botConfig;
     renderBotConfigForm();
-    await refrescarEstadoBot();
+    await Promise.all([
+        refrescarEstadoBot(),
+        cargarImagenesVersiculo('versiculoManana'),
+        cargarImagenesVersiculo('versiculoNoche')
+    ]);
+}
+
+async function cargarImagenesVersiculo(clave) {
+    const tipo = TIPOS_IMAGENES_VERSICULO[clave];
+    const contenedor = document.getElementById(`galeria-${clave}`);
+    if (!tipo || !contenedor) {
+        return;
+    }
+
+    try {
+        const data = await fetchJson(`/api/bot-config/imagenes/${tipo}`);
+        renderGaleriaVersiculo(clave, Array.isArray(data && data.archivos) ? data.archivos : []);
+    } catch (error) {
+        contenedor.replaceChildren();
+        handleRequestError(error, { silent: true });
+    }
+}
+
+function renderGaleriaVersiculo(clave, archivos) {
+    const contenedor = document.getElementById(`galeria-${clave}`);
+    if (!contenedor) {
+        return;
+    }
+
+    contenedor.replaceChildren();
+
+    if (archivos.length === 0) {
+        const vacio = document.createElement('span');
+        vacio.className = 'text-muted small';
+        vacio.textContent = 'Sin imagenes cargadas todavia (se manda solo texto).';
+        contenedor.appendChild(vacio);
+        return;
+    }
+
+    archivos.forEach((archivo) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'position-relative';
+        wrapper.style.width = '72px';
+
+        const img = document.createElement('img');
+        img.src = archivo.url;
+        img.alt = archivo.nombre;
+        img.className = 'rounded border';
+        img.style.width = '72px';
+        img.style.height = '72px';
+        img.style.objectFit = 'cover';
+
+        const btnBorrar = createIconButton(
+            'btn btn-sm btn-danger rounded-circle position-absolute top-0 end-0 p-0',
+            'Borrar imagen',
+            'fas fa-times'
+        );
+        btnBorrar.style.width = '22px';
+        btnBorrar.style.height = '22px';
+        btnBorrar.style.transform = 'translate(30%, -30%)';
+        btnBorrar.style.fontSize = '10px';
+        btnBorrar.addEventListener('click', () => {
+            eliminarImagenVersiculo(clave, archivo.nombre).catch(handleRequestError);
+        });
+
+        wrapper.append(img, btnBorrar);
+        contenedor.appendChild(wrapper);
+    });
+}
+
+async function eliminarImagenVersiculo(clave, nombreArchivo) {
+    if (!window.confirm('Eliminar esta imagen?')) {
+        return;
+    }
+
+    const tipo = TIPOS_IMAGENES_VERSICULO[clave];
+    await fetchJson(`/api/bot-config/imagenes/${tipo}/${encodeURIComponent(nombreArchivo)}`, { method: 'DELETE' });
+    await cargarImagenesVersiculo(clave);
+}
+
+async function handleSubirImagenVersiculo(clave) {
+    const tipo = TIPOS_IMAGENES_VERSICULO[clave];
+    const input = document.getElementById(`input-imagen-${clave}`);
+    if (!tipo || !input) {
+        return;
+    }
+
+    if (input.files.length === 0) {
+        window.alert('Elegi un archivo de imagen primero.');
+        return;
+    }
+
+    const boton = document.querySelector(`[data-subir-imagen="${clave}"]`);
+    const textoOriginal = boton ? boton.innerHTML : '';
+    if (boton) {
+        boton.disabled = true;
+        boton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Subiendo...';
+    }
+
+    try {
+        const imagenDataUrl = await readImageAsDataUrl(input.files[0]);
+        await fetchJson(`/api/bot-config/imagenes/${tipo}`, {
+            method: 'POST',
+            body: JSON.stringify({ imagen: imagenDataUrl })
+        });
+        input.value = '';
+        await cargarImagenesVersiculo(clave);
+    } catch (error) {
+        handleRequestError(error);
+    } finally {
+        if (boton) {
+            boton.disabled = false;
+            boton.innerHTML = textoOriginal;
+        }
+    }
 }
 
 function renderBotConfigForm() {
