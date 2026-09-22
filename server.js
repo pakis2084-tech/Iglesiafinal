@@ -6,7 +6,7 @@ const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 const session = require('express-session');
 // 1. IMPORTACIÓN DEL BOT (Añadido)
-const { iniciarBot, TAREAS_BOT } = require('./bot.js');
+const { iniciarBot, TAREAS_BOT, UPLOADS_VERSICULOS_MANANA_DIR, UPLOADS_VERSICULOS_NOCHE_DIR } = require('./bot.js');
 
 const DEFAULT_DB_FILE = path.join(__dirname, 'db.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -463,6 +463,43 @@ function storeVideoDataUrl(dataUrl, uploadsDir) {
     return `/uploads/eventos/${fileName}`;
 }
 
+// Copia deliberada del mismo patron de validacion que storeImageDataUrl
+// (mismo regex, MAX_IMAGE_BYTES, mapa de extensiones), pero separada para
+// no tocar la funcion que ya usan los eventos. Solo cambia el prefijo del
+// nombre de archivo y que devuelve el nombre solo (no una ruta publica),
+// porque las imagenes de versiculos no tienen un campo "imagen" en un
+// modelo de datos, se listan directo desde el directorio.
+function storeVersiculoImageDataUrl(dataUrl, uploadsDir) {
+    const matches = /^data:(image\/(?:jpeg|jpg|png|webp|gif));base64,([a-zA-Z0-9+/=]+)$/.exec(String(dataUrl || ''));
+    if (!matches) {
+        throw new Error('Formato de imagen no valido.');
+    }
+
+    const mimeType = matches[1];
+    const base64Payload = matches[2];
+    const extension = getExtensionForMime(mimeType);
+    const buffer = Buffer.from(base64Payload, 'base64');
+
+    if (!extension) {
+        throw new Error('Tipo de imagen no permitido.');
+    }
+
+    if (buffer.length === 0 || buffer.length > MAX_IMAGE_BYTES) {
+        throw new Error('La imagen excede el tamano permitido.');
+    }
+
+    const fileName = `versiculo-${randomId()}.${extension}`;
+    const absoluteFile = path.join(uploadsDir, fileName);
+    fs.writeFileSync(absoluteFile, buffer);
+
+    return fileName;
+}
+
+const DIRECTORIOS_VERSICULOS_IMAGENES = {
+    manana: UPLOADS_VERSICULOS_MANANA_DIR,
+    noche: UPLOADS_VERSICULOS_NOCHE_DIR
+};
+
 function isManagedUpload(imagePath) {
     return /^\/uploads\/eventos\/[a-zA-Z0-9._-]+$/.test(String(imagePath || ''));
 }
@@ -899,6 +936,8 @@ function createApp(options = {}) {
     });
 
     ensureUploadsDir(uploadsDir);
+    ensureUploadsDir(UPLOADS_VERSICULOS_MANANA_DIR);
+    ensureUploadsDir(UPLOADS_VERSICULOS_NOCHE_DIR);
     migrateUsers(db);
     ensureDefaultAdmin(db, seedAdminPassword);
     migrateEventImages(db, uploadsDir);
@@ -929,9 +968,10 @@ function createApp(options = {}) {
     const uploadJsonParser = express.json({ limit: UPLOAD_BODY_LIMIT });
 
     app.use((req, res, next) => {
-        // Las rutas de eventos/sermones aceptan imagenes y video en base64,
-        // el resto de la API usa un limite pequeno para evitar cuerpos abusivos.
-        const isUploadRoute = /^\/api\/(eventos|sermones)(\/|$)/.test(req.path) && ['POST', 'PUT'].includes(req.method);
+        // Las rutas de eventos/sermones/imagenes de bot-config aceptan imagenes
+        // (y video en eventos) en base64, el resto de la API usa un limite
+        // pequeno para evitar cuerpos abusivos.
+        const isUploadRoute = /^\/api\/(eventos|sermones|bot-config\/imagenes)(\/|$)/.test(req.path) && ['POST', 'PUT'].includes(req.method);
         return (isUploadRoute ? uploadJsonParser : defaultJsonParser)(req, res, next);
     });
     app.use(defaultUrlencodedParser);
@@ -1192,6 +1232,64 @@ function createApp(options = {}) {
         } catch (error) {
             return sendApiError(res, 400, error.message);
         }
+    });
+
+    app.get('/api/bot-config/imagenes/:tipo', requireRole(CONTENT_ROLES), (req, res) => {
+        const directorio = DIRECTORIOS_VERSICULOS_IMAGENES[req.params.tipo];
+        if (!directorio) {
+            return sendApiError(res, 400, 'Tipo de imagen no reconocido.');
+        }
+
+        try {
+            ensureUploadsDir(directorio);
+            const archivos = fs.readdirSync(directorio)
+                .filter((nombre) => /\.(jpe?g|png|webp|gif)$/i.test(nombre))
+                .sort()
+                .map((nombre) => ({ nombre, url: `/uploads/versiculos/${req.params.tipo}/${nombre}` }));
+            return res.json({ archivos });
+        } catch (error) {
+            return sendApiError(res, 500, 'No se pudo leer la carpeta de imagenes.');
+        }
+    });
+
+    app.post('/api/bot-config/imagenes/:tipo', requireRole(CONTENT_ROLES), (req, res) => {
+        const directorio = DIRECTORIOS_VERSICULOS_IMAGENES[req.params.tipo];
+        if (!directorio) {
+            return sendApiError(res, 400, 'Tipo de imagen no reconocido.');
+        }
+
+        try {
+            ensureUploadsDir(directorio);
+            const nombreArchivo = storeVersiculoImageDataUrl(req.body && req.body.imagen, directorio);
+            return res.json({
+                success: true,
+                archivo: { nombre: nombreArchivo, url: `/uploads/versiculos/${req.params.tipo}/${nombreArchivo}` }
+            });
+        } catch (error) {
+            return sendApiError(res, 400, error.message);
+        }
+    });
+
+    app.delete('/api/bot-config/imagenes/:tipo/:nombreArchivo', requireRole(CONTENT_ROLES), (req, res) => {
+        const directorio = DIRECTORIOS_VERSICULOS_IMAGENES[req.params.tipo];
+        if (!directorio) {
+            return sendApiError(res, 400, 'Tipo de imagen no reconocido.');
+        }
+
+        const nombreArchivo = String(req.params.nombreArchivo || '');
+        // Bloquea path traversal: solo nombres de archivo simples con extension
+        // de imagen permitida, sin separadores de ruta ni '..'.
+        if (!/^[a-zA-Z0-9._-]+\.(jpe?g|png|webp|gif)$/i.test(nombreArchivo)) {
+            return sendApiError(res, 400, 'Nombre de archivo no valido.');
+        }
+
+        const absoluteFile = path.join(directorio, nombreArchivo);
+        if (!fs.existsSync(absoluteFile)) {
+            return sendApiError(res, 404, 'Imagen no encontrada.');
+        }
+
+        fs.unlinkSync(absoluteFile);
+        return res.json({ success: true });
     });
 
     app.post('/api/bot-config/probar/:tipo', requireRole(CONTENT_ROLES), async (req, res) => {
