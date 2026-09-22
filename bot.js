@@ -13,6 +13,47 @@ const COMMAND_RATE_LIMIT_WINDOW_MS = 10 * 1000;
 const COMMAND_RATE_LIMIT_MAX = 5;
 const MOTIVO_MAX_LENGTH = 500;
 
+const ID_GRUPO = '120363028628647608@g.us';
+
+const VERSICULOS_MANANA = [
+    "Salmo 118:24: 'Este es el día que hizo Jehová; Nos gozaremos y alegraremos en él.'",
+    "Lamentaciones 3:22-23: 'Nuevas son sus misericordias cada mañana; grande es tu fidelidad.'",
+    "Salmo 5:3: 'Oh Jehová, de mañana oirás mi voz; de mañana me presentaré ante ti y esperaré.'",
+    "Sofonías 3:17: 'Jehová está en medio de ti, poderoso, él salvará; se gozará sobre ti con alegría.'",
+    "Salmo 143:8: 'Hazme oír por la mañana tu misericordia, porque en ti he confiado.'"
+];
+
+const VERSICULOS_NOCHE = [
+    "Salmo 4:8: 'En paz me acostaré, y asimismo dormiré; Porque solo tú, Jehová, me haces vivir confiado.'",
+    "Mateo 11:28: 'Venid a mí todos los que estáis trabajados y cargados, y yo os haré descansar.'",
+    "Salmo 121:4: 'He aquí, no se adormecerá ni dormirá el que guarda a Israel.'",
+    "Filipenses 4:13: 'Todo lo puedo en Cristo que me fortalece.'",
+    "Juan 14:27: 'La paz os dejo, mi paz os doy; yo no os la doy como el mundo la da. No se turbe vuestro corazón.'"
+];
+
+const IMAGENES_MANANA = [
+    'https://i.pinimg.com/736x/8f/a9/39/8fa939e1a90c50a187ed3f2b48b11116.jpg',
+    'https://i.pinimg.com/736x/f6/cc/21/f6cc21edebba0b147e62a26c48de8d12.jpg',
+    'https://i.pinimg.com/736x/21/2e/52/212e52495d460e5dbb0973a5a7698cb0.jpg',
+    'https://i.pinimg.com/736x/e4/41/5b/e4415b22b101de83cc339fcc050d2899.jpg'
+];
+
+const IMAGENES_NOCHE = [
+    'https://i.pinimg.com/736x/6c/67/bf/6c67bf30db1f516a7509f6e3c3325026.jpg',
+    'https://i.pinimg.com/736x/1a/05/96/1a05963f2d22edfa5c2d3cf3cb877555.jpg',
+    'https://i.pinimg.com/736x/91/92/47/919247eb81f8f309a6327b9c97b2d5a1.jpg',
+    'https://i.pinimg.com/736x/82/38/c7/8238c7f7bc8765dc57bf9e8a8e1e779d.jpg'
+];
+
+// Horario de respaldo si botConfig no tiene una entrada valida para esta
+// clave (no deberia pasar tras la migracion de server.js, pero por las dudas).
+const HORA_POR_DEFECTO_BOT = {
+    versiculoManana: '07:00',
+    versiculoNoche: '21:00',
+    limpieza: '08:00',
+    eventosSermones: '08:30'
+};
+
 function sanitizeMotivo(value) {
     const text = String(value || '')
         .normalize('NFKC')
@@ -41,9 +82,13 @@ function createSenderRateLimiter(windowMs, max) {
     };
 }
 
-async function iniciarBot(db) {
+async function iniciarBot(db, sockHolderExterno) {
     const commandRateLimited = createSenderRateLimiter(COMMAND_RATE_LIMIT_WINDOW_MS, COMMAND_RATE_LIMIT_MAX);
-    const sockHolder = { sock: null };
+    // sockHolderExterno la crea server.js (createApp) para que las rutas
+    // /api/bot-estado y /api/bot-config/probar/:tipo puedan leer el socket
+    // ya conectado y disparar tareas bajo demanda. Si no se pasa ninguno
+    // (por ejemplo si algo llama iniciarBot directo), se crea uno local.
+    const sockHolder = sockHolderExterno || { sock: null, conectado: false };
 
     async function connect(reconnectAttempt) {
         function scheduleReconnect() {
@@ -81,6 +126,7 @@ async function iniciarBot(db) {
                 qrcode.generate(qr, { small: true });
             }
             if (connection === 'close') {
+                sockHolder.conectado = false;
                 const statusCode = lastDisconnect?.error?.output?.statusCode;
                 const shouldReconnect = statusCode !== 401;
                 console.log('⚠️ Conexion cerrada. ¿Reconectando?:', shouldReconnect);
@@ -91,6 +137,7 @@ async function iniciarBot(db) {
                     console.log('🚪 Sesion cerrada (401). Es necesario volver a escanear el codigo QR para reconectar.');
                 }
             } else if (connection === 'open') {
+                sockHolder.conectado = true;
                 console.log('✅ ¡Bot IPUB sincronizado y en línea!');
             }
         });
@@ -297,42 +344,78 @@ function obtenerFraseDelDia(db, frases) {
     return frase;
 }
 
+// -----------------------------------------------------
+// TAREAS DEL BOT: una funcion por cada entrada configurable de botConfig
+// (db.json). Cada una recibe (sockHolder, db) en vez de cerrar sobre esas
+// variables, para poder reusarse tanto desde el cron como desde el
+// endpoint POST /api/bot-config/probar/:tipo (server.js) sin duplicar la
+// logica de armado del mensaje.
+// -----------------------------------------------------
+
+async function enviarVersiculoManana(sockHolder, db) {
+    const v = VERSICULOS_MANANA[Math.floor(Math.random() * VERSICULOS_MANANA.length)];
+    const img = IMAGENES_MANANA[Math.floor(Math.random() * IMAGENES_MANANA.length)];
+
+    let bloqueFrase = '';
+    try {
+        db.read();
+        const frases = obtenerFrasesMotivadoras();
+        const frase = obtenerFraseDelDia(db, frases);
+        bloqueFrase = frase ? `\n\n💡 _${frase}_` : '';
+    } catch (error) {
+        console.error('❌ Error obteniendo la frase motivadora del dia, se envia el versiculo sin ella:', error);
+    }
+
+    await sockHolder.sock.sendMessage(ID_GRUPO, {
+        image: { url: img },
+        caption: `☀️ *¡BUENOS DÍAS IGLESIA!* ☀️\n\nEmpecemos este hermoso día con Su palabra:\n\n📖 ${v}\n\n¡Que tengas un día bendecido! 🙌\n🌐 https://ipubtupiza.org${bloqueFrase}`
+    });
+}
+
+async function enviarVersiculoNoche(sockHolder) {
+    const v = VERSICULOS_NOCHE[Math.floor(Math.random() * VERSICULOS_NOCHE.length)];
+    const img = IMAGENES_NOCHE[Math.floor(Math.random() * IMAGENES_NOCHE.length)];
+
+    await sockHolder.sock.sendMessage(ID_GRUPO, {
+        image: { url: img },
+        caption: `🌙 *DIOS TE BENDIGA ESTA NOCHE* 🌙\n\nAntes de descansar, recuerda:\n\n📖 ${v}\n\nConfía en Su poder para los días difíciles. ¡Descansa en Su paz! ✨`
+    });
+}
+
+async function enviarRecordatorioLimpieza(sockHolder, db) {
+    db.read();
+    const equipo = db.get('equipoLimpieza').value() || [];
+    const fechaBaseStr = db.get('fechaBase').value() || '';
+    const indiceBaseValor = Number(db.get('indiceBase').value());
+    const indiceBase = Number.isInteger(indiceBaseValor) ? indiceBaseValor : 0;
+    const turnoHoy = calcularTurnoLimpiezaHoy(new Date(), equipo, fechaBaseStr, indiceBase);
+    if (turnoHoy) {
+        await sockHolder.sock.sendMessage(ID_GRUPO, { text: `📢 *RECORDATORIO*\n\nHoy le toca la limpieza a: *${turnoHoy}*. ¡Gracias! 🙌` });
+    }
+}
+
+async function enviarRecordatoriosEventosSermones(sockHolder, db) {
+    await enviarRecordatoriosDiarios(db, sockHolder.sock, ID_GRUPO);
+}
+
+const TAREAS_BOT = {
+    versiculoManana: enviarVersiculoManana,
+    versiculoNoche: enviarVersiculoNoche,
+    limpieza: enviarRecordatorioLimpieza,
+    eventosSermones: enviarRecordatoriosEventosSermones
+};
+
+function construirExpresionCron(horaStr) {
+    const partes = String(horaStr || '').split(':');
+    const hora = Number(partes[0]);
+    const minuto = Number(partes[1]);
+    if (!Number.isInteger(hora) || !Number.isInteger(minuto) || hora < 0 || hora > 23 || minuto < 0 || minuto > 59) {
+        return null;
+    }
+    return `${minuto} ${hora} * * *`;
+}
+
 function registerScheduledJobs(sockHolder, db) {
-    // -----------------------------------------------------
-    // AUTOMATIZACIONES Y VERSÍCULOS DIARIOS (AHORA CON IMÁGENES ALEATORIAS)
-    // -----------------------------------------------------
-    const idGrupo = '120363028628647608@g.us';
-
-    const versiculosMañana = [
-        "Salmo 118:24: 'Este es el día que hizo Jehová; Nos gozaremos y alegraremos en él.'",
-        "Lamentaciones 3:22-23: 'Nuevas son sus misericordias cada mañana; grande es tu fidelidad.'",
-        "Salmo 5:3: 'Oh Jehová, de mañana oirás mi voz; de mañana me presentaré ante ti y esperaré.'",
-        "Sofonías 3:17: 'Jehová está en medio de ti, poderoso, él salvará; se gozará sobre ti con alegría.'",
-        "Salmo 143:8: 'Hazme oír por la mañana tu misericordia, porque en ti he confiado.'"
-    ];
-
-    const versiculosNoche = [
-        "Salmo 4:8: 'En paz me acostaré, y asimismo dormiré; Porque solo tú, Jehová, me haces vivir confiado.'",
-        "Mateo 11:28: 'Venid a mí todos los que estáis trabajados y cargados, y yo os haré descansar.'",
-        "Salmo 121:4: 'He aquí, no se adormecerá ni dormirá el que guarda a Israel.'",
-        "Filipenses 4:13: 'Todo lo puedo en Cristo que me fortalece.'",
-        "Juan 14:27: 'La paz os dejo, mi paz os doy; yo no os la doy como el mundo la da. No se turbe vuestro corazón.'"
-    ];
-
-    const imagenesMañana = [
-        'https://i.pinimg.com/736x/8f/a9/39/8fa939e1a90c50a187ed3f2b48b11116.jpg',
-        'https://i.pinimg.com/736x/f6/cc/21/f6cc21edebba0b147e62a26c48de8d12.jpg',
-        'https://i.pinimg.com/736x/21/2e/52/212e52495d460e5dbb0973a5a7698cb0.jpg',
-        'https://i.pinimg.com/736x/e4/41/5b/e4415b22b101de83cc339fcc050d2899.jpg'
-    ];
-
-    const imagenesNoche = [
-        'https://i.pinimg.com/736x/6c/67/bf/6c67bf30db1f516a7509f6e3c3325026.jpg',
-        'https://i.pinimg.com/736x/1a/05/96/1a05963f2d22edfa5c2d3cf3cb877555.jpg',
-        'https://i.pinimg.com/736x/91/92/47/919247eb81f8f309a6327b9c97b2d5a1.jpg',
-        'https://i.pinimg.com/736x/82/38/c7/8238c7f7bc8765dc57bf9e8a8e1e779d.jpg'
-    ];
-
     function safeCronJob(schedule, task) {
         cron.schedule(schedule, async () => {
             try {
@@ -343,61 +426,37 @@ function registerScheduledJobs(sockHolder, db) {
         });
     }
 
-    // Versículo de la Mañana (7:00 AM)
-    safeCronJob('0 7 * * *', async () => {
-        const v = versiculosMañana[Math.floor(Math.random() * versiculosMañana.length)];
-        const img = imagenesMañana[Math.floor(Math.random() * imagenesMañana.length)];
+    // Los horarios y el activo/inactivo de estas 4 tareas se leen de
+    // botConfig (db.json, editable desde el panel) UNA SOLA VEZ aqui, al
+    // arrancar el proceso. node-cron no soporta cambiar el horario de un
+    // job ya registrado: si alguien edita la hora o el activo desde el
+    // panel, el cambio queda guardado pero NO se aplica hasta reiniciar
+    // el bot (pm2 restart). No se implemento recarga en caliente de cron
+    // jobs a proposito (fuera de alcance).
+    db.read();
+    const botConfig = db.get('botConfig').value() || {};
 
-        let bloqueFrase = '';
-        try {
-            db.read();
-            const frases = obtenerFrasesMotivadoras();
-            const frase = obtenerFraseDelDia(db, frases);
-            bloqueFrase = frase ? `\n\n💡 _${frase}_` : '';
-        } catch (error) {
-            console.error('❌ Error obteniendo la frase motivadora del dia, se envia el versiculo sin ella:', error);
+    Object.keys(TAREAS_BOT).forEach((clave) => {
+        const config = (botConfig[clave] && typeof botConfig[clave] === 'object') ? botConfig[clave] : {};
+        const activo = config.activo === undefined ? true : Boolean(config.activo);
+
+        if (!activo) {
+            // Enfoque elegido: si esta inactivo, directamente NO se registra
+            // el cron (nunca se dispara), en vez de registrarlo y que el
+            // callback retorne de inmediato.
+            return;
         }
 
-        await sockHolder.sock.sendMessage(idGrupo, {
-            image: { url: img },
-            caption: `☀️ *¡BUENOS DÍAS IGLESIA!* ☀️\n\nEmpecemos este hermoso día con Su palabra:\n\n📖 ${v}\n\n¡Que tengas un día bendecido! 🙌\n🌐 https://ipubtupiza.org${bloqueFrase}`
-        });
+        const expresion = construirExpresionCron(config.hora) || construirExpresionCron(HORA_POR_DEFECTO_BOT[clave]);
+        const tarea = TAREAS_BOT[clave];
+        safeCronJob(expresion, () => tarea(sockHolder, db));
     });
 
-    // Versículo de la Noche (9:00 PM)
-    safeCronJob('0 21 * * *', async () => {
-        const v = versiculosNoche[Math.floor(Math.random() * versiculosNoche.length)];
-        const img = imagenesNoche[Math.floor(Math.random() * imagenesNoche.length)];
-
-        await sockHolder.sock.sendMessage(idGrupo, {
-            image: { url: img },
-            caption: `🌙 *DIOS TE BENDIGA ESTA NOCHE* 🌙\n\nAntes de descansar, recuerda:\n\n📖 ${v}\n\nConfía en Su poder para los días difíciles. ¡Descansa en Su paz! ✨`
-        });
-    });
-
-    // Recordatorio Limpieza (8:00 AM L-S)
-    safeCronJob('0 8 * * 0-6', async () => {
-        db.read();
-        const equipo = db.get('equipoLimpieza').value() || [];
-        const fechaBaseStr = db.get('fechaBase').value() || '';
-        const indiceBaseValor = Number(db.get('indiceBase').value());
-        const indiceBase = Number.isInteger(indiceBaseValor) ? indiceBaseValor : 0;
-        const turnoHoy = calcularTurnoLimpiezaHoy(new Date(), equipo, fechaBaseStr, indiceBase);
-        if (turnoHoy) {
-            await sockHolder.sock.sendMessage(idGrupo, { text: `📢 *RECORDATORIO*\n\nHoy le toca la limpieza a: *${turnoHoy}*. ¡Gracias! 🙌` });
-        }
-    });
-
-    // Domingo Imagen (8:30 AM)
+    // Domingo Imagen (8:30 AM) - no es configurable desde el panel, queda igual.
     safeCronJob('30 8 * * 0', async () => {
         const imageUrl = 'https://i.pinimg.com/736x/8f/c9/2e/8fc92e212d2fb449e7b2f0a149f1db89.jpg';
-        await sockHolder.sock.sendMessage(idGrupo, { image: { url: imageUrl }, caption: '🌅 *¡FELIZ DOMINGO!* 🌅\n\nLos esperamos hoy en los servicios. 🙏⛪\n🔗 https://ipubtupiza.org' });
-    });
-
-    // Recordatorios de Eventos y Sermones nuevos (8:30 AM)
-    safeCronJob('30 8 * * *', async () => {
-        await enviarRecordatoriosDiarios(db, sockHolder.sock, idGrupo);
+        await sockHolder.sock.sendMessage(ID_GRUPO, { image: { url: imageUrl }, caption: '🌅 *¡FELIZ DOMINGO!* 🌅\n\nLos esperamos hoy en los servicios. 🙏⛪\n🔗 https://ipubtupiza.org' });
     });
 }
 
-module.exports = { iniciarBot };
+module.exports = { iniciarBot, TAREAS_BOT };
