@@ -881,10 +881,12 @@ async function handleProbarBot(tipo, boton) {
     }
 
     try {
-        await fetchJson(`/api/bot-config/probar/${tipo}`, { method: 'POST' });
+        const data = await fetchJson(`/api/bot-config/probar/${tipo}`, { method: 'POST' });
         if (resultado) {
-            resultado.textContent = 'Mensaje enviado correctamente.';
-            resultado.className = 'd-block mt-2 text-success small';
+            resultado.textContent = data.mensaje || 'Mensaje enviado correctamente.';
+            resultado.className = data.sinNovedades
+                ? 'd-block mt-2 text-warning small'
+                : 'd-block mt-2 text-success small';
         }
     } catch (error) {
         if (resultado) {
