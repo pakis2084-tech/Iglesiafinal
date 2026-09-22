@@ -3,6 +3,12 @@ const state = {
     sermons: [],
     events: [],
     equipoLimpieza: { equipo: [], fechaBase: '', indiceBase: 0 },
+    botConfig: {
+        versiculoManana: { activo: true, hora: '07:00' },
+        versiculoNoche: { activo: true, hora: '21:00' },
+        limpieza: { activo: true, hora: '08:00' },
+        eventosSermones: { activo: true, hora: '08:30' }
+    },
     editingSermonId: '',
     editingEventId: '',
     inactivityTimer: null
@@ -12,8 +18,11 @@ const tabTitles = {
     sermones: 'Gestion de Sermones',
     eventos: 'Agenda de Eventos',
     limpieza: 'Rol de Limpieza',
+    bot: 'Bot de WhatsApp',
     mensajes: 'Bandeja de Entrada'
 };
+
+const BOT_CONFIG_KEYS = ['versiculoManana', 'versiculoNoche', 'limpieza', 'eventosSermones'];
 
 const categoryLabels = {
     general: 'General',
@@ -66,6 +75,7 @@ async function initPanel() {
         state.session.permissions.canManageSermons ? loadSermons() : Promise.resolve(),
         state.session.permissions.canManageEvents ? loadEvents() : Promise.resolve(),
         state.session.permissions.canManageLimpieza ? loadLimpieza() : Promise.resolve(),
+        state.session.permissions.canManageBot ? loadBotConfig() : Promise.resolve(),
         state.session.permissions.canManageMessages ? loadMessages() : Promise.resolve()
     ]);
 
@@ -75,7 +85,9 @@ async function initPanel() {
             ? 'eventos'
             : window.location.hash === '#limpieza'
                 ? 'limpieza'
-                : 'sermones';
+                : window.location.hash === '#bot'
+                    ? 'bot'
+                    : 'sermones';
     changeTab(requestedTab);
 }
 
@@ -88,6 +100,7 @@ function applySessionUi() {
     toggleSectionAccess('sermones', Boolean(state.session.permissions.canManageSermons));
     toggleSectionAccess('eventos', Boolean(state.session.permissions.canManageEvents));
     toggleSectionAccess('limpieza', Boolean(state.session.permissions.canManageLimpieza));
+    toggleSectionAccess('bot', Boolean(state.session.permissions.canManageBot));
     if (!state.session.permissions.canManageMessages) {
         toggleSectionAccess('mensajes', false);
     } else {
@@ -122,6 +135,7 @@ function getAvailableTabs() {
     if (state.session.permissions.canManageSermons) tabs.push('sermones');
     if (state.session.permissions.canManageEvents) tabs.push('eventos');
     if (state.session.permissions.canManageLimpieza) tabs.push('limpieza');
+    if (state.session.permissions.canManageBot) tabs.push('bot');
     if (state.session.permissions.canManageMessages) tabs.push('mensajes');
     return tabs;
 }
@@ -171,6 +185,13 @@ function bindForms() {
     document.getElementById('formEvento').addEventListener('submit', handleEventSubmit);
     document.getElementById('formLimpieza').addEventListener('submit', handleLimpiezaSubmit);
     document.getElementById('btn-agregar-integrante').addEventListener('click', handleAgregarIntegranteLimpieza);
+    document.getElementById('formBotConfig').addEventListener('submit', handleBotConfigSubmit);
+    document.querySelectorAll('[data-probar]').forEach((boton) => {
+        boton.addEventListener('click', () => handleProbarBot(boton.dataset.probar, boton));
+    });
+    document.getElementById('btn-refrescar-estado-bot').addEventListener('click', () => {
+        refrescarEstadoBot().catch(handleRequestError);
+    });
     document.getElementById('formPassword').addEventListener('submit', handlePasswordSubmit);
     document.getElementById('toggle-password-form').addEventListener('click', togglePasswordForm);
 }
@@ -655,6 +676,107 @@ async function handleLimpiezaSubmit(event) {
     } finally {
         submitButton.disabled = false;
         submitButton.textContent = 'Guardar Equipo de Limpieza';
+    }
+}
+
+async function loadBotConfig() {
+    const data = await fetchJson('/api/bot-config');
+    state.botConfig = data || state.botConfig;
+    renderBotConfigForm();
+    await refrescarEstadoBot();
+}
+
+function renderBotConfigForm() {
+    BOT_CONFIG_KEYS.forEach((clave) => {
+        const item = state.botConfig[clave] || {};
+        const activoInput = document.getElementById(`bot-${clave}-activo`);
+        const horaInput = document.getElementById(`bot-${clave}-hora`);
+        if (activoInput) activoInput.checked = Boolean(item.activo);
+        if (horaInput) horaInput.value = item.hora || '';
+    });
+}
+
+async function refrescarEstadoBot() {
+    const badge = document.getElementById('bot-estado-badge');
+    if (!badge) {
+        return;
+    }
+
+    badge.textContent = 'Verificando...';
+    badge.className = 'badge bg-secondary';
+
+    try {
+        const estado = await fetchJson('/api/bot-estado');
+        if (estado && estado.conectado) {
+            badge.textContent = 'Conectado';
+            badge.className = 'badge bg-success';
+        } else {
+            badge.textContent = 'Desconectado';
+            badge.className = 'badge bg-danger';
+        }
+    } catch (error) {
+        badge.textContent = 'Error al consultar';
+        badge.className = 'badge bg-danger';
+        handleRequestError(error, { silent: true });
+    }
+}
+
+async function handleBotConfigSubmit(event) {
+    event.preventDefault();
+
+    const submitButton = document.getElementById('btn-guardar-bot-config');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Guardando...';
+
+    const payload = {};
+    BOT_CONFIG_KEYS.forEach((clave) => {
+        payload[clave] = {
+            activo: document.getElementById(`bot-${clave}-activo`).checked,
+            hora: document.getElementById(`bot-${clave}-hora`).value
+        };
+    });
+
+    try {
+        const data = await fetchJson('/api/bot-config', {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+        });
+        state.botConfig = data.botConfig;
+        renderBotConfigForm();
+        window.alert(data.mensaje || 'Configuracion guardada. Los cambios de horario requieren reiniciar el bot (pm2 restart) para aplicarse.');
+    } catch (error) {
+        handleRequestError(error);
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Guardar Configuracion del Bot';
+    }
+}
+
+async function handleProbarBot(tipo, boton) {
+    const resultado = document.querySelector(`[data-resultado="${tipo}"]`);
+    const textoOriginal = boton.innerHTML;
+    boton.disabled = true;
+    boton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Enviando...';
+    if (resultado) {
+        resultado.textContent = '';
+        resultado.className = 'd-block mt-2';
+    }
+
+    try {
+        await fetchJson(`/api/bot-config/probar/${tipo}`, { method: 'POST' });
+        if (resultado) {
+            resultado.textContent = 'Mensaje enviado correctamente.';
+            resultado.className = 'd-block mt-2 text-success small';
+        }
+    } catch (error) {
+        if (resultado) {
+            resultado.textContent = error.message || 'No se pudo enviar el mensaje.';
+            resultado.className = 'd-block mt-2 text-danger small';
+        }
+        handleRequestError(error, { silent: true });
+    } finally {
+        boton.disabled = false;
+        boton.innerHTML = textoOriginal;
     }
 }
 

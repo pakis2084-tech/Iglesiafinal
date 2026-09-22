@@ -6,7 +6,7 @@ const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 const session = require('express-session');
 // 1. IMPORTACIÓN DEL BOT (Añadido)
-const { iniciarBot } = require('./bot.js');
+const { iniciarBot, TAREAS_BOT } = require('./bot.js');
 
 const DEFAULT_DB_FILE = path.join(__dirname, 'db.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -33,6 +33,15 @@ const DEFAULT_EQUIPO_LIMPIEZA = [
 ];
 const DEFAULT_LIMPIEZA_FECHA_BASE = '2026-03-02';
 const DEFAULT_LIMPIEZA_INDICE_BASE = 3;
+// Horarios que estaban hardcodeados en bot.js (registerScheduledJobs) al
+// momento de mover la configuracion del bot a db.json.
+const BOT_CONFIG_KEYS = ['versiculoManana', 'versiculoNoche', 'limpieza', 'eventosSermones'];
+const DEFAULT_BOT_CONFIG = {
+    versiculoManana: { activo: true, hora: '07:00' },
+    versiculoNoche: { activo: true, hora: '21:00' },
+    limpieza: { activo: true, hora: '08:00' },
+    eventosSermones: { activo: true, hora: '08:30' }
+};
 const DEFAULT_TRUST_PROXY = 'loopback';
 const DEFAULT_BODY_LIMIT = '100kb';
 const UPLOAD_BODY_LIMIT = '75mb';
@@ -133,6 +142,13 @@ function sanitizeTime(value) {
     return /^\d{2}:\d{2}$/.test(time) ? time : '';
 }
 
+function sanitizeHoraBot(value) {
+    // Mas estricto que sanitizeTime: valida rango real 00-23 / 00-59,
+    // porque esta hora se usa para construir una expresion cron.
+    const hora = String(value || '').trim();
+    return /^([01]\d|2[0-3]):([0-5]\d)$/.test(hora) ? hora : '';
+}
+
 function validateHttpUrl(value, allowedHosts) {
     try {
         const url = new URL(String(value || '').trim());
@@ -160,6 +176,7 @@ function getRolePermissions(role) {
     const canManageEvents = EVENT_MANAGER_ROLES.includes(role);
     const canManageMessages = MESSAGE_ROLES.includes(role);
     const canManageLimpieza = CONTENT_ROLES.includes(role);
+    const canManageBot = CONTENT_ROLES.includes(role);
 
     return {
         canManageContent: canManageSermons || canManageEvents,
@@ -167,6 +184,7 @@ function getRolePermissions(role) {
         canManageEvents,
         canManageMessages,
         canManageLimpieza,
+        canManageBot,
         lockedEventCategory
     };
 }
@@ -545,6 +563,12 @@ function migrateEquipoLimpieza(db) {
     }
 }
 
+function migrateBotConfig(db) {
+    if (!db.has('botConfig').value()) {
+        db.set('botConfig', DEFAULT_BOT_CONFIG).write();
+    }
+}
+
 function serializeSermon(sermon) {
     return {
         id: sanitizeIdentifier(sermon.id),
@@ -580,6 +604,19 @@ function serializeEquipoLimpieza(data) {
         fechaBase: sanitizeDate(data && data.fechaBase),
         indiceBase: Number.isInteger(data && data.indiceBase) && data.indiceBase >= 0 ? data.indiceBase : 0
     };
+}
+
+function serializeBotConfig(data) {
+    const origen = data && typeof data === 'object' ? data : {};
+    const resultado = {};
+    BOT_CONFIG_KEYS.forEach((clave) => {
+        const item = origen[clave] && typeof origen[clave] === 'object' ? origen[clave] : {};
+        resultado[clave] = {
+            activo: Boolean(item.activo),
+            hora: sanitizeHoraBot(item.hora) || DEFAULT_BOT_CONFIG[clave].hora
+        };
+    });
+    return resultado;
 }
 
 function serializeMessage(message) {
@@ -726,6 +763,37 @@ function validateEquipoLimpiezaPayload(payload) {
     return { equipo, fechaBase, indiceBase };
 }
 
+function validateBotConfigPayload(payload, actual) {
+    const base = actual && typeof actual === 'object' ? actual : DEFAULT_BOT_CONFIG;
+    const cuerpo = payload && typeof payload === 'object' ? payload : {};
+    const resultado = {};
+
+    BOT_CONFIG_KEYS.forEach((clave) => {
+        const entradaActual = (base[clave] && typeof base[clave] === 'object') ? base[clave] : DEFAULT_BOT_CONFIG[clave];
+        const entradaPayload = cuerpo[clave] && typeof cuerpo[clave] === 'object' ? cuerpo[clave] : null;
+
+        if (!entradaPayload) {
+            resultado[clave] = { activo: Boolean(entradaActual.activo), hora: entradaActual.hora };
+            return;
+        }
+
+        const activo = entradaPayload.activo === undefined ? Boolean(entradaActual.activo) : Boolean(entradaPayload.activo);
+
+        let hora = entradaActual.hora;
+        if (entradaPayload.hora !== undefined) {
+            const horaValidada = sanitizeHoraBot(entradaPayload.hora);
+            if (!horaValidada) {
+                throw new Error(`La hora de "${clave}" no es valida. Usa el formato HH:MM (00-23 / 00-59).`);
+            }
+            hora = horaValidada;
+        }
+
+        resultado[clave] = { activo, hora };
+    });
+
+    return resultado;
+}
+
 function validateMessagePayload(payload) {
     const message = {
         nombre: validateRequiredText(payload.nombre, 'Nombre', { maxLength: 120 }),
@@ -835,6 +903,14 @@ function createApp(options = {}) {
     ensureDefaultAdmin(db, seedAdminPassword);
     migrateEventImages(db, uploadsDir);
     migrateEquipoLimpieza(db);
+    migrateBotConfig(db);
+
+    // Referencia compartida con iniciarBot(db, botSockHolder) en startServer():
+    // se crea aqui (vacia) para que las rutas de abajo puedan cerrar sobre
+    // ella, y bot.js la va completando (sock, conectado) una vez que la
+    // conexion de WhatsApp esta lista. options.botSockHolder permite
+    // inyectar una version fake en los tests.
+    const botSockHolder = options.botSockHolder || { sock: null, conectado: false };
 
     const app = express();
     app.disable('x-powered-by');
@@ -1099,6 +1175,56 @@ function createApp(options = {}) {
         }
     });
 
+    app.get('/api/bot-config', requireRole(CONTENT_ROLES), (req, res) => {
+        res.json(serializeBotConfig(db.get('botConfig').value()));
+    });
+
+    app.put('/api/bot-config', requireRole(CONTENT_ROLES), (req, res) => {
+        try {
+            const actual = db.get('botConfig').value();
+            const nuevoConfig = validateBotConfigPayload(req.body, actual);
+            db.set('botConfig', nuevoConfig).write();
+            return res.json({
+                success: true,
+                botConfig: serializeBotConfig(nuevoConfig),
+                mensaje: 'Configuracion guardada. Los cambios de horario requieren reiniciar el bot (pm2 restart) para aplicarse.'
+            });
+        } catch (error) {
+            return sendApiError(res, 400, error.message);
+        }
+    });
+
+    app.post('/api/bot-config/probar/:tipo', requireRole(CONTENT_ROLES), async (req, res) => {
+        const mapaTipos = {
+            'versiculo-manana': 'versiculoManana',
+            'versiculo-noche': 'versiculoNoche',
+            limpieza: 'limpieza',
+            'eventos-sermones': 'eventosSermones'
+        };
+        const clave = mapaTipos[req.params.tipo];
+        if (!clave) {
+            return sendApiError(res, 400, 'Tipo de prueba no reconocido.');
+        }
+
+        if (!botSockHolder.sock) {
+            return sendApiError(res, 503, 'El bot de WhatsApp no esta conectado en este momento.');
+        }
+
+        try {
+            // Reusa exactamente la misma funcion que ya usa el cron correspondiente
+            // (ver TAREAS_BOT en bot.js) en vez de reimplementar el armado del mensaje.
+            await TAREAS_BOT[clave](botSockHolder, db);
+            return res.json({ success: true, mensaje: 'Mensaje enviado correctamente.' });
+        } catch (error) {
+            console.error(`❌ Error probando manualmente "${req.params.tipo}":`, error);
+            return sendApiError(res, 500, 'No se pudo enviar el mensaje. Revisa los logs del servidor.');
+        }
+    });
+
+    app.get('/api/bot-estado', requireRole(CONTENT_ROLES), (req, res) => {
+        res.json({ conectado: Boolean(botSockHolder.conectado) });
+    });
+
     app.post('/api/mensajes', applyRateLimit(messageTracker, rateLimits.messages.message), (req, res) => {
         if (hasTriggeredContactHoneypot(req.body)) {
             return res.json({ success: true, mensaje: 'Mensaje enviado correctamente.' });
@@ -1160,7 +1286,7 @@ function createApp(options = {}) {
         res.status(404).json({ success: false, mensaje: 'Ruta no encontrada.' });
     });
 
-    return { app, db, uploadsDir, dbFile };
+    return { app, db, uploadsDir, dbFile, botSockHolder };
 }
 
 function installProcessErrorGuards() {
@@ -1177,12 +1303,12 @@ function installProcessErrorGuards() {
 function startServer(options = {}) {
     const port = options.port || Number(process.env.PORT) || 8080;
     const host = options.host || '0.0.0.0';
-    const { app, db } = createApp(options);
+    const { app, db, botSockHolder } = createApp(options);
 
     installProcessErrorGuards();
 
     // 3. INYECTAMOS EL BOT AQUÍ (Añadido)
-    iniciarBot(db).catch((error) => {
+    iniciarBot(db, botSockHolder).catch((error) => {
         console.error('❌ No se pudo iniciar el bot de WhatsApp:', error);
     });
 
