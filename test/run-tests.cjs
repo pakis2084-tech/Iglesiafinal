@@ -3,7 +3,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { createApp, hashPassword } = require('../server');
+const { createApp, hashPassword, migratePermisos } = require('../server');
 
 async function requestJson(baseUrl, route, options = {}, cookie = '') {
     const headers = { ...(options.headers || {}) };
@@ -67,6 +67,12 @@ async function withTestServer(run, appOptions = {}) {
             rol: 'damas_admin'
         })
         .write();
+
+    // Los usuarios de arriba se agregan DESPUES de createApp(), que es donde
+    // corre migratePermisos() en un arranque real. Se vuelve a correr para
+    // que estos usuarios de prueba tengan `permisos`, igual que tendria
+    // cualquier usuario real que ya existiera en db.json antes del deploy.
+    migratePermisos(db);
 
     const server = await new Promise((resolve) => {
         const instance = app.listen(0, '127.0.0.1', () => resolve(instance));
@@ -254,12 +260,29 @@ async function main() {
         }, damasLogin.cookie);
         assert.equal(sermonAttempt.response.status, 403);
 
+        // Desde la migracion a permisos granulares (Fase 2, Grupo 3B), pedir una
+        // categoria fuera del subconjunto permitido se RECHAZA con 403 en vez de
+        // forzarse silenciosamente a la categoria bloqueada.
+        const damasEventCategoriaInvalida = await requestJson(baseUrl, '/api/eventos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                titulo: 'No deberia crear',
+                categoria: 'general',
+                lugar: 'Salon Dorcas',
+                fecha: '2026-03-25',
+                hora: '18:30',
+                descripcion: 'Actividad del ministerio'
+            })
+        }, damasLogin.cookie);
+        assert.equal(damasEventCategoriaInvalida.response.status, 403);
+
         const damasEvent = await requestJson(baseUrl, '/api/eventos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 titulo: 'Reunion Dorcas',
-                categoria: 'general',
+                categoria: 'damas',
                 lugar: 'Salon Dorcas',
                 fecha: '2026-03-25',
                 hora: '18:30',

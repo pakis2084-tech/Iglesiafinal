@@ -18,6 +18,11 @@ const CONTENT_ROLES = ['admin', 'pastor', 'editor'];
 const EVENT_MANAGER_ROLES = [...CONTENT_ROLES, 'damas_admin'];
 const MESSAGE_ROLES = ['admin', 'pastor'];
 const EVENT_CATEGORIES = new Set(['general', 'jovenes', 'damas', 'escuela']);
+// Sistema nuevo de permisos granulares (ver migratePermisos/normalizarPermisos
+// mas abajo). Convive con CONTENT_ROLES/EVENT_MANAGER_ROLES/MESSAGE_ROLES
+// mientras se migran los endpoints grupo por grupo; no borrar estas
+// constantes viejas hasta que TODOS los endpoints usen requirePermiso.
+const TODAS_LAS_CATEGORIAS_EVENTO = [...EVENT_CATEGORIES];
 const LOCKED_EVENT_CATEGORIES = {
     damas_admin: 'damas'
 };
@@ -606,6 +611,88 @@ function migrateBotConfig(db) {
     }
 }
 
+// Traduccion de cada rol viejo a su equivalente en permisos granulares.
+// admin y pastor tenian, en el codigo por roles, exactamente el mismo
+// acceso (ambos en CONTENT_ROLES, EVENT_MANAGER_ROLES y MESSAGE_ROLES);
+// se decidio que admin quede como esAdmin (dueño del sistema, incluye
+// gestionar permisos de otros usuarios en una fase futura) y pastor
+// quede con permisos explicitos equivalentes en contenido pero sin
+// esAdmin (no gestiona usuarios).
+const TRADUCCION_ROL_A_PERMISOS = {
+    admin: () => ({ esAdmin: true }),
+    pastor: () => ({
+        esAdmin: false,
+        sermones: true,
+        eventos: { categorias: [...TODAS_LAS_CATEGORIAS_EVENTO] },
+        limpieza: true,
+        bot: true,
+        mensajes: true
+    }),
+    editor: () => ({
+        esAdmin: false,
+        sermones: true,
+        eventos: { categorias: [...TODAS_LAS_CATEGORIAS_EVENTO] },
+        limpieza: true,
+        bot: true,
+        mensajes: false
+    }),
+    damas_admin: () => ({
+        esAdmin: false,
+        sermones: false,
+        eventos: { categorias: ['damas'] },
+        limpieza: false,
+        bot: false,
+        mensajes: false
+    })
+};
+
+function migratePermisos(db) {
+    db.get('usuarios').value().forEach((user) => {
+        if (user.permisos) {
+            return; // ya migrado, no lo pisa (permite editar permisos a mano sin que se revierta)
+        }
+
+        const generarPermisos = TRADUCCION_ROL_A_PERMISOS[user.rol];
+        // Rol desconocido/basura: nunca se asume acceso, se traduce a
+        // "sin permisos" (normalizarPermisos rellena todo en false/[]).
+        const permisosBase = generarPermisos ? generarPermisos() : {};
+
+        db.get('usuarios')
+            .find({ usuario: user.usuario })
+            .assign({ permisos: normalizarPermisos(permisosBase) })
+            .write();
+    });
+
+    // Salvaguarda dura, independiente de que la traduccion de arriba haya
+    // salido bien: si tras migrar nadie quedo con esAdmin=true, el sistema
+    // queda inservible (nadie puede gestionar nada). Se fuerza siempre en
+    // la cuenta 'admin', pase lo que pase con su rol original.
+    const hayAlgunAdmin = db.get('usuarios').value().some((user) => user.permisos && user.permisos.esAdmin === true);
+    if (!hayAlgunAdmin) {
+        console.error('⚠️ Ningun usuario quedo con esAdmin=true tras migrar permisos. Forzando esAdmin en "admin".');
+        db.get('usuarios')
+            .find({ usuario: 'admin' })
+            .assign({ permisos: normalizarPermisos({ esAdmin: true }) })
+            .write();
+    }
+}
+
+function normalizarPermisos(permisosCrudo) {
+    const permisos = permisosCrudo && typeof permisosCrudo === 'object' ? permisosCrudo : {};
+    const categoriasCrudas = permisos.eventos && Array.isArray(permisos.eventos.categorias)
+        ? permisos.eventos.categorias
+        : [];
+
+    return {
+        esAdmin: permisos.esAdmin === true,
+        sermones: permisos.sermones === true,
+        eventos: { categorias: categoriasCrudas.filter((categoria) => EVENT_CATEGORIES.has(categoria)) },
+        limpieza: permisos.limpieza === true,
+        bot: permisos.bot === true,
+        mensajes: permisos.mensajes === true
+    };
+}
+
 function serializeSermon(sermon) {
     return {
         id: sanitizeIdentifier(sermon.id),
@@ -889,17 +976,54 @@ function requireAuthentication(req, res, next) {
     return sendApiError(res, 401, 'No autorizado. Inicia sesion.');
 }
 
-function requireRole(allowedRoles) {
-    return function roleMiddleware(req, res, next) {
+// Reemplazo de requireRole (rol fijo) basado en permisos granulares por
+// usuario (ver migratePermisos/normalizarPermisos). Recibe `db` explicito
+// (en vez de cerrar sobre una variable de createApp) porque, a diferencia
+// de requireRole, necesita leer el usuario actual en cada request para que
+// un cambio de permisos desde el panel tenga efecto sin re-loguearse.
+function requirePermiso(db, clave) {
+    return function permisoMiddleware(req, res, next) {
         if (!req.session || !req.session.usuarioLogueado) {
             return sendApiError(res, 401, 'No autorizado. Inicia sesion.');
         }
 
-        if (!allowedRoles.includes(req.session.rol)) {
-            return sendApiError(res, 403, 'No tienes permisos para esta accion.');
+        const user = db.get('usuarios').find({ usuario: req.session.usuario }).value();
+        const permisos = normalizarPermisos(user && user.permisos);
+
+        if (permisos.esAdmin) {
+            return next();
         }
 
-        return next();
+        // 'eventos' no es booleano como el resto (es { categorias: [] }): el
+        // middleware solo valida que tenga ALGUNA categoria permitida; cual
+        // categoria puede tocar en cada request lo valida el propio handler
+        // (ver obtenerPermisosEventoDeUsuario en POST/PUT/DELETE /api/eventos).
+        const tienePermiso = clave === 'eventos'
+            ? permisos.eventos.categorias.length > 0
+            : permisos[clave] === true;
+
+        if (tienePermiso) {
+            return next();
+        }
+
+        return sendApiError(res, 403, 'No tienes permisos para esta accion.');
+    };
+}
+
+// Devuelve las categorias de evento que puede gestionar un usuario, leidas
+// frescos de db.json (mismo criterio que requirePermiso: un cambio de
+// permisos desde el panel debe tener efecto sin re-loguearse). Los handlers
+// de /api/eventos lo usan para decidir SOBRE QUE categoria puntual actuar,
+// ya que requirePermiso(db, 'eventos') solo valida que tenga alguna.
+// Incluye esAdmin porque una cuenta esAdmin:true no necesariamente tiene
+// eventos.categorias poblado (la traduccion de 'admin' solo setea esAdmin) -
+// el acceso total hay que resolverlo aca tambien, no solo en el middleware.
+function obtenerPermisosEventoDeUsuario(db, usuario) {
+    const user = db.get('usuarios').find({ usuario }).value();
+    const permisos = normalizarPermisos(user && user.permisos);
+    return {
+        esAdmin: permisos.esAdmin,
+        categorias: permisos.eventos.categorias
     };
 }
 
@@ -940,6 +1064,7 @@ function createApp(options = {}) {
     ensureUploadsDir(UPLOADS_VERSICULOS_NOCHE_DIR);
     migrateUsers(db);
     ensureDefaultAdmin(db, seedAdminPassword);
+    migratePermisos(db);
     migrateEventImages(db, uploadsDir);
     migrateEquipoLimpieza(db);
     migrateBotConfig(db);
@@ -1091,7 +1216,7 @@ function createApp(options = {}) {
         res.json(sermons);
     });
 
-    app.post('/api/sermones', requireRole(CONTENT_ROLES), (req, res) => {
+    app.post('/api/sermones', requirePermiso(db, 'sermones'), (req, res) => {
         try {
             const sermon = validateSermonPayload(req.body);
             sermon.id = randomId();
@@ -1102,7 +1227,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.put('/api/sermones/:id', requireRole(CONTENT_ROLES), (req, res) => {
+    app.put('/api/sermones/:id', requirePermiso(db, 'sermones'), (req, res) => {
         const sermonId = sanitizeIdentifier(req.params.id);
         const current = db.get('sermones').find({ id: sermonId }).value();
 
@@ -1119,7 +1244,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.delete('/api/sermones/:id', requireRole(CONTENT_ROLES), (req, res) => {
+    app.delete('/api/sermones/:id', requirePermiso(db, 'sermones'), (req, res) => {
         const sermonId = sanitizeIdentifier(req.params.id);
         const current = db.get('sermones').find({ id: sermonId }).value();
 
@@ -1136,13 +1261,25 @@ function createApp(options = {}) {
         res.json(events);
     });
 
-    app.post('/api/eventos', requireRole(EVENT_MANAGER_ROLES), (req, res) => {
+    app.post('/api/eventos', requirePermiso(db, 'eventos'), (req, res) => {
         try {
-            const permissions = getRolePermissions(req.session.rol);
-            const payload = permissions.lockedEventCategory
-                ? { ...req.body, categoria: permissions.lockedEventCategory }
-                : req.body;
-            const event = validateEventPayload(payload, uploadsDir, '', '');
+            const { esAdmin, categorias: categoriasPermitidas } = obtenerPermisosEventoDeUsuario(db, req.session.usuario);
+            const tieneAccesoTotal = esAdmin || TODAS_LAS_CATEGORIAS_EVENTO.every((cat) => categoriasPermitidas.includes(cat));
+
+            if (!tieneAccesoTotal) {
+                // Misma normalizacion de categoria que hace validateEventPayload
+                // (sanitizeText + default a 'general' si no es una categoria
+                // valida), para evaluar el permiso sobre la categoria REAL que
+                // terminaria guardandose.
+                const categoriaCruda = sanitizeText(req.body.categoria || 'general', { maxLength: 20 }).toLowerCase();
+                const categoriaSolicitada = EVENT_CATEGORIES.has(categoriaCruda) ? categoriaCruda : 'general';
+
+                if (!categoriasPermitidas.includes(categoriaSolicitada)) {
+                    return sendApiError(res, 403, 'No tienes permisos para crear eventos de esta categoria.');
+                }
+            }
+
+            const event = validateEventPayload(req.body, uploadsDir, '', '');
             event.id = randomId();
             db.get('eventos').push(event).write();
             res.json({ success: true, evento: serializeEvent(event) });
@@ -1151,7 +1288,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.put('/api/eventos/:id', requireRole(EVENT_MANAGER_ROLES), (req, res) => {
+    app.put('/api/eventos/:id', requirePermiso(db, 'eventos'), (req, res) => {
         const eventId = sanitizeIdentifier(req.params.id);
         const current = db.get('eventos').find({ id: eventId }).value();
 
@@ -1160,15 +1297,23 @@ function createApp(options = {}) {
         }
 
         try {
-            const permissions = getRolePermissions(req.session.rol);
-            if (permissions.lockedEventCategory && current.categoria !== permissions.lockedEventCategory) {
-                return sendApiError(res, 403, 'No tienes permisos para modificar este evento.');
+            const { esAdmin, categorias: categoriasPermitidas } = obtenerPermisosEventoDeUsuario(db, req.session.usuario);
+            const tieneAccesoTotal = esAdmin || TODAS_LAS_CATEGORIAS_EVENTO.every((cat) => categoriasPermitidas.includes(cat));
+
+            if (!tieneAccesoTotal) {
+                if (!categoriasPermitidas.includes(current.categoria)) {
+                    return sendApiError(res, 403, 'No tienes permisos para modificar este evento.');
+                }
+
+                const categoriaCruda = sanitizeText(req.body.categoria || 'general', { maxLength: 20 }).toLowerCase();
+                const categoriaSolicitada = EVENT_CATEGORIES.has(categoriaCruda) ? categoriaCruda : 'general';
+
+                if (!categoriasPermitidas.includes(categoriaSolicitada)) {
+                    return sendApiError(res, 403, 'No tienes permisos para asignar esta categoria.');
+                }
             }
 
-            const payload = permissions.lockedEventCategory
-                ? { ...req.body, categoria: permissions.lockedEventCategory }
-                : req.body;
-            const event = validateEventPayload(payload, uploadsDir, current.imagen || '', current.video || '');
+            const event = validateEventPayload(req.body, uploadsDir, current.imagen || '', current.video || '');
             db.get('eventos').find({ id: eventId }).assign(event).write();
             return res.json({ success: true, evento: serializeEvent({ ...current, ...event, id: eventId }) });
         } catch (error) {
@@ -1176,7 +1321,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.delete('/api/eventos/:id', requireRole(EVENT_MANAGER_ROLES), (req, res) => {
+    app.delete('/api/eventos/:id', requirePermiso(db, 'eventos'), (req, res) => {
         const eventId = sanitizeIdentifier(req.params.id);
         const current = db.get('eventos').find({ id: eventId }).value();
 
@@ -1184,8 +1329,10 @@ function createApp(options = {}) {
             return sendApiError(res, 404, 'Evento no encontrado.');
         }
 
-        const permissions = getRolePermissions(req.session.rol);
-        if (permissions.lockedEventCategory && current.categoria !== permissions.lockedEventCategory) {
+        const { esAdmin, categorias: categoriasPermitidas } = obtenerPermisosEventoDeUsuario(db, req.session.usuario);
+        const tieneAccesoTotal = esAdmin || TODAS_LAS_CATEGORIAS_EVENTO.every((cat) => categoriasPermitidas.includes(cat));
+
+        if (!tieneAccesoTotal && !categoriasPermitidas.includes(current.categoria)) {
             return sendApiError(res, 403, 'No tienes permisos para eliminar este evento.');
         }
 
@@ -1203,7 +1350,7 @@ function createApp(options = {}) {
         }));
     });
 
-    app.put('/api/equipo-limpieza', requireRole(CONTENT_ROLES), (req, res) => {
+    app.put('/api/equipo-limpieza', requirePermiso(db, 'limpieza'), (req, res) => {
         try {
             const equipoLimpieza = validateEquipoLimpiezaPayload(req.body);
             db.set('equipoLimpieza', equipoLimpieza.equipo).write();
@@ -1215,11 +1362,11 @@ function createApp(options = {}) {
         }
     });
 
-    app.get('/api/bot-config', requireRole(CONTENT_ROLES), (req, res) => {
+    app.get('/api/bot-config', requirePermiso(db, 'bot'), (req, res) => {
         res.json(serializeBotConfig(db.get('botConfig').value()));
     });
 
-    app.put('/api/bot-config', requireRole(CONTENT_ROLES), (req, res) => {
+    app.put('/api/bot-config', requirePermiso(db, 'bot'), (req, res) => {
         try {
             const actual = db.get('botConfig').value();
             const nuevoConfig = validateBotConfigPayload(req.body, actual);
@@ -1234,7 +1381,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.get('/api/bot-config/imagenes/:tipo', requireRole(CONTENT_ROLES), (req, res) => {
+    app.get('/api/bot-config/imagenes/:tipo', requirePermiso(db, 'bot'), (req, res) => {
         const directorio = DIRECTORIOS_VERSICULOS_IMAGENES[req.params.tipo];
         if (!directorio) {
             return sendApiError(res, 400, 'Tipo de imagen no reconocido.');
@@ -1252,7 +1399,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.post('/api/bot-config/imagenes/:tipo', requireRole(CONTENT_ROLES), (req, res) => {
+    app.post('/api/bot-config/imagenes/:tipo', requirePermiso(db, 'bot'), (req, res) => {
         const directorio = DIRECTORIOS_VERSICULOS_IMAGENES[req.params.tipo];
         if (!directorio) {
             return sendApiError(res, 400, 'Tipo de imagen no reconocido.');
@@ -1270,7 +1417,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.delete('/api/bot-config/imagenes/:tipo/:nombreArchivo', requireRole(CONTENT_ROLES), (req, res) => {
+    app.delete('/api/bot-config/imagenes/:tipo/:nombreArchivo', requirePermiso(db, 'bot'), (req, res) => {
         const directorio = DIRECTORIOS_VERSICULOS_IMAGENES[req.params.tipo];
         if (!directorio) {
             return sendApiError(res, 400, 'Tipo de imagen no reconocido.');
@@ -1292,7 +1439,7 @@ function createApp(options = {}) {
         return res.json({ success: true });
     });
 
-    app.post('/api/bot-config/probar/:tipo', requireRole(CONTENT_ROLES), async (req, res) => {
+    app.post('/api/bot-config/probar/:tipo', requirePermiso(db, 'bot'), async (req, res) => {
         const mapaTipos = {
             'versiculo-manana': 'versiculoManana',
             'versiculo-noche': 'versiculoNoche',
@@ -1328,7 +1475,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.get('/api/bot-estado', requireRole(CONTENT_ROLES), (req, res) => {
+    app.get('/api/bot-estado', requirePermiso(db, 'bot'), (req, res) => {
         res.json({ conectado: Boolean(botSockHolder.conectado) });
     });
 
@@ -1356,12 +1503,12 @@ function createApp(options = {}) {
         }
     });
 
-    app.get('/api/mensajes', requireRole(MESSAGE_ROLES), (req, res) => {
+    app.get('/api/mensajes', requirePermiso(db, 'mensajes'), (req, res) => {
         const messages = db.get('mensajes').value().map(serializeMessage);
         res.json(messages);
     });
 
-    app.put('/api/mensajes/:id', requireRole(MESSAGE_ROLES), (req, res) => {
+    app.put('/api/mensajes/:id', requirePermiso(db, 'mensajes'), (req, res) => {
         const messageId = sanitizeIdentifier(req.params.id);
         const current = db.get('mensajes').find({ id: messageId }).value();
 
@@ -1373,7 +1520,7 @@ function createApp(options = {}) {
         return res.json({ success: true });
     });
 
-    app.delete('/api/mensajes/:id', requireRole(MESSAGE_ROLES), (req, res) => {
+    app.delete('/api/mensajes/:id', requirePermiso(db, 'mensajes'), (req, res) => {
         const messageId = sanitizeIdentifier(req.params.id);
         const current = db.get('mensajes').find({ id: messageId }).value();
 
@@ -1436,6 +1583,9 @@ module.exports = {
     MESSAGE_ROLES,
     createApp,
     hashPassword,
+    migratePermisos,
+    normalizarPermisos,
+    requirePermiso,
     sanitizeText,
     startServer,
     verifyPassword
