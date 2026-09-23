@@ -1042,6 +1042,27 @@ function requireAuthentication(req, res, next) {
     return sendApiError(res, 401, 'No autorizado. Inicia sesion.');
 }
 
+// Middleware aparte (no se toca requireAuthentication, que solo chequea que
+// haya sesion y es generico). Va DESPUES de requireAuthentication en las
+// rutas que lo necesiten, y replica su mismo patron para decidir entre
+// redirect (paginas) y 403 JSON (API) - mismo criterio de rechazo que ya
+// usa requirePermiso para activo:false.
+function requireCuentaActiva(db) {
+    return function cuentaActivaMiddleware(req, res, next) {
+        const user = db.get('usuarios').find({ usuario: req.session.usuario }).value();
+
+        if (!user || user.activo !== false) {
+            return next();
+        }
+
+        if (!req.path.startsWith('/api/') && req.accepts('html')) {
+            return res.redirect('/admin.html');
+        }
+
+        return sendApiError(res, 403, 'Tu cuenta esta desactivada.');
+    };
+}
+
 // Reemplazo de requireRole (rol fijo) basado en permisos granulares por
 // usuario (ver migratePermisos/normalizarPermisos). Recibe `db` explicito
 // (en vez de cerrar sobre una variable de createApp) porque, a diferencia
@@ -1261,7 +1282,7 @@ function createApp(options = {}) {
         });
     });
 
-    app.post('/api/cuenta/password', disableCaching, requireAuthentication, (req, res) => {
+    app.post('/api/cuenta/password', disableCaching, requireAuthentication, requireCuentaActiva(db), (req, res) => {
         const currentUser = db.get('usuarios').find({ usuario: req.session.usuario }).value();
 
         if (!currentUser) {
@@ -1737,7 +1758,7 @@ function createApp(options = {}) {
         return res.json({ success: true });
     });
 
-    app.get('/panel.html', disableCaching, requireAuthentication, (req, res) => {
+    app.get('/panel.html', disableCaching, requireAuthentication, requireCuentaActiva(db), (req, res) => {
         res.sendFile(PRIVATE_PANEL_FILE);
     });
 
