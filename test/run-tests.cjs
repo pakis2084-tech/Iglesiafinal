@@ -3,7 +3,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { createApp, hashPassword } = require('../server');
+const { createApp, hashPassword, migratePermisos } = require('../server');
 
 async function requestJson(baseUrl, route, options = {}, cookie = '') {
     const headers = { ...(options.headers || {}) };
@@ -67,6 +67,12 @@ async function withTestServer(run, appOptions = {}) {
             rol: 'damas_admin'
         })
         .write();
+
+    // Los usuarios de arriba se agregan DESPUES de createApp(), que es donde
+    // corre migratePermisos() en un arranque real. Se vuelve a correr para
+    // que estos usuarios de prueba tengan `permisos`, igual que tendria
+    // cualquier usuario real que ya existiera en db.json antes del deploy.
+    migratePermisos(db);
 
     const server = await new Promise((resolve) => {
         const instance = app.listen(0, '127.0.0.1', () => resolve(instance));

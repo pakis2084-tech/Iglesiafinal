@@ -18,6 +18,11 @@ const CONTENT_ROLES = ['admin', 'pastor', 'editor'];
 const EVENT_MANAGER_ROLES = [...CONTENT_ROLES, 'damas_admin'];
 const MESSAGE_ROLES = ['admin', 'pastor'];
 const EVENT_CATEGORIES = new Set(['general', 'jovenes', 'damas', 'escuela']);
+// Sistema nuevo de permisos granulares (ver migratePermisos/normalizarPermisos
+// mas abajo). Convive con CONTENT_ROLES/EVENT_MANAGER_ROLES/MESSAGE_ROLES
+// mientras se migran los endpoints grupo por grupo; no borrar estas
+// constantes viejas hasta que TODOS los endpoints usen requirePermiso.
+const TODAS_LAS_CATEGORIAS_EVENTO = [...EVENT_CATEGORIES];
 const LOCKED_EVENT_CATEGORIES = {
     damas_admin: 'damas'
 };
@@ -606,6 +611,88 @@ function migrateBotConfig(db) {
     }
 }
 
+// Traduccion de cada rol viejo a su equivalente en permisos granulares.
+// admin y pastor tenian, en el codigo por roles, exactamente el mismo
+// acceso (ambos en CONTENT_ROLES, EVENT_MANAGER_ROLES y MESSAGE_ROLES);
+// se decidio que admin quede como esAdmin (dueño del sistema, incluye
+// gestionar permisos de otros usuarios en una fase futura) y pastor
+// quede con permisos explicitos equivalentes en contenido pero sin
+// esAdmin (no gestiona usuarios).
+const TRADUCCION_ROL_A_PERMISOS = {
+    admin: () => ({ esAdmin: true }),
+    pastor: () => ({
+        esAdmin: false,
+        sermones: true,
+        eventos: { categorias: [...TODAS_LAS_CATEGORIAS_EVENTO] },
+        limpieza: true,
+        bot: true,
+        mensajes: true
+    }),
+    editor: () => ({
+        esAdmin: false,
+        sermones: true,
+        eventos: { categorias: [...TODAS_LAS_CATEGORIAS_EVENTO] },
+        limpieza: true,
+        bot: true,
+        mensajes: false
+    }),
+    damas_admin: () => ({
+        esAdmin: false,
+        sermones: false,
+        eventos: { categorias: ['damas'] },
+        limpieza: false,
+        bot: false,
+        mensajes: false
+    })
+};
+
+function migratePermisos(db) {
+    db.get('usuarios').value().forEach((user) => {
+        if (user.permisos) {
+            return; // ya migrado, no lo pisa (permite editar permisos a mano sin que se revierta)
+        }
+
+        const generarPermisos = TRADUCCION_ROL_A_PERMISOS[user.rol];
+        // Rol desconocido/basura: nunca se asume acceso, se traduce a
+        // "sin permisos" (normalizarPermisos rellena todo en false/[]).
+        const permisosBase = generarPermisos ? generarPermisos() : {};
+
+        db.get('usuarios')
+            .find({ usuario: user.usuario })
+            .assign({ permisos: normalizarPermisos(permisosBase) })
+            .write();
+    });
+
+    // Salvaguarda dura, independiente de que la traduccion de arriba haya
+    // salido bien: si tras migrar nadie quedo con esAdmin=true, el sistema
+    // queda inservible (nadie puede gestionar nada). Se fuerza siempre en
+    // la cuenta 'admin', pase lo que pase con su rol original.
+    const hayAlgunAdmin = db.get('usuarios').value().some((user) => user.permisos && user.permisos.esAdmin === true);
+    if (!hayAlgunAdmin) {
+        console.error('⚠️ Ningun usuario quedo con esAdmin=true tras migrar permisos. Forzando esAdmin en "admin".');
+        db.get('usuarios')
+            .find({ usuario: 'admin' })
+            .assign({ permisos: normalizarPermisos({ esAdmin: true }) })
+            .write();
+    }
+}
+
+function normalizarPermisos(permisosCrudo) {
+    const permisos = permisosCrudo && typeof permisosCrudo === 'object' ? permisosCrudo : {};
+    const categoriasCrudas = permisos.eventos && Array.isArray(permisos.eventos.categorias)
+        ? permisos.eventos.categorias
+        : [];
+
+    return {
+        esAdmin: permisos.esAdmin === true,
+        sermones: permisos.sermones === true,
+        eventos: { categorias: categoriasCrudas.filter((categoria) => EVENT_CATEGORIES.has(categoria)) },
+        limpieza: permisos.limpieza === true,
+        bot: permisos.bot === true,
+        mensajes: permisos.mensajes === true
+    };
+}
+
 function serializeSermon(sermon) {
     return {
         id: sanitizeIdentifier(sermon.id),
@@ -903,6 +990,28 @@ function requireRole(allowedRoles) {
     };
 }
 
+// Reemplazo gradual de requireRole basado en permisos granulares por
+// usuario (ver migratePermisos/normalizarPermisos). Recibe `db` explicito
+// (en vez de cerrar sobre una variable de createApp) porque, a diferencia
+// de requireRole, necesita leer el usuario actual en cada request para que
+// un cambio de permisos desde el panel tenga efecto sin re-loguearse.
+function requirePermiso(db, clave) {
+    return function permisoMiddleware(req, res, next) {
+        if (!req.session || !req.session.usuarioLogueado) {
+            return sendApiError(res, 401, 'No autorizado. Inicia sesion.');
+        }
+
+        const user = db.get('usuarios').find({ usuario: req.session.usuario }).value();
+        const permisos = normalizarPermisos(user && user.permisos);
+
+        if (permisos.esAdmin || permisos[clave] === true) {
+            return next();
+        }
+
+        return sendApiError(res, 403, 'No tienes permisos para esta accion.');
+    };
+}
+
 function buildSessionPayload(req) {
     const role = req.session && req.session.rol ? req.session.rol : '';
     return {
@@ -940,6 +1049,7 @@ function createApp(options = {}) {
     ensureUploadsDir(UPLOADS_VERSICULOS_NOCHE_DIR);
     migrateUsers(db);
     ensureDefaultAdmin(db, seedAdminPassword);
+    migratePermisos(db);
     migrateEventImages(db, uploadsDir);
     migrateEquipoLimpieza(db);
     migrateBotConfig(db);
@@ -1091,7 +1201,7 @@ function createApp(options = {}) {
         res.json(sermons);
     });
 
-    app.post('/api/sermones', requireRole(CONTENT_ROLES), (req, res) => {
+    app.post('/api/sermones', requirePermiso(db, 'sermones'), (req, res) => {
         try {
             const sermon = validateSermonPayload(req.body);
             sermon.id = randomId();
@@ -1102,7 +1212,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.put('/api/sermones/:id', requireRole(CONTENT_ROLES), (req, res) => {
+    app.put('/api/sermones/:id', requirePermiso(db, 'sermones'), (req, res) => {
         const sermonId = sanitizeIdentifier(req.params.id);
         const current = db.get('sermones').find({ id: sermonId }).value();
 
@@ -1119,7 +1229,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.delete('/api/sermones/:id', requireRole(CONTENT_ROLES), (req, res) => {
+    app.delete('/api/sermones/:id', requirePermiso(db, 'sermones'), (req, res) => {
         const sermonId = sanitizeIdentifier(req.params.id);
         const current = db.get('sermones').find({ id: sermonId }).value();
 
@@ -1436,6 +1546,9 @@ module.exports = {
     MESSAGE_ROLES,
     createApp,
     hashPassword,
+    migratePermisos,
+    normalizarPermisos,
+    requirePermiso,
     sanitizeText,
     startServer,
     verifyPassword
