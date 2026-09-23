@@ -260,12 +260,29 @@ async function main() {
         }, damasLogin.cookie);
         assert.equal(sermonAttempt.response.status, 403);
 
+        // Desde la migracion a permisos granulares (Fase 2, Grupo 3B), pedir una
+        // categoria fuera del subconjunto permitido se RECHAZA con 403 en vez de
+        // forzarse silenciosamente a la categoria bloqueada.
+        const damasEventCategoriaInvalida = await requestJson(baseUrl, '/api/eventos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                titulo: 'No deberia crear',
+                categoria: 'general',
+                lugar: 'Salon Dorcas',
+                fecha: '2026-03-25',
+                hora: '18:30',
+                descripcion: 'Actividad del ministerio'
+            })
+        }, damasLogin.cookie);
+        assert.equal(damasEventCategoriaInvalida.response.status, 403);
+
         const damasEvent = await requestJson(baseUrl, '/api/eventos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 titulo: 'Reunion Dorcas',
-                categoria: 'general',
+                categoria: 'damas',
                 lugar: 'Salon Dorcas',
                 fecha: '2026-03-25',
                 hora: '18:30',

@@ -1004,11 +1004,40 @@ function requirePermiso(db, clave) {
         const user = db.get('usuarios').find({ usuario: req.session.usuario }).value();
         const permisos = normalizarPermisos(user && user.permisos);
 
-        if (permisos.esAdmin || permisos[clave] === true) {
+        if (permisos.esAdmin) {
+            return next();
+        }
+
+        // 'eventos' no es booleano como el resto (es { categorias: [] }): el
+        // middleware solo valida que tenga ALGUNA categoria permitida; cual
+        // categoria puede tocar en cada request lo valida el propio handler
+        // (ver obtenerPermisosEventoDeUsuario en POST/PUT/DELETE /api/eventos).
+        const tienePermiso = clave === 'eventos'
+            ? permisos.eventos.categorias.length > 0
+            : permisos[clave] === true;
+
+        if (tienePermiso) {
             return next();
         }
 
         return sendApiError(res, 403, 'No tienes permisos para esta accion.');
+    };
+}
+
+// Devuelve las categorias de evento que puede gestionar un usuario, leidas
+// frescos de db.json (mismo criterio que requirePermiso: un cambio de
+// permisos desde el panel debe tener efecto sin re-loguearse). Los handlers
+// de /api/eventos lo usan para decidir SOBRE QUE categoria puntual actuar,
+// ya que requirePermiso(db, 'eventos') solo valida que tenga alguna.
+// Incluye esAdmin porque una cuenta esAdmin:true no necesariamente tiene
+// eventos.categorias poblado (la traduccion de 'admin' solo setea esAdmin) -
+// el acceso total hay que resolverlo aca tambien, no solo en el middleware.
+function obtenerPermisosEventoDeUsuario(db, usuario) {
+    const user = db.get('usuarios').find({ usuario }).value();
+    const permisos = normalizarPermisos(user && user.permisos);
+    return {
+        esAdmin: permisos.esAdmin,
+        categorias: permisos.eventos.categorias
     };
 }
 
@@ -1246,13 +1275,25 @@ function createApp(options = {}) {
         res.json(events);
     });
 
-    app.post('/api/eventos', requireRole(EVENT_MANAGER_ROLES), (req, res) => {
+    app.post('/api/eventos', requirePermiso(db, 'eventos'), (req, res) => {
         try {
-            const permissions = getRolePermissions(req.session.rol);
-            const payload = permissions.lockedEventCategory
-                ? { ...req.body, categoria: permissions.lockedEventCategory }
-                : req.body;
-            const event = validateEventPayload(payload, uploadsDir, '', '');
+            const { esAdmin, categorias: categoriasPermitidas } = obtenerPermisosEventoDeUsuario(db, req.session.usuario);
+            const tieneAccesoTotal = esAdmin || TODAS_LAS_CATEGORIAS_EVENTO.every((cat) => categoriasPermitidas.includes(cat));
+
+            if (!tieneAccesoTotal) {
+                // Misma normalizacion de categoria que hace validateEventPayload
+                // (sanitizeText + default a 'general' si no es una categoria
+                // valida), para evaluar el permiso sobre la categoria REAL que
+                // terminaria guardandose.
+                const categoriaCruda = sanitizeText(req.body.categoria || 'general', { maxLength: 20 }).toLowerCase();
+                const categoriaSolicitada = EVENT_CATEGORIES.has(categoriaCruda) ? categoriaCruda : 'general';
+
+                if (!categoriasPermitidas.includes(categoriaSolicitada)) {
+                    return sendApiError(res, 403, 'No tienes permisos para crear eventos de esta categoria.');
+                }
+            }
+
+            const event = validateEventPayload(req.body, uploadsDir, '', '');
             event.id = randomId();
             db.get('eventos').push(event).write();
             res.json({ success: true, evento: serializeEvent(event) });
@@ -1261,7 +1302,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.put('/api/eventos/:id', requireRole(EVENT_MANAGER_ROLES), (req, res) => {
+    app.put('/api/eventos/:id', requirePermiso(db, 'eventos'), (req, res) => {
         const eventId = sanitizeIdentifier(req.params.id);
         const current = db.get('eventos').find({ id: eventId }).value();
 
@@ -1270,15 +1311,23 @@ function createApp(options = {}) {
         }
 
         try {
-            const permissions = getRolePermissions(req.session.rol);
-            if (permissions.lockedEventCategory && current.categoria !== permissions.lockedEventCategory) {
-                return sendApiError(res, 403, 'No tienes permisos para modificar este evento.');
+            const { esAdmin, categorias: categoriasPermitidas } = obtenerPermisosEventoDeUsuario(db, req.session.usuario);
+            const tieneAccesoTotal = esAdmin || TODAS_LAS_CATEGORIAS_EVENTO.every((cat) => categoriasPermitidas.includes(cat));
+
+            if (!tieneAccesoTotal) {
+                if (!categoriasPermitidas.includes(current.categoria)) {
+                    return sendApiError(res, 403, 'No tienes permisos para modificar este evento.');
+                }
+
+                const categoriaCruda = sanitizeText(req.body.categoria || 'general', { maxLength: 20 }).toLowerCase();
+                const categoriaSolicitada = EVENT_CATEGORIES.has(categoriaCruda) ? categoriaCruda : 'general';
+
+                if (!categoriasPermitidas.includes(categoriaSolicitada)) {
+                    return sendApiError(res, 403, 'No tienes permisos para asignar esta categoria.');
+                }
             }
 
-            const payload = permissions.lockedEventCategory
-                ? { ...req.body, categoria: permissions.lockedEventCategory }
-                : req.body;
-            const event = validateEventPayload(payload, uploadsDir, current.imagen || '', current.video || '');
+            const event = validateEventPayload(req.body, uploadsDir, current.imagen || '', current.video || '');
             db.get('eventos').find({ id: eventId }).assign(event).write();
             return res.json({ success: true, evento: serializeEvent({ ...current, ...event, id: eventId }) });
         } catch (error) {
@@ -1286,7 +1335,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.delete('/api/eventos/:id', requireRole(EVENT_MANAGER_ROLES), (req, res) => {
+    app.delete('/api/eventos/:id', requirePermiso(db, 'eventos'), (req, res) => {
         const eventId = sanitizeIdentifier(req.params.id);
         const current = db.get('eventos').find({ id: eventId }).value();
 
@@ -1294,8 +1343,10 @@ function createApp(options = {}) {
             return sendApiError(res, 404, 'Evento no encontrado.');
         }
 
-        const permissions = getRolePermissions(req.session.rol);
-        if (permissions.lockedEventCategory && current.categoria !== permissions.lockedEventCategory) {
+        const { esAdmin, categorias: categoriasPermitidas } = obtenerPermisosEventoDeUsuario(db, req.session.usuario);
+        const tieneAccesoTotal = esAdmin || TODAS_LAS_CATEGORIAS_EVENTO.every((cat) => categoriasPermitidas.includes(cat));
+
+        if (!tieneAccesoTotal && !categoriasPermitidas.includes(current.categoria)) {
             return sendApiError(res, 403, 'No tienes permisos para eliminar este evento.');
         }
 
