@@ -976,21 +976,7 @@ function requireAuthentication(req, res, next) {
     return sendApiError(res, 401, 'No autorizado. Inicia sesion.');
 }
 
-function requireRole(allowedRoles) {
-    return function roleMiddleware(req, res, next) {
-        if (!req.session || !req.session.usuarioLogueado) {
-            return sendApiError(res, 401, 'No autorizado. Inicia sesion.');
-        }
-
-        if (!allowedRoles.includes(req.session.rol)) {
-            return sendApiError(res, 403, 'No tienes permisos para esta accion.');
-        }
-
-        return next();
-    };
-}
-
-// Reemplazo gradual de requireRole basado en permisos granulares por
+// Reemplazo de requireRole (rol fijo) basado en permisos granulares por
 // usuario (ver migratePermisos/normalizarPermisos). Recibe `db` explicito
 // (en vez de cerrar sobre una variable de createApp) porque, a diferencia
 // de requireRole, necesita leer el usuario actual en cada request para que
