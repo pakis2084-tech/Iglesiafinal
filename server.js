@@ -1313,7 +1313,7 @@ function createApp(options = {}) {
         }));
     });
 
-    app.put('/api/equipo-limpieza', requireRole(CONTENT_ROLES), (req, res) => {
+    app.put('/api/equipo-limpieza', requirePermiso(db, 'limpieza'), (req, res) => {
         try {
             const equipoLimpieza = validateEquipoLimpiezaPayload(req.body);
             db.set('equipoLimpieza', equipoLimpieza.equipo).write();
@@ -1325,11 +1325,11 @@ function createApp(options = {}) {
         }
     });
 
-    app.get('/api/bot-config', requireRole(CONTENT_ROLES), (req, res) => {
+    app.get('/api/bot-config', requirePermiso(db, 'bot'), (req, res) => {
         res.json(serializeBotConfig(db.get('botConfig').value()));
     });
 
-    app.put('/api/bot-config', requireRole(CONTENT_ROLES), (req, res) => {
+    app.put('/api/bot-config', requirePermiso(db, 'bot'), (req, res) => {
         try {
             const actual = db.get('botConfig').value();
             const nuevoConfig = validateBotConfigPayload(req.body, actual);
@@ -1344,7 +1344,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.get('/api/bot-config/imagenes/:tipo', requireRole(CONTENT_ROLES), (req, res) => {
+    app.get('/api/bot-config/imagenes/:tipo', requirePermiso(db, 'bot'), (req, res) => {
         const directorio = DIRECTORIOS_VERSICULOS_IMAGENES[req.params.tipo];
         if (!directorio) {
             return sendApiError(res, 400, 'Tipo de imagen no reconocido.');
@@ -1362,7 +1362,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.post('/api/bot-config/imagenes/:tipo', requireRole(CONTENT_ROLES), (req, res) => {
+    app.post('/api/bot-config/imagenes/:tipo', requirePermiso(db, 'bot'), (req, res) => {
         const directorio = DIRECTORIOS_VERSICULOS_IMAGENES[req.params.tipo];
         if (!directorio) {
             return sendApiError(res, 400, 'Tipo de imagen no reconocido.');
@@ -1380,7 +1380,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.delete('/api/bot-config/imagenes/:tipo/:nombreArchivo', requireRole(CONTENT_ROLES), (req, res) => {
+    app.delete('/api/bot-config/imagenes/:tipo/:nombreArchivo', requirePermiso(db, 'bot'), (req, res) => {
         const directorio = DIRECTORIOS_VERSICULOS_IMAGENES[req.params.tipo];
         if (!directorio) {
             return sendApiError(res, 400, 'Tipo de imagen no reconocido.');
@@ -1402,7 +1402,7 @@ function createApp(options = {}) {
         return res.json({ success: true });
     });
 
-    app.post('/api/bot-config/probar/:tipo', requireRole(CONTENT_ROLES), async (req, res) => {
+    app.post('/api/bot-config/probar/:tipo', requirePermiso(db, 'bot'), async (req, res) => {
         const mapaTipos = {
             'versiculo-manana': 'versiculoManana',
             'versiculo-noche': 'versiculoNoche',
@@ -1438,7 +1438,7 @@ function createApp(options = {}) {
         }
     });
 
-    app.get('/api/bot-estado', requireRole(CONTENT_ROLES), (req, res) => {
+    app.get('/api/bot-estado', requirePermiso(db, 'bot'), (req, res) => {
         res.json({ conectado: Boolean(botSockHolder.conectado) });
     });
 
