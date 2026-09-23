@@ -25,6 +25,7 @@
                 <a id="btn-menu-limpieza" data-tab="limpieza"><i class="fas fa-broom me-2"></i> Limpieza</a>
                 <a id="btn-menu-bot" data-tab="bot"><i class="fab fa-whatsapp me-2"></i> Bot WhatsApp</a>
                 <a id="btn-menu-mensajes" data-tab="mensajes"><i class="fas fa-envelope me-2"></i> Mensajes <span id="badge-mensajes" class="badge bg-danger ms-2" style="display:none;">0</span></a>
+                <a id="btn-menu-usuarios" data-tab="usuarios"><i class="fas fa-users-cog me-2"></i> Usuarios</a>
                 <a id="btn-logout"><i class="fas fa-sign-out-alt me-2"></i> Salir</a>
             </div>
 
@@ -383,6 +384,148 @@
                                             <td colspan="4" class="text-center py-4 text-muted">Cargando bandeja de entrada...</td>
                                         </tr>
                                     </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="seccion-usuarios" class="seccion-panel">
+                    <div class="card shadow-sm border-0 mb-5">
+                        <div class="card-header bg-white fw-bold py-3 text-secondary">
+                            <i class="fas fa-user-plus me-2 text-primary"></i> <span id="titulo-form-usuario">Crear Usuario Nuevo</span>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="formUsuario">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold small text-muted">USUARIO</label>
+                                        <input type="text" id="usr-usuario" class="form-control" maxlength="60" required autocomplete="off">
+                                    </div>
+                                    <div class="col-md-6 mb-3" id="usr-password-wrapper">
+                                        <label class="form-label fw-bold small text-muted">CONTRASENA</label>
+                                        <input type="password" id="usr-password" class="form-control" autocomplete="new-password">
+                                        <small class="text-muted">Minimo 8 caracteres, con al menos una letra y un numero.</small>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <label class="form-label fw-bold small text-muted d-block mb-2">PERMISOS</label>
+                                <div class="row mb-2">
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="usr-permiso-sermones">
+                                            <label class="form-check-label" for="usr-permiso-sermones">Sermones</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="usr-permiso-limpieza">
+                                            <label class="form-check-label" for="usr-permiso-limpieza">Limpieza</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="usr-permiso-bot">
+                                            <label class="form-check-label" for="usr-permiso-bot">Bot WhatsApp</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="usr-permiso-mensajes">
+                                            <label class="form-check-label" for="usr-permiso-mensajes">Mensajes</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <label class="form-label fw-bold small text-muted d-block mb-2">EVENTOS POR CATEGORIA</label>
+                                <div class="row mb-3">
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="usr-evt-general">
+                                            <label class="form-check-label" for="usr-evt-general">General</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="usr-evt-jovenes">
+                                            <label class="form-check-label" for="usr-evt-jovenes">Jovenes</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="usr-evt-damas">
+                                            <label class="form-check-label" for="usr-evt-damas">Damas</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="usr-evt-escuela">
+                                            <label class="form-check-label" for="usr-evt-escuela">Escuela Dominical</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="usr-permiso-gestionUsuarios">
+                                            <label class="form-check-label" for="usr-permiso-gestionUsuarios">Gestionar usuarios</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="usr-permiso-esAdmin">
+                                            <label class="form-check-label fw-bold" for="usr-permiso-esAdmin">Administrador total (esAdmin)</label>
+                                        </div>
+                                        <small class="text-danger d-block mt-1">
+                                            <i class="fas fa-triangle-exclamation me-1"></i>
+                                            Esto da acceso TOTAL a todo el sistema y anula cualquier otro permiso marcado o desmarcado. Marcalo solo si de verdad queres otro administrador completo.
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button id="btn-cancelar-edicion-usuario" type="button" class="btn btn-outline-secondary fw-bold px-4 d-none">Cancelar</button>
+                                    <button id="btn-guardar-usuario" type="submit" class="btn btn-admin-primary fw-bold px-4">Crear Usuario</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0 mb-5 d-none" id="panel-reset-password">
+                        <div class="card-header bg-white fw-bold py-3 text-secondary">
+                            <i class="fas fa-key me-2 text-warning"></i> Restablecer contrasena de <span id="reset-password-usuario-objetivo" class="text-primary"></span>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-muted">NUEVA CONTRASENA</label>
+                                    <input type="password" id="reset-password-nueva" class="form-control" autocomplete="new-password">
+                                </div>
+                                <div class="col-md-6 d-flex gap-2">
+                                    <button id="btn-confirmar-reset-password" type="button" class="btn btn-admin-primary fw-bold px-4">Guardar</button>
+                                    <button id="btn-cancelar-reset-password" type="button" class="btn btn-outline-secondary px-4">Cancelar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="fw-bold mb-3">Usuarios del Panel</h4>
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light text-secondary small">
+                                        <tr>
+                                            <th class="ps-4">USUARIO</th>
+                                            <th>ESTADO</th>
+                                            <th>PERMISOS</th>
+                                            <th class="text-end pe-4">ACCIONES</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lista-usuarios-admin"></tbody>
                                 </table>
                             </div>
                         </div>

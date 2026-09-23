@@ -11,6 +11,9 @@ const state = {
     },
     editingSermonId: '',
     editingEventId: '',
+    usuarios: [],
+    editingUsuarioNombre: '',
+    resetPasswordUsuario: '',
     inactivityTimer: null
 };
 
@@ -19,7 +22,18 @@ const tabTitles = {
     eventos: 'Agenda de Eventos',
     limpieza: 'Rol de Limpieza',
     bot: 'Bot de WhatsApp',
-    mensajes: 'Bandeja de Entrada'
+    mensajes: 'Bandeja de Entrada',
+    usuarios: 'Gestion de Usuarios'
+};
+
+const PERMISOS_BOOLEANOS = ['sermones', 'limpieza', 'bot', 'mensajes', 'gestionUsuarios'];
+const CATEGORIAS_EVENTO = ['general', 'jovenes', 'damas', 'escuela'];
+const PERMISO_LABELS = {
+    sermones: 'Sermones',
+    limpieza: 'Limpieza',
+    bot: 'Bot',
+    mensajes: 'Mensajes',
+    gestionUsuarios: 'Gestion de usuarios'
 };
 
 const BOT_CONFIG_KEYS = ['versiculoManana', 'versiculoNoche', 'limpieza', 'eventosSermones'];
@@ -77,7 +91,8 @@ async function initPanel() {
         state.session.permissions.canManageEvents ? loadEvents() : Promise.resolve(),
         state.session.permissions.canManageLimpieza ? loadLimpieza() : Promise.resolve(),
         state.session.permissions.canManageBot ? loadBotConfig() : Promise.resolve(),
-        state.session.permissions.canManageMessages ? loadMessages() : Promise.resolve()
+        state.session.permissions.canManageMessages ? loadMessages() : Promise.resolve(),
+        state.session.permissions.canManageUsers ? loadUsuarios() : Promise.resolve()
     ]);
 
     const requestedTab = window.location.hash === '#mensajes'
@@ -88,7 +103,9 @@ async function initPanel() {
                 ? 'limpieza'
                 : window.location.hash === '#bot'
                     ? 'bot'
-                    : 'sermones';
+                    : window.location.hash === '#usuarios'
+                        ? 'usuarios'
+                        : 'sermones';
     changeTab(requestedTab);
 }
 
@@ -107,6 +124,7 @@ function applySessionUi() {
     } else {
         toggleSectionAccess('mensajes', true);
     }
+    toggleSectionAccess('usuarios', Boolean(state.session.permissions.canManageUsers));
 
     const categoryField = document.getElementById('ev-categoria');
     const categoryHelp = document.getElementById('ev-categoria-help');
@@ -138,6 +156,7 @@ function getAvailableTabs() {
     if (state.session.permissions.canManageLimpieza) tabs.push('limpieza');
     if (state.session.permissions.canManageBot) tabs.push('bot');
     if (state.session.permissions.canManageMessages) tabs.push('mensajes');
+    if (state.session.permissions.canManageUsers) tabs.push('usuarios');
     return tabs;
 }
 
@@ -198,6 +217,13 @@ function bindForms() {
     });
     document.getElementById('formPassword').addEventListener('submit', handlePasswordSubmit);
     document.getElementById('toggle-password-form').addEventListener('click', togglePasswordForm);
+    document.getElementById('formUsuario').addEventListener('submit', handleUsuarioSubmit);
+    document.getElementById('btn-cancelar-edicion-usuario').addEventListener('click', resetUsuarioForm);
+    document.getElementById('usr-permiso-esAdmin').addEventListener('change', handleEsAdminCheckboxChange);
+    document.getElementById('btn-confirmar-reset-password').addEventListener('click', () => {
+        confirmResetPassword().catch(handleRequestError);
+    });
+    document.getElementById('btn-cancelar-reset-password').addEventListener('click', closeResetPassword);
 }
 
 async function handleSermonSubmit(event) {
@@ -1017,6 +1043,314 @@ function buildReplyLink(message) {
 
     const name = encodeURIComponent(message.nombre || '');
     return `https://wa.me/${phone}?text=Hola%20${name},%20somos%20de%20la%20IPUB%20Tupiza.%20Recibimos%20tu%20mensaje.`;
+}
+
+async function loadUsuarios() {
+    const usuarios = await fetchJson('/api/usuarios');
+    state.usuarios = Array.isArray(usuarios) ? usuarios : [];
+    renderUsuarios();
+}
+
+function renderUsuarios() {
+    const tbody = document.getElementById('lista-usuarios-admin');
+    tbody.replaceChildren();
+
+    if (state.usuarios.length === 0) {
+        appendPlaceholderRow(tbody, 4, 'No hay usuarios.');
+        return;
+    }
+
+    state.usuarios.forEach((usuario) => {
+        const row = document.createElement('tr');
+        // El backend ya rechaza que un usuario se edite/desactive/borre a si
+        // mismo (ver requirePermiso + salvaguardas en server.js); esto solo
+        // evita mostrar botones que confundirian con un error innecesario.
+        const esUnoMismo = Boolean(state.session && state.session.usuario === usuario.usuario);
+
+        const nombreCell = document.createElement('td');
+        nombreCell.className = 'ps-4 fw-bold';
+        nombreCell.textContent = usuario.usuario;
+        if (esUnoMismo) {
+            const badgeVos = document.createElement('span');
+            badgeVos.className = 'badge bg-secondary ms-2';
+            badgeVos.textContent = 'Vos';
+            nombreCell.appendChild(badgeVos);
+        }
+
+        const estadoCell = document.createElement('td');
+        const estadoBadge = document.createElement('span');
+        estadoBadge.className = usuario.activo ? 'badge bg-success' : 'badge bg-secondary';
+        estadoBadge.textContent = usuario.activo ? 'Activo' : 'Inactivo';
+        estadoCell.appendChild(estadoBadge);
+
+        const permisosCell = document.createElement('td');
+        permisosCell.appendChild(buildPermisosSummaryFragment(usuario.permisos));
+
+        const actionsCell = document.createElement('td');
+        actionsCell.className = 'text-end pe-4';
+
+        const resetButton = createIconButton('btn btn-sm btn-outline-secondary me-1', 'Restablecer contrasena', 'fas fa-key');
+        resetButton.addEventListener('click', () => openResetPassword(usuario.usuario));
+        actionsCell.appendChild(resetButton);
+
+        if (!esUnoMismo) {
+            const editButton = createIconButton('btn btn-sm btn-outline-primary me-1', 'Editar permisos', 'fas fa-user-edit');
+            editButton.addEventListener('click', () => prepareUsuarioEdit(usuario.usuario));
+            actionsCell.appendChild(editButton);
+
+            const toggleButton = createIconButton(
+                usuario.activo ? 'btn btn-sm btn-outline-warning me-1' : 'btn btn-sm btn-outline-success me-1',
+                usuario.activo ? 'Desactivar' : 'Activar',
+                usuario.activo ? 'fas fa-user-slash' : 'fas fa-user-check'
+            );
+            toggleButton.addEventListener('click', () => {
+                toggleUsuarioActivo(usuario.usuario, !usuario.activo);
+            });
+            actionsCell.appendChild(toggleButton);
+
+            const deleteButton = createIconButton('btn btn-sm btn-outline-danger', 'Eliminar', 'fas fa-trash-alt');
+            deleteButton.addEventListener('click', () => {
+                deleteUsuario(usuario.usuario);
+            });
+            actionsCell.appendChild(deleteButton);
+        }
+
+        row.append(nombreCell, estadoCell, permisosCell, actionsCell);
+        tbody.appendChild(row);
+    });
+}
+
+function buildPermisosSummaryFragment(permisos) {
+    const fragment = document.createDocumentFragment();
+    const p = permisos || {};
+
+    if (p.esAdmin) {
+        const badge = document.createElement('span');
+        badge.className = 'badge bg-dark';
+        badge.innerHTML = '<i class="fas fa-crown me-1"></i>Administrador total';
+        fragment.appendChild(badge);
+        return fragment;
+    }
+
+    const badges = [];
+    PERMISOS_BOOLEANOS.forEach((clave) => {
+        if (p[clave]) {
+            badges.push(PERMISO_LABELS[clave]);
+        }
+    });
+
+    const categorias = (p.eventos && Array.isArray(p.eventos.categorias)) ? p.eventos.categorias : [];
+    if (categorias.length > 0) {
+        const nombres = categorias.map((categoria) => categoryLabels[categoria] || categoria).join(', ');
+        badges.push(`Eventos (${nombres})`);
+    }
+
+    if (badges.length === 0) {
+        const vacio = document.createElement('span');
+        vacio.className = 'text-muted small';
+        vacio.textContent = 'Sin permisos asignados';
+        fragment.appendChild(vacio);
+        return fragment;
+    }
+
+    badges.forEach((texto) => {
+        const badge = document.createElement('span');
+        badge.className = 'badge bg-light text-dark border me-1 mb-1';
+        badge.textContent = texto;
+        fragment.appendChild(badge);
+    });
+
+    return fragment;
+}
+
+// Lee los checkboxes del formulario y arma exactamente la forma que espera
+// el backend (normalizarPermisos en server.js): booleanos sueltos mas
+// eventos.categorias como array.
+function getPermisosFromForm() {
+    const permisos = { esAdmin: document.getElementById('usr-permiso-esAdmin').checked };
+
+    PERMISOS_BOOLEANOS.forEach((clave) => {
+        permisos[clave] = document.getElementById(`usr-permiso-${clave}`).checked;
+    });
+
+    permisos.eventos = {
+        categorias: CATEGORIAS_EVENTO.filter((categoria) => document.getElementById(`usr-evt-${categoria}`).checked)
+    };
+
+    return permisos;
+}
+
+function setPermisosToForm(permisos) {
+    const p = permisos || {};
+    document.getElementById('usr-permiso-esAdmin').checked = Boolean(p.esAdmin);
+
+    PERMISOS_BOOLEANOS.forEach((clave) => {
+        document.getElementById(`usr-permiso-${clave}`).checked = Boolean(p[clave]);
+    });
+
+    const categorias = (p.eventos && Array.isArray(p.eventos.categorias)) ? p.eventos.categorias : [];
+    CATEGORIAS_EVENTO.forEach((categoria) => {
+        document.getElementById(`usr-evt-${categoria}`).checked = categorias.includes(categoria);
+    });
+
+    handleEsAdminCheckboxChange();
+}
+
+// esAdmin bypasea todo lo demas (ver requirePermiso en server.js): marcarlo
+// deshabilita y fuerza el resto de checkboxes para que quede visualmente
+// claro que no importa como esten, no para ocultar informacion real.
+function handleEsAdminCheckboxChange() {
+    const esAdmin = document.getElementById('usr-permiso-esAdmin').checked;
+    const otrosIds = [
+        ...PERMISOS_BOOLEANOS.map((clave) => `usr-permiso-${clave}`),
+        ...CATEGORIAS_EVENTO.map((categoria) => `usr-evt-${categoria}`)
+    ];
+
+    otrosIds.forEach((id) => {
+        document.getElementById(id).disabled = esAdmin;
+    });
+
+    if (esAdmin) {
+        document.getElementById('usr-permiso-gestionUsuarios').checked = true;
+    }
+}
+
+async function handleUsuarioSubmit(event) {
+    event.preventDefault();
+
+    const submitButton = document.getElementById('btn-guardar-usuario');
+    const editando = Boolean(state.editingUsuarioNombre);
+    submitButton.disabled = true;
+    submitButton.textContent = editando ? 'Actualizando...' : 'Creando...';
+
+    try {
+        const permisos = getPermisosFromForm();
+
+        if (editando) {
+            await fetchJson(`/api/usuarios/${encodeURIComponent(state.editingUsuarioNombre)}/permisos`, {
+                method: 'PUT',
+                body: JSON.stringify({ permisos })
+            });
+        } else {
+            await fetchJson('/api/usuarios', {
+                method: 'POST',
+                body: JSON.stringify({
+                    usuario: document.getElementById('usr-usuario').value,
+                    password: document.getElementById('usr-password').value,
+                    permisos
+                })
+            });
+        }
+
+        resetUsuarioForm();
+        await loadUsuarios();
+    } catch (error) {
+        // Se muestra el mensaje real del backend (ej. "No podes quitarte el
+        // permiso esAdmin a vos mismo.") en vez de uno generico, para que se
+        // entienda POR QUE se rechazo la operacion.
+        handleRequestError(error);
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = state.editingUsuarioNombre ? 'Actualizar Permisos' : 'Crear Usuario';
+    }
+}
+
+function prepareUsuarioEdit(usuarioNombre) {
+    const target = state.usuarios.find((item) => item.usuario === usuarioNombre);
+    if (!target) {
+        return;
+    }
+
+    state.editingUsuarioNombre = target.usuario;
+    document.getElementById('usr-usuario').value = target.usuario;
+    document.getElementById('usr-usuario').disabled = true;
+    document.getElementById('usr-password-wrapper').classList.add('d-none');
+    document.getElementById('usr-password').value = '';
+
+    setPermisosToForm(target.permisos);
+
+    document.getElementById('titulo-form-usuario').textContent = `Editar Permisos de ${target.usuario}`;
+    document.getElementById('btn-guardar-usuario').textContent = 'Actualizar Permisos';
+    document.getElementById('btn-cancelar-edicion-usuario').classList.remove('d-none');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetUsuarioForm() {
+    state.editingUsuarioNombre = '';
+    document.getElementById('formUsuario').reset();
+    document.getElementById('usr-usuario').disabled = false;
+    document.getElementById('usr-password-wrapper').classList.remove('d-none');
+    document.getElementById('titulo-form-usuario').textContent = 'Crear Usuario Nuevo';
+    document.getElementById('btn-guardar-usuario').textContent = 'Crear Usuario';
+    document.getElementById('btn-cancelar-edicion-usuario').classList.add('d-none');
+    handleEsAdminCheckboxChange();
+}
+
+async function toggleUsuarioActivo(usuarioNombre, nuevoEstado) {
+    try {
+        await fetchJson(`/api/usuarios/${encodeURIComponent(usuarioNombre)}/estado`, {
+            method: 'PUT',
+            body: JSON.stringify({ activo: nuevoEstado })
+        });
+        await loadUsuarios();
+    } catch (error) {
+        handleRequestError(error);
+    }
+}
+
+async function deleteUsuario(usuarioNombre) {
+    if (!window.confirm(`Eliminar al usuario "${usuarioNombre}" de forma DEFINITIVA?\n\nEsta accion no se puede deshacer. Si preferis conservar su historial, usa "Desactivar" en su lugar.`)) {
+        return;
+    }
+
+    try {
+        await fetchJson(`/api/usuarios/${encodeURIComponent(usuarioNombre)}`, { method: 'DELETE' });
+        if (state.editingUsuarioNombre === usuarioNombre) {
+            resetUsuarioForm();
+        }
+        await loadUsuarios();
+    } catch (error) {
+        handleRequestError(error);
+    }
+}
+
+function openResetPassword(usuarioNombre) {
+    state.resetPasswordUsuario = usuarioNombre;
+    document.getElementById('reset-password-usuario-objetivo').textContent = usuarioNombre;
+    document.getElementById('reset-password-nueva').value = '';
+    document.getElementById('panel-reset-password').classList.remove('d-none');
+    document.getElementById('reset-password-nueva').focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function closeResetPassword() {
+    state.resetPasswordUsuario = '';
+    document.getElementById('reset-password-nueva').value = '';
+    document.getElementById('panel-reset-password').classList.add('d-none');
+}
+
+async function confirmResetPassword() {
+    if (!state.resetPasswordUsuario) {
+        return;
+    }
+
+    const boton = document.getElementById('btn-confirmar-reset-password');
+    boton.disabled = true;
+    boton.textContent = 'Guardando...';
+
+    try {
+        await fetchJson(`/api/usuarios/${encodeURIComponent(state.resetPasswordUsuario)}/password`, {
+            method: 'PUT',
+            body: JSON.stringify({ password: document.getElementById('reset-password-nueva').value })
+        });
+        window.alert('Contrasena actualizada correctamente.');
+        closeResetPassword();
+    } catch (error) {
+        handleRequestError(error);
+    } finally {
+        boton.disabled = false;
+        boton.textContent = 'Guardar';
+    }
 }
 
 async function logout() {
