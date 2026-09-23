@@ -1466,12 +1466,12 @@ function createApp(options = {}) {
         }
     });
 
-    app.get('/api/mensajes', requireRole(MESSAGE_ROLES), (req, res) => {
+    app.get('/api/mensajes', requirePermiso(db, 'mensajes'), (req, res) => {
         const messages = db.get('mensajes').value().map(serializeMessage);
         res.json(messages);
     });
 
-    app.put('/api/mensajes/:id', requireRole(MESSAGE_ROLES), (req, res) => {
+    app.put('/api/mensajes/:id', requirePermiso(db, 'mensajes'), (req, res) => {
         const messageId = sanitizeIdentifier(req.params.id);
         const current = db.get('mensajes').find({ id: messageId }).value();
 
@@ -1483,7 +1483,7 @@ function createApp(options = {}) {
         return res.json({ success: true });
     });
 
-    app.delete('/api/mensajes/:id', requireRole(MESSAGE_ROLES), (req, res) => {
+    app.delete('/api/mensajes/:id', requirePermiso(db, 'mensajes'), (req, res) => {
         const messageId = sanitizeIdentifier(req.params.id);
         const current = db.get('mensajes').find({ id: messageId }).value();
 
