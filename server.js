@@ -1122,14 +1122,51 @@ function obtenerPermisosEventoDeUsuario(db, usuario) {
     };
 }
 
-function buildSessionPayload(req) {
+// Antes se derivaba de getRolePermissions(rol) - un resumen basado en el
+// string de rol viejo. Se rompe para cualquier usuario creado solo con
+// `permisos` (sin `rol`, via POST /api/usuarios): getRolePermissions(undefined)
+// da todo en false, aunque sus permisos reales le den acceso. Ahora se lee
+// el usuario real de db.json y se deriva el resumen de sus permisos
+// granulares (misma fuente de verdad que ya usa requirePermiso).
+function buildSessionPayload(req, db) {
     const role = req.session && req.session.rol ? req.session.rol : '';
+    const usuario = req.session && req.session.usuario ? req.session.usuario : '';
+    const user = usuario ? db.get('usuarios').find({ usuario }).value() : null;
+    const permisos = normalizarPermisos(user && user.permisos);
+
+    const canManageSermons = permisos.esAdmin || permisos.sermones;
+    const canManageEvents = permisos.esAdmin || permisos.eventos.categorias.length > 0;
+    const canManageMessages = permisos.esAdmin || permisos.mensajes;
+    const canManageLimpieza = permisos.esAdmin || permisos.limpieza;
+    const canManageBot = permisos.esAdmin || permisos.bot;
+    const canManageUsers = permisos.esAdmin || permisos.gestionUsuarios;
+
+    // La UI de eventos (dropdown de categoria) todavia asume una unica
+    // categoria bloqueada. Con permisos granulares eso puede ser un
+    // subconjunto de mas de una categoria (caso nuevo, imposible con roles
+    // fijos); en ese caso no se fuerza ninguna (el dropdown queda libre, el
+    // backend igual valida la categoria real en cada request). Solo se
+    // preserva el bloqueo de un unico valor cuando el subconjunto es
+    // exactamente una categoria (ej. equivalente a damas_admin).
+    const lockedEventCategory = !permisos.esAdmin && permisos.eventos.categorias.length === 1
+        ? permisos.eventos.categorias[0]
+        : '';
+
     return {
         authenticated: Boolean(req.session && req.session.usuarioLogueado),
-        usuario: req.session && req.session.usuario ? req.session.usuario : '',
+        usuario,
         rol: role,
         roleLabel: getRoleLabel(role),
-        permissions: getRolePermissions(role)
+        permissions: {
+            canManageContent: canManageSermons || canManageEvents,
+            canManageSermons,
+            canManageEvents,
+            canManageMessages,
+            canManageLimpieza,
+            canManageBot,
+            canManageUsers,
+            lockedEventCategory
+        }
     };
 }
 
@@ -1222,7 +1259,7 @@ function createApp(options = {}) {
     app.use(express.static(PUBLIC_DIR, { extensions: ['html'] }));
 
     app.get('/api/session', disableCaching, (req, res) => {
-        res.json(buildSessionPayload(req));
+        res.json(buildSessionPayload(req, db));
     });
 
     app.post('/api/login', disableCaching, (req, res) => {
@@ -1266,7 +1303,7 @@ function createApp(options = {}) {
             return res.json({
                 success: true,
                 mensaje: 'Bienvenido',
-                ...buildSessionPayload(req)
+                ...buildSessionPayload(req, db)
             });
         });
     });
