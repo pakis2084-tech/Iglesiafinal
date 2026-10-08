@@ -4,6 +4,7 @@ const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
 const { enviarRecordatoriosDiarios, resolverUrlImagen, formatearFechaLocal, sumarDias, DIAS_VENTANA_EVENTOS } = require('./recordatorios.js');
+const { crearJuegos } = require('./juegos.js');
 
 const FRASES_MOTIVADORAS_FILE = path.join(__dirname, 'frases-motivadoras.json');
 
@@ -83,6 +84,10 @@ async function iniciarBot(db, sockHolderExterno) {
     // ya conectado y disparar tareas bajo demanda. Si no se pasa ninguno
     // (por ejemplo si algo llama iniciarBot directo), se crea uno local.
     const sockHolder = sockHolderExterno || { sock: null, conectado: false };
+    // Una sola instancia para todo el proceso: asi el cooldown por persona
+    // sobrevive a las reconexiones. La Bendicion del dia reusa los mismos
+    // versiculos de los envios programados.
+    const juegos = crearJuegos({ versiculos: [...VERSICULOS_MANANA, ...VERSICULOS_NOCHE] });
 
     async function connect(reconnectAttempt) {
         function scheduleReconnect() {
@@ -138,7 +143,18 @@ async function iniciarBot(db, sockHolderExterno) {
 
         sock.ev.on('creds.update', saveCreds);
 
-        sock.ev.on('messages.upsert', async ({ messages }) => {
+        sock.ev.on('messages.upsert', async ({ messages, type }) => {
+            // Los comandos de juegos (".algo") se atienden antes y, si el
+            // modulo los reclama, NO pasan al menu numerico.
+            try {
+                if (await juegos.manejarMensaje(sock, db, messages[0], type)) {
+                    return;
+                }
+            } catch (error) {
+                console.error('❌ Error procesando comando de juegos:', error);
+                return;
+            }
+
             try {
                 await handleIncomingMessage(sock, db, messages[0], commandRateLimited);
             } catch (error) {
