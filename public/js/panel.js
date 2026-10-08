@@ -9,6 +9,7 @@ const state = {
         limpieza: { activo: true, hora: '08:00' },
         eventosSermones: { activo: true, hora: '08:30' }
     },
+    juegosConfig: { activo: false, grupos: [], jugadoresRegistrados: 0 },
     editingSermonId: '',
     editingEventId: '',
     usuarios: [],
@@ -208,6 +209,14 @@ function bindForms() {
     document.getElementById('formBotConfig').addEventListener('submit', handleBotConfigSubmit);
     document.querySelectorAll('[data-probar]').forEach((boton) => {
         boton.addEventListener('click', () => handleProbarBot(boton.dataset.probar, boton));
+    });
+    document.getElementById('formJuegosConfig').addEventListener('submit', handleJuegosConfigSubmit);
+    document.getElementById('btn-agregar-grupo-juegos').addEventListener('click', agregarGrupoJuegos);
+    document.getElementById('juegos-nuevo-grupo').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            agregarGrupoJuegos();
+        }
     });
     document.getElementById('btn-refrescar-estado-bot').addEventListener('click', () => {
         refrescarEstadoBot().catch(handleRequestError);
@@ -715,6 +724,7 @@ async function loadBotConfig() {
     renderBotConfigForm();
     await Promise.all([
         refrescarEstadoBot(),
+        loadJuegosConfig(),
         cargarImagenesVersiculo('versiculoManana'),
         cargarImagenesVersiculo('versiculoNoche')
     ]);
@@ -893,6 +903,91 @@ async function handleBotConfigSubmit(event) {
     } finally {
         submitButton.disabled = false;
         submitButton.textContent = 'Guardar Configuracion del Bot';
+    }
+}
+
+async function loadJuegosConfig() {
+    try {
+        const data = await fetchJson('/api/juegos-config');
+        state.juegosConfig = data || state.juegosConfig;
+        renderJuegosConfig();
+    } catch (error) {
+        handleRequestError(error, { silent: true });
+    }
+}
+
+function renderJuegosConfig() {
+    document.getElementById('juegos-activo').checked = Boolean(state.juegosConfig.activo);
+    document.getElementById('juegos-jugadores').textContent = String(state.juegosConfig.jugadoresRegistrados || 0);
+
+    const lista = document.getElementById('juegos-grupos');
+    lista.replaceChildren();
+
+    if (state.juegosConfig.grupos.length === 0) {
+        const vacio = document.createElement('li');
+        vacio.className = 'list-group-item px-0 text-muted small';
+        vacio.textContent = 'Ningun grupo permitido todavia.';
+        lista.appendChild(vacio);
+        return;
+    }
+
+    state.juegosConfig.grupos.forEach((jid) => {
+        const item = document.createElement('li');
+        item.className = 'list-group-item px-0 d-flex justify-content-between align-items-center';
+
+        const texto = document.createElement('code');
+        texto.className = 'small';
+        texto.textContent = jid;
+
+        const btnQuitar = createIconButton('btn btn-sm btn-outline-danger', 'Quitar grupo', 'fas fa-times');
+        btnQuitar.addEventListener('click', () => {
+            state.juegosConfig.grupos = state.juegosConfig.grupos.filter((otro) => otro !== jid);
+            renderJuegosConfig();
+        });
+
+        item.append(texto, btnQuitar);
+        lista.appendChild(item);
+    });
+}
+
+function agregarGrupoJuegos() {
+    const input = document.getElementById('juegos-nuevo-grupo');
+    const jid = input.value.trim();
+    if (!/^\d+(-\d+)?@g\.us$/.test(jid)) {
+        window.alert('El ID de grupo debe terminar en @g.us (usa .idgrupo para obtenerlo).');
+        return;
+    }
+
+    if (!state.juegosConfig.grupos.includes(jid)) {
+        state.juegosConfig.grupos = [...state.juegosConfig.grupos, jid];
+    }
+    input.value = '';
+    renderJuegosConfig();
+}
+
+async function handleJuegosConfigSubmit(event) {
+    event.preventDefault();
+
+    const submitButton = document.getElementById('btn-guardar-juegos-config');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Guardando...';
+
+    try {
+        const data = await fetchJson('/api/juegos-config', {
+            method: 'PUT',
+            body: JSON.stringify({
+                activo: document.getElementById('juegos-activo').checked,
+                grupos: state.juegosConfig.grupos
+            })
+        });
+        state.juegosConfig = data.juegosConfig;
+        renderJuegosConfig();
+        window.alert('Configuracion de juegos guardada.');
+    } catch (error) {
+        handleRequestError(error);
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Guardar Juegos';
     }
 }
 

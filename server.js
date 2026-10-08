@@ -47,6 +47,11 @@ const DEFAULT_BOT_CONFIG = {
     limpieza: { activo: true, hora: '08:00' },
     eventosSermones: { activo: true, hora: '08:30' }
 };
+// Juegos del grupo (ver juegos.js). Arranca DESACTIVADO y sin grupos para
+// que desplegar no cambie nada en produccion hasta habilitarlo en el panel.
+const DEFAULT_JUEGOS_CONFIG = { activo: false, grupos: [] };
+const MAX_GRUPOS_JUEGOS = 20;
+const JID_GRUPO_REGEX = /^\d+(-\d+)?@g\.us$/;
 const DEFAULT_TRUST_PROXY = 'loopback';
 const DEFAULT_BODY_LIMIT = '100kb';
 const UPLOAD_BODY_LIMIT = '75mb';
@@ -611,6 +616,16 @@ function migrateBotConfig(db) {
     }
 }
 
+function migrateJuegosConfig(db) {
+    if (!db.has('juegosConfig').value()) {
+        db.set('juegosConfig', { ...DEFAULT_JUEGOS_CONFIG, grupos: [] }).write();
+    }
+
+    if (!db.has('jugadores').value()) {
+        db.set('jugadores', []).write();
+    }
+}
+
 // Traduccion de cada rol viejo a su equivalente en permisos granulares.
 // admin y pastor tenian, en el codigo por roles, exactamente el mismo
 // acceso (ambos en CONTENT_ROLES, EVENT_MANAGER_ROLES y MESSAGE_ROLES);
@@ -976,6 +991,49 @@ function validateBotConfigPayload(payload, actual) {
     return resultado;
 }
 
+// A diferencia de botConfig, aca se exige el objeto completo: el panel
+// siempre manda activo + grupos, y algo distinto es un error del cliente.
+function validateJuegosConfigPayload(payload) {
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+        throw new Error('Payload de juegos no valido.');
+    }
+
+    if (typeof payload.activo !== 'boolean') {
+        throw new Error('El campo "activo" debe ser true o false.');
+    }
+
+    if (!Array.isArray(payload.grupos)) {
+        throw new Error('El campo "grupos" debe ser una lista.');
+    }
+
+    if (payload.grupos.length > MAX_GRUPOS_JUEGOS) {
+        throw new Error(`Se permiten como maximo ${MAX_GRUPOS_JUEGOS} grupos.`);
+    }
+
+    const grupos = [];
+    payload.grupos.forEach((grupo) => {
+        const jid = typeof grupo === 'string' ? grupo.trim() : '';
+        if (!JID_GRUPO_REGEX.test(jid)) {
+            throw new Error('Cada grupo debe ser un ID de grupo de WhatsApp (termina en @g.us). Usa .idgrupo para obtenerlo.');
+        }
+        if (!grupos.includes(jid)) {
+            grupos.push(jid);
+        }
+    });
+
+    return { activo: payload.activo, grupos };
+}
+
+function serializeJuegosConfig(db) {
+    const config = db.get('juegosConfig').value() || {};
+    const jugadores = db.get('jugadores').value();
+    return {
+        activo: config.activo === true,
+        grupos: Array.isArray(config.grupos) ? config.grupos.filter((jid) => JID_GRUPO_REGEX.test(jid)) : [],
+        jugadoresRegistrados: Array.isArray(jugadores) ? jugadores.length : 0
+    };
+}
+
 function validateMessagePayload(payload) {
     const message = {
         nombre: validateRequiredText(payload.nombre, 'Nombre', { maxLength: 120 }),
@@ -1200,6 +1258,7 @@ function createApp(options = {}) {
     migrateEventImages(db, uploadsDir);
     migrateEquipoLimpieza(db);
     migrateBotConfig(db);
+    migrateJuegosConfig(db);
 
     // Referencia compartida con iniciarBot(db, botSockHolder) en startServer():
     // se crea aqui (vacia) para que las rutas de abajo puedan cerrar sobre
@@ -1735,6 +1794,21 @@ function createApp(options = {}) {
         } catch (error) {
             console.error(`❌ Error probando manualmente "${req.params.tipo}":`, error);
             return sendApiError(res, 500, 'No se pudo enviar el mensaje. Revisa los logs del servidor.');
+        }
+    });
+
+    // El bot relee juegosConfig en cada mensaje: no hace falta reiniciar.
+    app.get('/api/juegos-config', requirePermiso(db, 'bot'), (req, res) => {
+        res.json(serializeJuegosConfig(db));
+    });
+
+    app.put('/api/juegos-config', requirePermiso(db, 'bot'), (req, res) => {
+        try {
+            const nuevoConfig = validateJuegosConfigPayload(req.body);
+            db.set('juegosConfig', nuevoConfig).write();
+            return res.json({ success: true, juegosConfig: serializeJuegosConfig(db) });
+        } catch (error) {
+            return sendApiError(res, 400, error.message);
         }
     });
 
