@@ -619,9 +619,13 @@ function migrateBotConfig(db) {
 // quede con permisos explicitos equivalentes en contenido pero sin
 // esAdmin (no gestiona usuarios).
 const TRADUCCION_ROL_A_PERMISOS = {
-    admin: () => ({ esAdmin: true }),
+    // gestionUsuarios es la unica clave que habilita crear/editar/borrar
+    // usuarios (ver requirePermiso(db, 'gestionUsuarios')). Solo admin la
+    // recibe en true; ningun otro rol viejo la habilitaba ni la habilita.
+    admin: () => ({ esAdmin: true, gestionUsuarios: true }),
     pastor: () => ({
         esAdmin: false,
+        gestionUsuarios: false,
         sermones: true,
         eventos: { categorias: [...TODAS_LAS_CATEGORIAS_EVENTO] },
         limpieza: true,
@@ -630,6 +634,7 @@ const TRADUCCION_ROL_A_PERMISOS = {
     }),
     editor: () => ({
         esAdmin: false,
+        gestionUsuarios: false,
         sermones: true,
         eventos: { categorias: [...TODAS_LAS_CATEGORIAS_EVENTO] },
         limpieza: true,
@@ -638,6 +643,7 @@ const TRADUCCION_ROL_A_PERMISOS = {
     }),
     damas_admin: () => ({
         esAdmin: false,
+        gestionUsuarios: false,
         sermones: false,
         eventos: { categorias: ['damas'] },
         limpieza: false,
@@ -672,7 +678,7 @@ function migratePermisos(db) {
         console.error('⚠️ Ningun usuario quedo con esAdmin=true tras migrar permisos. Forzando esAdmin en "admin".');
         db.get('usuarios')
             .find({ usuario: 'admin' })
-            .assign({ permisos: normalizarPermisos({ esAdmin: true }) })
+            .assign({ permisos: normalizarPermisos({ esAdmin: true, gestionUsuarios: true }) })
             .write();
     }
 }
@@ -685,6 +691,11 @@ function normalizarPermisos(permisosCrudo) {
 
     return {
         esAdmin: permisos.esAdmin === true,
+        // Nunca se defaultea a true: si no viene explicito en el objeto de
+        // entrada, queda en false, aunque esAdmin sea true (ver
+        // requirePermiso, que igual deja pasar a esAdmin sin mirar esta
+        // clave puntual).
+        gestionUsuarios: permisos.gestionUsuarios === true,
         sermones: permisos.sermones === true,
         eventos: { categorias: categoriasCrudas.filter((categoria) => EVENT_CATEGORIES.has(categoria)) },
         limpieza: permisos.limpieza === true,
@@ -760,6 +771,53 @@ function validateRequiredText(value, label, options) {
         throw new Error(`El campo "${label}" es obligatorio.`);
     }
     return text;
+}
+
+// Nunca incluye passwordHash: es lo unico que puede exponerse via API.
+function serializeUsuario(user) {
+    return {
+        usuario: user.usuario,
+        permisos: normalizarPermisos(user.permisos),
+        activo: user.activo !== false,
+        creadoEn: user.creadoEn || null
+    };
+}
+
+function validateNombreUsuarioNuevo(valorCrudo, db) {
+    const usuario = sanitizeText(valorCrudo, { maxLength: 60 });
+    if (!usuario) {
+        throw new Error('El nombre de usuario es obligatorio.');
+    }
+
+    const yaExiste = Boolean(db.get('usuarios').find({ usuario }).value());
+    if (yaExiste) {
+        throw new Error('Ya existe un usuario con ese nombre.');
+    }
+
+    return usuario;
+}
+
+// Cuenta los usuarios (excluyendo opcionalmente uno) que quedarian con
+// esAdmin:true. La usan las 3 operaciones que pueden dejar el sistema sin
+// ningun super-admin: cambiar permisos, desactivar y borrar.
+function contarAdminsRestantes(db, usuarioAExcluir, permisosSimulados) {
+    const usuarios = db.get('usuarios').value();
+    let total = 0;
+
+    for (const user of usuarios) {
+        if (user.usuario === usuarioAExcluir) {
+            if (permisosSimulados && permisosSimulados.esAdmin) {
+                total += 1;
+            }
+            continue;
+        }
+
+        if (normalizarPermisos(user.permisos).esAdmin) {
+            total += 1;
+        }
+    }
+
+    return total;
 }
 
 function validateSermonPayload(payload) {
@@ -932,6 +990,20 @@ function validateMessagePayload(payload) {
     return message;
 }
 
+// Reusada por el cambio de contrasena propio y por la gestion de usuarios
+// (crear usuario, resetear contrasena de otro) para no duplicar la regla.
+function validatePasswordStrength(password) {
+    if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
+        throw new Error('La contrasena debe tener entre 8 y 128 caracteres.');
+    }
+
+    if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+        throw new Error('La contrasena debe incluir al menos una letra y un numero.');
+    }
+
+    return password;
+}
+
 function validatePasswordChangePayload(payload) {
     const currentPassword = typeof payload.currentPassword === 'string' ? payload.currentPassword : '';
     const newPassword = typeof payload.newPassword === 'string' ? payload.newPassword : '';
@@ -941,13 +1013,7 @@ function validatePasswordChangePayload(payload) {
         throw new Error('Ingresa tu contrasena actual.');
     }
 
-    if (newPassword.length < 8 || newPassword.length > 128) {
-        throw new Error('La nueva contrasena debe tener entre 8 y 128 caracteres.');
-    }
-
-    if (!/[a-zA-Z]/.test(newPassword) || !/\d/.test(newPassword)) {
-        throw new Error('La nueva contrasena debe incluir al menos una letra y un numero.');
-    }
+    validatePasswordStrength(newPassword);
 
     if (newPassword !== confirmPassword) {
         throw new Error('La confirmacion de la contrasena no coincide.');
@@ -976,6 +1042,27 @@ function requireAuthentication(req, res, next) {
     return sendApiError(res, 401, 'No autorizado. Inicia sesion.');
 }
 
+// Middleware aparte (no se toca requireAuthentication, que solo chequea que
+// haya sesion y es generico). Va DESPUES de requireAuthentication en las
+// rutas que lo necesiten, y replica su mismo patron para decidir entre
+// redirect (paginas) y 403 JSON (API) - mismo criterio de rechazo que ya
+// usa requirePermiso para activo:false.
+function requireCuentaActiva(db) {
+    return function cuentaActivaMiddleware(req, res, next) {
+        const user = db.get('usuarios').find({ usuario: req.session.usuario }).value();
+
+        if (!user || user.activo !== false) {
+            return next();
+        }
+
+        if (!req.path.startsWith('/api/') && req.accepts('html')) {
+            return res.redirect('/admin.html');
+        }
+
+        return sendApiError(res, 403, 'Tu cuenta esta desactivada.');
+    };
+}
+
 // Reemplazo de requireRole (rol fijo) basado en permisos granulares por
 // usuario (ver migratePermisos/normalizarPermisos). Recibe `db` explicito
 // (en vez de cerrar sobre una variable de createApp) porque, a diferencia
@@ -988,6 +1075,14 @@ function requirePermiso(db, clave) {
         }
 
         const user = db.get('usuarios').find({ usuario: req.session.usuario }).value();
+
+        // Se chequea ANTES del bypass de esAdmin: una cuenta desactivada no
+        // debe poder seguir operando ni siendo admin, con una sesion vieja
+        // que quedo abierta de antes de desactivarla.
+        if (user && user.activo === false) {
+            return sendApiError(res, 403, 'Tu cuenta esta desactivada.');
+        }
+
         const permisos = normalizarPermisos(user && user.permisos);
 
         if (permisos.esAdmin) {
@@ -1027,14 +1122,51 @@ function obtenerPermisosEventoDeUsuario(db, usuario) {
     };
 }
 
-function buildSessionPayload(req) {
+// Antes se derivaba de getRolePermissions(rol) - un resumen basado en el
+// string de rol viejo. Se rompe para cualquier usuario creado solo con
+// `permisos` (sin `rol`, via POST /api/usuarios): getRolePermissions(undefined)
+// da todo en false, aunque sus permisos reales le den acceso. Ahora se lee
+// el usuario real de db.json y se deriva el resumen de sus permisos
+// granulares (misma fuente de verdad que ya usa requirePermiso).
+function buildSessionPayload(req, db) {
     const role = req.session && req.session.rol ? req.session.rol : '';
+    const usuario = req.session && req.session.usuario ? req.session.usuario : '';
+    const user = usuario ? db.get('usuarios').find({ usuario }).value() : null;
+    const permisos = normalizarPermisos(user && user.permisos);
+
+    const canManageSermons = permisos.esAdmin || permisos.sermones;
+    const canManageEvents = permisos.esAdmin || permisos.eventos.categorias.length > 0;
+    const canManageMessages = permisos.esAdmin || permisos.mensajes;
+    const canManageLimpieza = permisos.esAdmin || permisos.limpieza;
+    const canManageBot = permisos.esAdmin || permisos.bot;
+    const canManageUsers = permisos.esAdmin || permisos.gestionUsuarios;
+
+    // La UI de eventos (dropdown de categoria) todavia asume una unica
+    // categoria bloqueada. Con permisos granulares eso puede ser un
+    // subconjunto de mas de una categoria (caso nuevo, imposible con roles
+    // fijos); en ese caso no se fuerza ninguna (el dropdown queda libre, el
+    // backend igual valida la categoria real en cada request). Solo se
+    // preserva el bloqueo de un unico valor cuando el subconjunto es
+    // exactamente una categoria (ej. equivalente a damas_admin).
+    const lockedEventCategory = !permisos.esAdmin && permisos.eventos.categorias.length === 1
+        ? permisos.eventos.categorias[0]
+        : '';
+
     return {
         authenticated: Boolean(req.session && req.session.usuarioLogueado),
-        usuario: req.session && req.session.usuario ? req.session.usuario : '',
+        usuario,
         rol: role,
         roleLabel: getRoleLabel(role),
-        permissions: getRolePermissions(role)
+        permissions: {
+            canManageContent: canManageSermons || canManageEvents,
+            canManageSermons,
+            canManageEvents,
+            canManageMessages,
+            canManageLimpieza,
+            canManageBot,
+            canManageUsers,
+            lockedEventCategory
+        }
     };
 }
 
@@ -1127,7 +1259,7 @@ function createApp(options = {}) {
     app.use(express.static(PUBLIC_DIR, { extensions: ['html'] }));
 
     app.get('/api/session', disableCaching, (req, res) => {
-        res.json(buildSessionPayload(req));
+        res.json(buildSessionPayload(req, db));
     });
 
     app.post('/api/login', disableCaching, (req, res) => {
@@ -1153,6 +1285,10 @@ function createApp(options = {}) {
             return sendApiError(res, 401, 'Credenciales incorrectas.');
         }
 
+        if (user.activo === false) {
+            return sendApiError(res, 403, 'Esta cuenta esta desactivada. Contacta a un administrador.');
+        }
+
         loginIpTracker.reset(req);
         loginUserTracker.reset(req);
         return req.session.regenerate((error) => {
@@ -1167,7 +1303,7 @@ function createApp(options = {}) {
             return res.json({
                 success: true,
                 mensaje: 'Bienvenido',
-                ...buildSessionPayload(req)
+                ...buildSessionPayload(req, db)
             });
         });
     });
@@ -1183,7 +1319,7 @@ function createApp(options = {}) {
         });
     });
 
-    app.post('/api/cuenta/password', disableCaching, requireAuthentication, (req, res) => {
+    app.post('/api/cuenta/password', disableCaching, requireAuthentication, requireCuentaActiva(db), (req, res) => {
         const currentUser = db.get('usuarios').find({ usuario: req.session.usuario }).value();
 
         if (!currentUser) {
@@ -1209,6 +1345,133 @@ function createApp(options = {}) {
         } catch (error) {
             return sendApiError(res, 400, error.message);
         }
+    });
+
+    app.get('/api/usuarios', requirePermiso(db, 'gestionUsuarios'), (req, res) => {
+        const usuarios = db.get('usuarios').value().map(serializeUsuario);
+        res.json(usuarios);
+    });
+
+    app.post('/api/usuarios', requirePermiso(db, 'gestionUsuarios'), (req, res) => {
+        try {
+            const usuario = validateNombreUsuarioNuevo(req.body.usuario, db);
+            const password = validatePasswordStrength(typeof req.body.password === 'string' ? req.body.password : '');
+            // normalizarPermisos nunca defaultea a true: si el payload no
+            // manda esAdmin/gestionUsuarios explicitos, quedan en false.
+            const permisos = normalizarPermisos(req.body.permisos);
+
+            const nuevoUsuario = {
+                usuario,
+                passwordHash: hashPassword(password),
+                permisos,
+                activo: true,
+                creadoEn: new Date().toISOString()
+            };
+
+            db.get('usuarios').push(nuevoUsuario).write();
+            return res.json({ success: true, usuario: serializeUsuario(nuevoUsuario) });
+        } catch (error) {
+            return sendApiError(res, 400, error.message);
+        }
+    });
+
+    app.put('/api/usuarios/:usuario/permisos', requirePermiso(db, 'gestionUsuarios'), (req, res) => {
+        const usuarioObjetivo = sanitizeText(req.params.usuario, { maxLength: 60 });
+        const target = db.get('usuarios').find({ usuario: usuarioObjetivo }).value();
+
+        if (!target) {
+            return sendApiError(res, 404, 'Usuario no encontrado.');
+        }
+
+        const permisosActuales = normalizarPermisos(target.permisos);
+        const permisosNuevos = normalizarPermisos(req.body.permisos);
+        const esUnoMismo = req.session.usuario === usuarioObjetivo;
+
+        if (esUnoMismo && permisosActuales.esAdmin && !permisosNuevos.esAdmin) {
+            return sendApiError(res, 400, 'No podes quitarte el permiso esAdmin a vos mismo.');
+        }
+
+        if (esUnoMismo && permisosActuales.gestionUsuarios && !permisosNuevos.gestionUsuarios) {
+            return sendApiError(res, 400, 'No podes quitarte el permiso de gestionar usuarios a vos mismo.');
+        }
+
+        if (contarAdminsRestantes(db, usuarioObjetivo, permisosNuevos) === 0) {
+            return sendApiError(res, 400, 'Esta operacion dejaria el sistema sin ningun usuario esAdmin. Rechazada.');
+        }
+
+        db.get('usuarios').find({ usuario: usuarioObjetivo }).assign({ permisos: permisosNuevos }).write();
+        return res.json({ success: true, usuario: serializeUsuario({ ...target, permisos: permisosNuevos }) });
+    });
+
+    app.put('/api/usuarios/:usuario/password', requirePermiso(db, 'gestionUsuarios'), (req, res) => {
+        const usuarioObjetivo = sanitizeText(req.params.usuario, { maxLength: 60 });
+        const target = db.get('usuarios').find({ usuario: usuarioObjetivo }).value();
+
+        if (!target) {
+            return sendApiError(res, 404, 'Usuario no encontrado.');
+        }
+
+        try {
+            const nuevaPassword = validatePasswordStrength(typeof req.body.password === 'string' ? req.body.password : '');
+            db.get('usuarios')
+                .find({ usuario: usuarioObjetivo })
+                .assign({ passwordHash: hashPassword(nuevaPassword) })
+                .write();
+            return res.json({ success: true, mensaje: 'Contrasena actualizada.' });
+        } catch (error) {
+            return sendApiError(res, 400, error.message);
+        }
+    });
+
+    app.put('/api/usuarios/:usuario/estado', requirePermiso(db, 'gestionUsuarios'), (req, res) => {
+        const usuarioObjetivo = sanitizeText(req.params.usuario, { maxLength: 60 });
+        const target = db.get('usuarios').find({ usuario: usuarioObjetivo }).value();
+
+        if (!target) {
+            return sendApiError(res, 404, 'Usuario no encontrado.');
+        }
+
+        const activo = req.body.activo === true;
+
+        if (!activo) {
+            if (req.session.usuario === usuarioObjetivo) {
+                return sendApiError(res, 400, 'No podes desactivar tu propia cuenta.');
+            }
+
+            if (contarAdminsRestantes(db, usuarioObjetivo, normalizarPermisos({})) === 0) {
+                return sendApiError(res, 400, 'No se puede desactivar al ultimo usuario esAdmin.');
+            }
+        }
+
+        db.get('usuarios').find({ usuario: usuarioObjetivo }).assign({ activo }).write();
+        return res.json({ success: true, usuario: serializeUsuario({ ...target, activo }) });
+    });
+
+    app.delete('/api/usuarios/:usuario', requirePermiso(db, 'gestionUsuarios'), (req, res) => {
+        // El borrado fisico es irreversible: ademas de gestionUsuarios, exige
+        // esAdmin puntualmente (desactivar alcanza con gestionUsuarios solo).
+        const actingUser = db.get('usuarios').find({ usuario: req.session.usuario }).value();
+        if (!normalizarPermisos(actingUser && actingUser.permisos).esAdmin) {
+            return sendApiError(res, 403, 'Solo una cuenta esAdmin puede eliminar usuarios de forma definitiva. Usa desactivar en su lugar.');
+        }
+
+        const usuarioObjetivo = sanitizeText(req.params.usuario, { maxLength: 60 });
+        const target = db.get('usuarios').find({ usuario: usuarioObjetivo }).value();
+
+        if (!target) {
+            return sendApiError(res, 404, 'Usuario no encontrado.');
+        }
+
+        if (req.session.usuario === usuarioObjetivo) {
+            return sendApiError(res, 400, 'No podes borrarte a vos mismo.');
+        }
+
+        if (contarAdminsRestantes(db, usuarioObjetivo, normalizarPermisos({})) === 0) {
+            return sendApiError(res, 400, 'No se puede borrar al ultimo usuario esAdmin.');
+        }
+
+        db.get('usuarios').remove({ usuario: usuarioObjetivo }).write();
+        return res.json({ success: true });
     });
 
     app.get('/api/sermones', (req, res) => {
@@ -1532,7 +1795,7 @@ function createApp(options = {}) {
         return res.json({ success: true });
     });
 
-    app.get('/panel.html', disableCaching, requireAuthentication, (req, res) => {
+    app.get('/panel.html', disableCaching, requireAuthentication, requireCuentaActiva(db), (req, res) => {
         res.sendFile(PRIVATE_PANEL_FILE);
     });
 
