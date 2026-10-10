@@ -15,6 +15,7 @@
         .catch(function () { /* se mantiene el logo PNG */ });
 
     function montar(texto) {
+        document.dispatchEvent(new CustomEvent('ipub-logo-svg', { detail: window.IPUBLogoSVG = texto })); // js/logo-copias.js
         var doc = new DOMParser().parseFromString(texto, 'image/svg+xml');
         var svg = doc.documentElement;
         if (!svg || svg.nodeName.toLowerCase() !== 'svg' || doc.querySelector('parsererror')) return;
