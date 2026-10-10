@@ -15,38 +15,54 @@ html.lgi-cubre::after {
   -webkit-tap-highlight-color: transparent;
   animation: lgi-respaldo 0.01s linear 9s forwards;
 }
+/* El crema se va con el logo ya fuera del centro: sin velo gris sobre el hero */
 .lgi-fondo {
   position: absolute;
   inset: 0;
   background: #F2F1EC;
-  animation: lgi-fuera 0.8s ease 5s both;
+  animation: lgi-fuera 0.7s ease 5.25s both;
 }
+/* Vuelo que frena al llegar; el desvanecimiento empieza recién al aterrizar */
 .lgi-logo {
   position: absolute;
   transform-origin: 0 0;
-  animation: lgi-asentar 1s cubic-bezier(0.65, 0, 0.35, 1) 4.9s both, lgi-fuera 0.4s ease 5.9s both;
+  animation: lgi-asentar 1s cubic-bezier(0.4, 0, 0.2, 1) 4.9s both, lgi-fuera 0.35s ease 5.95s both;
 }
 .lgi-logo > svg {
   display: block;
   width: 100%;
 }
-.lgi .lg-grid path,
+/* Durante el vuelo el logo pasa a los colores del encabezado */
+.lgi-marca {
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: lgi-entra 0.6s ease 5.1s both;
+}
+.lgi-marca #lgb-ct path {
+  fill: url(#lg-bG);
+}
+/* !important: logo-ipub.js pone animationDelay en línea a las letras del encabezado */
+.lgi-orig .lg-grid path,
 .lg.lgi-corta .lg-grid path {
-  stroke-dasharray: 400;
-  stroke-dashoffset: 400;
-  animation: lgi-trazo 0.7s ease-out both;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: lgi-trazo 0.75s cubic-bezier(0.45, 0, 0.25, 1) both;
+  animation-delay: var(--lgi-d) !important;
 }
-.lgi .lg-tr path {
-  animation: lgi-entra 0.5s ease both;
+.lgi-orig .lg-tr path {
+  animation: lgi-entra 0.45s ease-out both;
+  animation-delay: var(--lgi-d) !important;
 }
-.lgi #lgi-cinta rect {
+.lgi-orig #lgi-cinta rect {
   transform: scaleX(0);
   transform-origin: 33px 0;
-  animation: lgi-despliegue 0.9s cubic-bezier(0.3, 0.6, 0.3, 1) 2.3s both;
+  animation: lgi-despliegue 0.8s cubic-bezier(0.45, 0, 0.2, 1) 2.1s both;
 }
-.lgi .lg-t path,
+.lgi-orig .lg-t path,
 .lg.lgi-corta .lg-t path {
-  animation: lgi-letra 0.45s ease-out both;
+  animation: lgi-entra 0.35s ease-out both;
+  animation-delay: var(--lgi-d) !important;
 }
 .lgi-salir {
   opacity: 0;
@@ -56,29 +72,31 @@ html.lgi-cubre::after {
 .lgi-pausa * {
   animation-play-state: paused !important;
 }
-.navbar-brand.lgi-espera .lg-brand {
+/* El logo del encabezado aparece entero debajo del grande (sin bajón); el nombre, con fundido */
+.navbar-brand.lgi-espera .lg-brand > * {
   opacity: 0;
   transition: none;
   animation: lgi-aparece 0.4s ease 9s forwards;
 }
-.navbar-brand .lg-brand {
-  transition: transform 0.3s ease, opacity 0.4s ease;
+.navbar-brand .lg-name {
+  transition: opacity 0.5s ease;
 }
 
 /* Versión corta en el logo del encabezado */
-.lg.lgi-corta .lg-grid path,
+.lg.lgi-corta .lg-grid path {
+  animation-duration: 0.45s;
+}
 .lg.lgi-corta .lg-t path {
-  animation-duration: 0.4s;
+  animation-duration: 0.3s;
 }
 .lg.lgi-corta .lg-co,
 .lg.lgi-corta .lg-rib {
-  animation: lgi-entra 0.4s ease 0.3s both;
+  animation: lgi-entra 0.4s ease-out 0.35s both;
 }
 
 @keyframes lgi-trazo { to { stroke-dashoffset: 0; } }
 @keyframes lgi-entra { from { opacity: 0; } }
 @keyframes lgi-despliegue { to { transform: scaleX(1); } }
-@keyframes lgi-letra { from { opacity: 0; transform: translateY(-3px); } }
 @keyframes lgi-asentar { to { transform: translate(var(--tx), var(--ty)) scale(var(--s)); } }
 @keyframes lgi-fuera { to { opacity: 0; } }
 @keyframes lgi-respaldo { from, to { visibility: hidden; opacity: 0; } }

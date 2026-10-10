@@ -4,7 +4,6 @@
     // Intro completa: 'sesion' una vez por sesión, 'diaria' una vez por día (el resto, la corta), 'siempre'
     var POLITICA = 'sesion';
     var ESPERA_SVG = 2500;
-    var LETRAS = ['.lg-ta', '.lg-tc', '.lg-tb'];
 
     var raiz = document.documentElement;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -85,6 +84,10 @@
             reanudarVideo();
         }
 
+        // Copia con los colores del encabezado, visible durante el vuelo: llega idéntico
+        var marca = document.importNode(new DOMParser().parseFromString(texto.replace(/(id="|url\(#|href="#)lg-/g, '$1lgb-'), 'image/svg+xml').documentElement, true);
+        marca.setAttribute('class', 'lg lg--b lgi-marca');
+
         // Copia del SVG: otros ids, continentes quietos, recorte de la cinta
         var continentes = texto.match(/<g id="lg-ct">([\s\S]*?)<\/g>/)[1];
         texto = texto.replace(/(<g class="lg-tr">)[\s\S]*?<\/g>/, '$1' + continentes + '</g>')
@@ -92,12 +95,15 @@
             .replace('<g class="lg-rib">', '<g class="lg-rib" clip-path="url(#lg-cinta)">')
             .replace(/(id="|url\(#|href="#)lg-/g, '$1lgi-');
         var svg = document.importNode(new DOMParser().parseFromString(texto, 'image/svg+xml').documentElement, true);
+        svg.setAttribute('class', 'lgi-orig');
 
-        // Tiempos (ms): contorno, malla, continentes y letras
-        retrasar(svg, ['.lg-grid'], 405, 45);
-        svg.querySelector('.lg-grid path').style.animationDelay = '200ms';
-        retrasar(svg, ['.lg-tr'], 1300, 110);
-        retrasar(svg, LETRAS, 2900, 28);
+        // Tiempos (ms): contorno, malla, continentes y letras por arco
+        retrasar(svg, ['.lg-grid'], 415, 35);
+        svg.querySelector('.lg-grid path').style.setProperty('--lgi-d', '150ms');
+        retrasar(svg, ['.lg-tr'], 1350, 90);
+        retrasar(svg, ['.lg-ta'], 2750, 45);
+        retrasar(svg, ['.lg-tc'], 3000, 30);
+        retrasar(svg, ['.lg-tb'], 3550, 45);
 
         capa = document.createElement('div');
         capa.innerHTML = '<div class="lgi" role="img" aria-label="IPUB Tupiza. Un Señor, una fe, un bautismo. ' +
@@ -105,6 +111,7 @@
         capa = capa.firstChild;
         var caja = capa.lastChild;
         caja.appendChild(svg);
+        caja.appendChild(marca);
 
         // Oculto a lectores de pantalla
         ocultos = [].filter.call(document.body.children, function (el) {
@@ -121,7 +128,9 @@
             var ancho = raiz.clientWidth, alto = capa.clientHeight || innerHeight;
             var w = Math.min(ancho * 0.86, 560, alto * 1.05);
             var x = (ancho - w) / 2, y = (alto - w * 84 / 160.6) / 2;
-            var d = svgEncabezado.getBoundingClientRect();
+            var d = svgEncabezado.getBoundingClientRect(), cs = getComputedStyle(svgEncabezado);
+            // Colores del encabezado en su estado actual (oscuro o con scroll)
+            marca.style.cssText = '--lg-line:' + cs.getPropertyValue('--lg-line') + ';--lg-text:' + cs.getPropertyValue('--lg-text');
             caja.style.cssText = 'width:' + w + 'px;left:' + x + 'px;top:' + y + 'px;--tx:' + (d.left - x) +
                 'px;--ty:' + (d.top - y) + 'px;--s:' + d.width / w;
         }
@@ -163,16 +172,21 @@
         var n = 0;
         grupos.forEach(function (sel) {
             svg.querySelectorAll(sel + ' path').forEach(function (p) {
-                p.style.animationDelay = (desde + n++ * paso) + 'ms';
+                // Variable propia: logo-ipub.js pisa animationDelay (su ola) en el encabezado
+                p.style.setProperty('--lgi-d', (desde + n++ * paso) + 'ms');
+                // Largo normalizado: todas las líneas se dibujan al mismo ritmo
+                if (sel === '.lg-grid') p.setAttribute('pathLength', '1');
             });
         });
     }
 
     // Versión corta (~1,5 s) en el logo del encabezado; un toque la termina
     function corta(svg) {
-        retrasar(svg, ['.lg-grid'], 0, 18);
-        retrasar(svg, LETRAS, 550, 12);
-        var t = setTimeout(fin, 1600);
+        retrasar(svg, ['.lg-grid'], 0, 25);
+        retrasar(svg, ['.lg-ta'], 600, 30);
+        retrasar(svg, ['.lg-tc'], 750, 15);
+        retrasar(svg, ['.lg-tb'], 1000, 30);
+        var t = setTimeout(fin, 1650);
         function fin() {
             svg.classList.remove('lgi-corta');
             document.removeEventListener('pointerdown', fin);
