@@ -1929,6 +1929,17 @@ body.nav-open {
   transform: scale(1.1);
   box-shadow: 0 6px 18px rgba(20, 25, 42, 0.4);
 }
+@media (max-width: 575.98px) {
+  /* g-5 (3rem) se salía 12 px del .container fluido y ensanchaba la portada en celular */
+  .row.g-5 {
+    --bs-gutter-x: 1.5rem;
+  }
+}
+@media (max-width: 991px) {
+  .page-header {
+    padding-top: 136px !important; /* alto de la barra con el logo animado; le gana a section { padding-top: 40px !important } */
+  }
+}
 @media (max-width: 768px) {
   body {
     font-size: 15px;
@@ -1964,7 +1975,8 @@ body.nav-open {
     gap: 32px;
   }
   .page-header {
-    height: 200px;
+    height: auto;
+    min-height: 200px;
   }
   .page-header h1.display-5 {
     font-size: 2rem;
