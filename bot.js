@@ -4,9 +4,10 @@ const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
 const { enviarRecordatoriosDiarios, resolverUrlImagen, formatearFechaLocal, sumarDias, DIAS_VENTANA_EVENTOS } = require('./recordatorios.js');
-const { crearJuegos } = require('./juegos.js');
+const { crearJuegos, cargarBancoPreguntas } = require('./juegos.js');
 
 const FRASES_MOTIVADORAS_FILE = path.join(__dirname, 'frases-motivadoras.json');
+const BANCO_PREGUNTAS_FILE = path.join(__dirname, 'preguntas-doctrina.json');
 
 const RECONNECT_BASE_DELAY_MS = 2000;
 const RECONNECT_MAX_DELAY_MS = 60000;
@@ -87,7 +88,14 @@ async function iniciarBot(db, sockHolderExterno) {
     // Una sola instancia para todo el proceso: asi el cooldown por persona
     // sobrevive a las reconexiones. La Bendicion del dia reusa los mismos
     // versiculos de los envios programados.
-    const juegos = crearJuegos({ versiculos: [...VERSICULOS_MANANA, ...VERSICULOS_NOCHE] });
+    // El banco de preguntas se carga una vez al arrancar. Si falta o es
+    // invalido, cargarBancoPreguntas loguea y devuelve null: solo se apagan
+    // .trivia/.versiculo/.personaje/.r, el resto del bot sigue igual.
+    const juegos = crearJuegos({
+        versiculos: [...VERSICULOS_MANANA, ...VERSICULOS_NOCHE],
+        bancoPreguntas: cargarBancoPreguntas(BANCO_PREGUNTAS_FILE),
+        obtenerSock: () => sockHolder.sock
+    });
 
     async function connect(reconnectAttempt) {
         function scheduleReconnect() {

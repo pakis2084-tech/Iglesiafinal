@@ -4,7 +4,15 @@ const os = require('os');
 const path = require('path');
 
 const { createApp, hashPassword, migratePermisos } = require('../server');
-const { crearJuegos } = require('../juegos');
+const {
+    crearJuegos,
+    cargarBancoPreguntas,
+    validarBanco,
+    validarPregunta,
+    normalizarRespuesta,
+    TALENTOS_PREGUNTA
+} = require('../juegos');
+const BANCO_REAL_FILE = path.join(__dirname, '..', 'preguntas-doctrina.json');
 
 const GRUPO_JUEGOS = '120363000000000001@g.us';
 
@@ -26,11 +34,23 @@ function crearMsgJuego(texto, { autor = 'ana@lid', chat = GRUPO_JUEGOS, fromMe =
     };
 }
 
-// Arma un entorno de juegos con un reloj controlable (ISO UTC).
-function crearEntornoJuegos(db, inicioIso) {
+// Arma un entorno de juegos con un reloj controlable (ISO UTC). Los cierres
+// de pregunta no usan setTimeout: quedan en `timers` y se disparan con cerrar().
+function crearEntornoJuegos(db, inicioIso, opciones = {}) {
     const reloj = { ahora: new Date(inicioIso) };
-    const juegos = crearJuegos({ versiculos: ['Verso A', 'Verso B'], ahora: () => reloj.ahora });
-    const sock = crearSockSimulado();
+    const timers = [];
+    let semilla = 12345;
+    const juegos = crearJuegos({
+        versiculos: ['Verso A', 'Verso B'],
+        ahora: () => reloj.ahora,
+        bancoPreguntas: opciones.banco === undefined ? null : opciones.banco,
+        aleatorio: () => {
+            semilla = (semilla * 1103515245 + 12345) % 2147483648;
+            return semilla / 2147483648;
+        },
+        programar: (fn, ms) => timers.push({ fn, ms })
+    });
+    const sock = opciones.sock || crearSockSimulado();
     async function enviar(texto, opciones) {
         const antes = sock.enviados.length;
         const reclamado = await juegos.manejarMensaje(sock, db, crearMsgJuego(texto, opciones), 'notify');
@@ -45,11 +65,22 @@ function crearEntornoJuegos(db, inicioIso) {
     function irA(iso) {
         reloj.ahora = new Date(iso);
     }
-    return { reloj, sock, enviar, avanzar, irA };
+    // Dispara el cierre pendiente y devuelve el mensaje que manda el bot.
+    async function cerrar() {
+        assert.equal(timers.length, 1, 'debe haber exactamente un cierre programado');
+        const antes = sock.enviados.length;
+        await timers.shift().fn();
+        const nuevos = sock.enviados.slice(antes);
+        assert.equal(nuevos.length, 1, 'el cierre manda exactamente un mensaje');
+        assert.equal(nuevos[0].opciones, undefined, 'el cierre no cita ni menciona a nadie');
+        verificarEstilo(nuevos[0].texto);
+        return nuevos[0].texto;
+    }
+    return { reloj, sock, timers, juegos, enviar, avanzar, irA, cerrar };
 }
 
 // Reglas de estilo de mensajes.js que se verifican en CADA respuesta de los tests.
-const EMOJIS_PERMITIDOS = new Set(['✦', '✿', '✝', '🕊', '📖', '🌱', '🔥', '🏆', '🥇', '🥈', '🥉']);
+const EMOJIS_PERMITIDOS = new Set(['✦', '✿', '✝', '🕊', '📖', '🌱', '🔥', '🏆', '🥇', '🥈', '🥉', '⏳']);
 function verificarEstilo(texto, { esIdGrupo = false } = {}) {
     const lineas = texto.split('\n');
     assert.ok(lineas.length <= 8, `mas de 8 lineas:\n${texto}`);
@@ -61,6 +92,29 @@ function verificarEstilo(texto, { esIdGrupo = false } = {}) {
         emojis.forEach((emoji) => assert.ok(EMOJIS_PERMITIDOS.has(emoji), `emoji no permitido ${emoji} en: ${linea}`));
         assert.ok(emojis.length <= 1, `mas de un emoji en: ${linea}`);
     });
+}
+
+// Banco chico para los tests de mecanica (el real se valida aparte).
+const PREGUNTAS_TEST = [
+    { id: 'c1', tipo: 'completar', tema: 't', pregunta: 'Yo y el Padre ____ somos.', correcta: 'uno', respuestas: ['uno'], referencia: 'Juan 10:30' },
+    { id: 'c2', tipo: 'completar', tema: 't', pregunta: 'Un Señor, una fe, un ____.', correcta: 'bautismo', respuestas: ['bautismo'], referencia: 'Efesios 4:5' },
+    { id: 'p1', tipo: 'personaje', tema: 't', pregunta: '¿Quién exclamó: «¡Señor mío, y Dios mío!»?', correcta: 'Tomás', respuestas: ['tomas'], referencia: 'Juan 20:28' },
+    { id: 'd1', tipo: 'dato', tema: 't', pregunta: '¿Qué significa «Emanuel»?', correcta: 'Dios con nosotros', respuestas: ['dios con nosotros'], referencia: 'Mateo 1:23' }
+];
+function bancoTest(ids) {
+    const fuente = ids ? PREGUNTAS_TEST.filter((p) => ids.includes(p.id)) : PREGUNTAS_TEST;
+    return validarBanco({ preguntas: fuente }).preguntas;
+}
+
+async function registrarJugadores(j, aliases) {
+    for (const alias of aliases) {
+        await j.enviar(`.unirme ${alias}`, { autor: `${alias.toLowerCase()}@lid` });
+    }
+}
+
+function ultimaPreguntaDelMazo(db) {
+    const mazo = db.get(['juegosMazos', GRUPO_JUEGOS]).value();
+    return mazo.ids[mazo.indice - 1];
 }
 
 function activarJuegos(db) {
@@ -646,6 +700,249 @@ async function main() {
         r = await j.enviar('.salir');
         assert.match(r.respuesta, /Borramos todos tus datos/);
         assert.equal(db.get('jugadores').size().value(), 0);
+    });
+
+    await runTest('preguntas: normalizacion y validacion del banco real (60)', async () => {
+        assert.equal(normalizarRespuesta('  ¡Jesús,   CRISTO!  '), 'jesus cristo');
+        assert.equal(normalizarRespuesta('Señor'), 'senor');
+        assert.equal(normalizarRespuesta('3.000'), '3000');
+        assert.equal(normalizarRespuesta('«Éfeso».'), 'efeso');
+        assert.equal(normalizarRespuesta('El\tEspíritu\n Santo'), 'el espiritu santo');
+
+        const datos = JSON.parse(fs.readFileSync(BANCO_REAL_FILE, 'utf8'));
+        assert.equal(datos.meta.revision_pastoral, true);
+        assert.equal(datos.preguntas.length, 60);
+        const { preguntas, errores } = validarBanco(datos);
+        assert.deepEqual(errores, []);
+        assert.equal(preguntas.length, 60);
+        assert.equal(new Set(datos.preguntas.map((p) => p.id)).size, 60, 'ids unicos');
+        datos.preguntas.filter((p) => p.tipo === 'completar').forEach((p) => {
+            assert.equal(p.pregunta.split('____').length, 2, `${p.id}: un solo ____`);
+        });
+        datos.preguntas.forEach((p) => {
+            assert.ok(p.respuestas.map(normalizarRespuesta).includes(normalizarRespuesta(p.correcta)), `${p.id}: correcta en respuestas`);
+        });
+
+        const base = PREGUNTAS_TEST[0];
+        assert.match(validarPregunta({ ...base, pregunta: 'Yo ____ y ____.' }), /exactamente un/);
+        assert.match(validarPregunta({ ...base, respuestas: ['dos'] }), /correcta/);
+        assert.match(validarPregunta({ ...base, tipo: 'acertijo' }), /tipo/);
+        assert.match(validarPregunta({ ...base, tipo: 'dato' }), /solo las preguntas "completar"/);
+    });
+
+    await runTest('preguntas: a tiempo, 15 s exactos, gracia de 1 s, tarde y un solo intento', async ({ db }) => {
+        activarJuegos(db);
+        const j = crearEntornoJuegos(db, '2026-10-10T15:00:00Z', { banco: bancoTest(['c1']) });
+        await registrarJugadores(j, ['Ana', 'Beto', 'Carla', 'Dani', 'Eva']);
+        j.avanzar(3100);
+
+        let r = await j.enviar('.trivia', { autor: 'ana@lid' });
+        assert.match(r.respuesta, /Completá el versículo/);
+        assert.match(r.respuesta, /\*____\*/);
+        assert.match(r.respuesta, /⏳ 15 segundos — respondé con `\.r <tu respuesta>`/);
+        assert.ok(!r.respuesta.includes('Juan 10:30'), 'la referencia no se muestra antes del cierre');
+        assert.equal(j.timers[0].ms, 16000);
+
+        j.avanzar(5000);
+        r = await j.enviar('.r UNO!', { autor: 'beto@lid' });
+        assert.equal(r.respuesta, null, 'un acierto no genera respuesta');
+        j.avanzar(1000);
+        r = await j.enviar('.r dos', { autor: 'ana@lid' });
+        assert.equal(r.respuesta, null, 'un error no genera respuesta');
+        r = await j.enviar('.r uno', { autor: 'ana@lid' });
+        assert.equal(r.respuesta, null);
+        j.avanzar(9000); // 15 000 ms exactos
+        await j.enviar('.r uno', { autor: 'carla@lid' });
+        j.avanzar(1000); // 16 000 ms: dentro de la gracia
+        await j.enviar('.r uno', { autor: 'dani@lid' });
+        j.avanzar(1); // 16 001 ms: tarde
+        await j.enviar('.r uno', { autor: 'eva@lid' });
+
+        const cierre = await j.cerrar();
+        assert.match(cierre, /Tiempo cumplido/);
+        assert.match(cierre, /Respuesta ›\* uno/);
+        assert.match(cierre, /Referencia ›\* 📖 Juan 10:30/);
+        assert.match(cierre, /Acertaron ›\* Beto, Carla y Dani$/m);
+        assert.match(cierre, /Premio ›\* ✦ 15 c\/u/);
+
+        const talentos = (id) => db.get('jugadores').find({ id }).value().talentos;
+        assert.equal(talentos('beto@lid'), 15);
+        assert.equal(talentos('carla@lid'), 15);
+        assert.equal(talentos('dani@lid'), 15);
+        assert.equal(talentos('ana@lid'), 0, 'solo cuenta el primer intento');
+        assert.equal(talentos('eva@lid'), 0, 'pasada la gracia no cuenta');
+        assert.equal(db.get('jugadores').find({ id: 'beto@lid' }).value().semana.talentos, 15, 'suma al ranking semanal');
+
+        r = await j.enviar('.r uno', { autor: 'eva@lid' });
+        assert.equal(r.respuesta, null, 'sin pregunta activa, .r se ignora');
+    });
+
+    await runTest('preguntas: una sola activa por grupo, recordatorio y falla de envio', async ({ db }) => {
+        activarJuegos(db);
+        let liberar;
+        const enviados = [];
+        let fallarProximo = false;
+        const sock = {
+            enviados,
+            async sendMessage(jid, contenido, opciones) {
+                if (fallarProximo) {
+                    fallarProximo = false;
+                    throw new Error('sin conexion');
+                }
+                enviados.push({ jid, texto: contenido.text, opciones });
+                if (/segundos/.test(contenido.text) && !liberar) {
+                    await new Promise((resolve) => { liberar = resolve; });
+                }
+            }
+        };
+        const j = crearEntornoJuegos(db, '2026-10-10T15:00:00Z', { banco: bancoTest(), sock });
+        await registrarJugadores(j, ['Ana', 'Beto']);
+        j.avanzar(3100);
+
+        // Mientras la pregunta se esta enviando, nadie puede pedir otra ni responder.
+        // (directo a manejarMensaje: enviar() contaria tambien la respuesta a Beto)
+        const enCurso = j.juegos.manejarMensaje(sock, db, crearMsgJuego('.trivia', { autor: 'ana@lid' }), 'notify');
+        await new Promise((resolve) => setImmediate(resolve));
+        let r = await j.enviar('.personaje', { autor: 'beto@lid' });
+        assert.match(r.respuesta, /Ya hay una pregunta en curso/);
+        r = await j.enviar('.r algo', { autor: 'beto@lid' });
+        assert.equal(r.respuesta, null);
+        liberar();
+        await enCurso;
+        assert.equal(enviados.filter((e) => /segundos/.test(e.texto)).length, 1, 'una sola pregunta enviada');
+
+        // .r de alguien sin .unirme: recordatorio una sola vez por pregunta.
+        r = await j.enviar('.r tomas', { autor: 'zoe@lid' });
+        assert.match(r.respuesta, /primero unite al juego/);
+        r = await j.enviar('.r otra', { autor: 'zoe@lid' });
+        assert.equal(r.respuesta, null);
+        // .trivia de alguien sin .unirme.
+        r = await j.enviar('.trivia', { autor: 'zoe@lid' });
+        assert.match(r.respuesta, /Todavía no estás en el juego/);
+
+        const cierre = await j.cerrar();
+        assert.match(cierre, /Nadie acertó esta vez/);
+        assert.ok(!/Acertaron/.test(cierre));
+
+        // Si sendMessage falla, el grupo no queda bloqueado con una pregunta fantasma.
+        j.avanzar(3100);
+        fallarProximo = true;
+        await assert.rejects(j.juegos.manejarMensaje(sock, db, crearMsgJuego('.trivia', { autor: 'ana@lid' }), 'notify'), /sin conexion/);
+        assert.equal(j.timers.length, 0, 'sin cierre programado');
+        j.avanzar(3100);
+        r = await j.enviar('.trivia', { autor: 'ana@lid' });
+        assert.match(r.respuesta, /segundos/, 'se puede pedir otra pregunta');
+    });
+
+    await runTest('preguntas: mazo sin repetir, re-mezcla, filtros y preguntas nuevas', async ({ db }) => {
+        activarJuegos(db);
+        const j = crearEntornoJuegos(db, '2026-10-10T15:00:00Z', { banco: bancoTest() });
+        await registrarJugadores(j, ['Ana']);
+
+        async function jugar(comando) {
+            j.avanzar(3100);
+            const r = await j.enviar(comando, { autor: 'ana@lid' });
+            assert.match(r.respuesta, /segundos/);
+            await j.cerrar();
+            return ultimaPreguntaDelMazo(db);
+        }
+
+        const vueltaUno = [];
+        for (let i = 0; i < 4; i += 1) vueltaUno.push(await jugar('.trivia'));
+        assert.deepEqual([...vueltaUno].sort(), ['c1', 'c2', 'd1', 'p1'], 'no repite hasta agotar el mazo');
+        await jugar('.trivia');
+        assert.equal(db.get(['juegosMazos', GRUPO_JUEGOS]).value().indice, 1, 're-mezcla al agotarse');
+
+        assert.equal(await jugar('.personaje'), 'p1');
+        const versiculo = await jugar('.versiculo');
+        assert.ok(['c1', 'c2'].includes(versiculo));
+
+        // Una pregunta nueva en el JSON entra al mazo sin romper el estado; una
+        // borrada se saltea.
+        db.set(['juegosMazos', GRUPO_JUEGOS], { ids: ['c1', 'c2', 'p1', 'd1'], indice: 2 }).write();
+        const nuevas = [...PREGUNTAS_TEST.filter((p) => p.id !== 'd1'),
+            { id: 'd2', tipo: 'dato', tema: 't', pregunta: '¿En qué ciudad se derramó el Espíritu Santo?', correcta: 'Jerusalén', respuestas: ['jerusalen'], referencia: 'Hechos 2:1-5' }];
+        const j2 = crearEntornoJuegos(db, '2026-10-10T16:00:00Z', { banco: validarBanco({ preguntas: nuevas }).preguntas });
+        const restantes = [];
+        for (let i = 0; i < 2; i += 1) {
+            j2.avanzar(3100);
+            await j2.enviar('.trivia', { autor: 'ana@lid' });
+            await j2.cerrar();
+            restantes.push(ultimaPreguntaDelMazo(db));
+        }
+        assert.deepEqual([...restantes].sort(), ['d2', 'p1'], 'sale la nueva, no la borrada ni las ya vistas');
+    });
+
+    await runTest('preguntas: tope diario de 5 premiadas y cambio de dia en La Paz', async ({ db }) => {
+        activarJuegos(db);
+        // 2026-10-09 22:00 hora Bolivia
+        const j = crearEntornoJuegos(db, '2026-10-10T02:00:00Z', { banco: bancoTest(['p1']) });
+        await registrarJugadores(j, ['Ana']);
+        const premio = TALENTOS_PREGUNTA.personaje;
+
+        async function ronda() {
+            j.avanzar(3100);
+            await j.enviar('.personaje', { autor: 'ana@lid' });
+            j.avanzar(2000);
+            await j.enviar('.r Tomás', { autor: 'ana@lid' });
+            return j.cerrar();
+        }
+
+        for (let i = 0; i < 5; i += 1) {
+            const cierre = await ronda();
+            assert.ok(!/tope/.test(cierre));
+        }
+        const jugador = () => db.get('jugadores').find({ id: 'ana@lid' }).value();
+        assert.equal(jugador().talentos, 5 * premio);
+
+        let cierre = await ronda();
+        assert.match(cierre, /Acertaron ›\* Ana/);
+        assert.match(cierre, /Ana ya llegó al tope de 5 preguntas premiadas de hoy/);
+        assert.equal(jugador().talentos, 5 * premio, 'pasado el tope no suma');
+        cierre = await ronda();
+        assert.ok(!/tope/.test(cierre), 'el aviso sale una sola vez');
+        assert.equal(jugador().preguntasDia.fecha, '2026-10-09');
+
+        // 00:00:30 del 10/10 en Bolivia: dia nuevo, vuelve a sumar.
+        j.irA('2026-10-10T04:00:30Z');
+        await ronda();
+        assert.equal(jugador().talentos, 6 * premio);
+        assert.deepEqual(jugador().preguntasDia, { fecha: '2026-10-10', premiadas: 1, avisado: false });
+    });
+
+    await runTest('preguntas: banco invalido no rompe el arranque ni el resto del juego', async ({ db }) => {
+        const logs = [];
+        const log = { error: (m) => logs.push(['error', m]), warn: (m) => logs.push(['warn', m]) };
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'banco-'));
+        try {
+            assert.equal(cargarBancoPreguntas(path.join(dir, 'no-existe.json'), log), null);
+            fs.writeFileSync(path.join(dir, 'roto.json'), '{ "preguntas": [');
+            assert.equal(cargarBancoPreguntas(path.join(dir, 'roto.json'), log), null);
+            fs.writeFileSync(path.join(dir, 'vacio.json'), JSON.stringify({ preguntas: [] }));
+            assert.equal(cargarBancoPreguntas(path.join(dir, 'vacio.json'), log), null);
+            assert.equal(logs.filter(([nivel]) => nivel === 'error').length, 3);
+
+            fs.writeFileSync(path.join(dir, 'mixto.json'), JSON.stringify({ preguntas: [PREGUNTAS_TEST[0], { ...PREGUNTAS_TEST[1], respuestas: [] }] }));
+            const mixto = cargarBancoPreguntas(path.join(dir, 'mixto.json'), log);
+            assert.equal(mixto.length, 1, 'una pregunta mala se descarta sola');
+            assert.ok(logs.some(([nivel, m]) => nivel === 'warn' && m.includes('c2')));
+        } finally {
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
+
+        activarJuegos(db);
+        const j = crearEntornoJuegos(db, '2026-10-10T15:00:00Z', { banco: null });
+        await registrarJugadores(j, ['Ana']);
+        j.avanzar(3100);
+        let r = await j.enviar('.trivia', { autor: 'ana@lid' });
+        assert.equal(r.reclamado, true);
+        assert.equal(r.respuesta, null);
+        r = await j.enviar('.r hola', { autor: 'ana@lid' });
+        assert.equal(r.reclamado, true, '.r hola no debe caer al menu');
+        assert.equal(r.respuesta, null);
+        j.avanzar(3100);
+        r = await j.enviar('.bendicion', { autor: 'ana@lid' });
+        assert.match(r.respuesta, /Bendición del día/, 'el resto del juego sigue funcionando');
     });
 
     await runTest('juegos-config: GET/PUT con permiso bot y validacion 400', async ({ baseUrl }) => {

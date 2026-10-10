@@ -1,0 +1,685 @@
+{
+  "meta": {
+    "version_biblia": "Reina-Valera 1960 (confirmar con la Biblia que usa la iglesia)",
+    "revision_pastoral": true,
+    "nota": "Las respuestas aceptadas van en minusculas y sin tildes. El bot debe normalizar lo que escribe la persona antes de comparar.",
+    "revision_fecha": "2026-10-08"
+  },
+  "preguntas": [
+    {
+      "id": "q001",
+      "tipo": "completar",
+      "tema": "un-solo-dios",
+      "pregunta": "Oye, Israel: Jehová nuestro Dios, Jehová ____ es.",
+      "correcta": "uno",
+      "respuestas": [
+        "uno"
+      ],
+      "referencia": "Deuteronomio 6:4"
+    },
+    {
+      "id": "q002",
+      "tipo": "completar",
+      "tema": "un-solo-dios",
+      "pregunta": "Oye, Israel; el Señor nuestro Dios, el Señor ____ es.",
+      "correcta": "uno",
+      "respuestas": [
+        "uno"
+      ],
+      "referencia": "Marcos 12:29"
+    },
+    {
+      "id": "q003",
+      "tipo": "completar",
+      "tema": "un-solo-dios",
+      "pregunta": "Yo Jehová, y ____ más hay; no hay Dios fuera de mí.",
+      "correcta": "ninguno",
+      "respuestas": [
+        "ninguno"
+      ],
+      "referencia": "Isaías 45:5"
+    },
+    {
+      "id": "q004",
+      "tipo": "completar",
+      "tema": "un-solo-dios",
+      "pregunta": "Yo, yo Jehová, y fuera de mí no hay quien ____.",
+      "correcta": "salve",
+      "respuestas": [
+        "salve"
+      ],
+      "referencia": "Isaías 43:11"
+    },
+    {
+      "id": "q005",
+      "tipo": "completar",
+      "tema": "un-solo-dios",
+      "pregunta": "Yo soy el primero, y yo soy el postrero, y fuera de mí no hay ____.",
+      "correcta": "Dios",
+      "respuestas": [
+        "dios"
+      ],
+      "referencia": "Isaías 44:6"
+    },
+    {
+      "id": "q006",
+      "tipo": "completar",
+      "tema": "un-solo-dios",
+      "pregunta": "En aquel día Jehová será uno, y su ____ uno.",
+      "correcta": "nombre",
+      "respuestas": [
+        "nombre"
+      ],
+      "referencia": "Zacarías 14:9"
+    },
+    {
+      "id": "q007",
+      "tipo": "completar",
+      "tema": "un-solo-dios",
+      "pregunta": "Porque hay un solo Dios, y un solo ____ entre Dios y los hombres, Jesucristo hombre.",
+      "correcta": "mediador",
+      "respuestas": [
+        "mediador"
+      ],
+      "referencia": "1 Timoteo 2:5"
+    },
+    {
+      "id": "q008",
+      "tipo": "completar",
+      "tema": "un-solo-dios",
+      "pregunta": "Tú crees que Dios es ____; bien haces.",
+      "correcta": "uno",
+      "respuestas": [
+        "uno"
+      ],
+      "referencia": "Santiago 2:19"
+    },
+    {
+      "id": "q009",
+      "tipo": "completar",
+      "tema": "un-solo-dios",
+      "pregunta": "No tendrás dioses ____ delante de mí.",
+      "correcta": "ajenos",
+      "respuestas": [
+        "ajenos"
+      ],
+      "referencia": "Éxodo 20:3"
+    },
+    {
+      "id": "q010",
+      "tipo": "completar",
+      "tema": "un-solo-dios",
+      "pregunta": "Mirad a mí, y sed salvos, todos los términos de la tierra, porque yo soy Dios, y no hay ____.",
+      "correcta": "más",
+      "respuestas": [
+        "mas"
+      ],
+      "referencia": "Isaías 45:22"
+    },
+    {
+      "id": "q011",
+      "tipo": "completar",
+      "tema": "un-solo-dios",
+      "pregunta": "Un Señor, una fe, un ____.",
+      "correcta": "bautismo",
+      "respuestas": [
+        "bautismo"
+      ],
+      "referencia": "Efesios 4:5"
+    },
+    {
+      "id": "q012",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Yo y el Padre ____ somos.",
+      "correcta": "uno",
+      "respuestas": [
+        "uno"
+      ],
+      "referencia": "Juan 10:30"
+    },
+    {
+      "id": "q013",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Porque en él habita corporalmente toda la plenitud de la ____.",
+      "correcta": "Deidad",
+      "respuestas": [
+        "deidad"
+      ],
+      "referencia": "Colosenses 2:9"
+    },
+    {
+      "id": "q014",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Grande es el misterio de la piedad: Dios fue manifestado en ____.",
+      "correcta": "carne",
+      "respuestas": [
+        "carne"
+      ],
+      "referencia": "1 Timoteo 3:16"
+    },
+    {
+      "id": "q015",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "En el principio era el ____...",
+      "correcta": "Verbo",
+      "respuestas": [
+        "verbo"
+      ],
+      "referencia": "Juan 1:1"
+    },
+    {
+      "id": "q016",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Y aquel Verbo fue hecho ____, y habitó entre nosotros.",
+      "correcta": "carne",
+      "respuestas": [
+        "carne"
+      ],
+      "referencia": "Juan 1:14"
+    },
+    {
+      "id": "q017",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Se llamará su nombre Admirable, Consejero, Dios fuerte, Padre ____, Príncipe de paz.",
+      "correcta": "eterno",
+      "respuestas": [
+        "eterno"
+      ],
+      "referencia": "Isaías 9:6"
+    },
+    {
+      "id": "q018",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Y llamarán su nombre Emanuel, que traducido es: Dios con ____.",
+      "correcta": "nosotros",
+      "respuestas": [
+        "nosotros"
+      ],
+      "referencia": "Mateo 1:23"
+    },
+    {
+      "id": "q019",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "El que me ha visto a mí, ha visto al ____.",
+      "correcta": "Padre",
+      "respuestas": [
+        "padre"
+      ],
+      "referencia": "Juan 14:9"
+    },
+    {
+      "id": "q020",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Aguardando la manifestación gloriosa de nuestro gran Dios y Salvador ____.",
+      "correcta": "Jesucristo",
+      "respuestas": [
+        "jesucristo",
+        "jesus cristo"
+      ],
+      "referencia": "Tito 2:13"
+    },
+    {
+      "id": "q021",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Yo soy el Alfa y la ____, principio y fin, dice el Señor.",
+      "correcta": "Omega",
+      "respuestas": [
+        "omega"
+      ],
+      "referencia": "Apocalipsis 1:8"
+    },
+    {
+      "id": "q022",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Yo soy el Alfa y la Omega, el principio y el ____, el primero y el último.",
+      "correcta": "fin",
+      "respuestas": [
+        "fin"
+      ],
+      "referencia": "Apocalipsis 22:13"
+    },
+    {
+      "id": "q023",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "De los cuales, según la carne, vino Cristo, el cual es Dios sobre ____ las cosas, bendito por los siglos.",
+      "correcta": "todas",
+      "respuestas": [
+        "todas"
+      ],
+      "referencia": "Romanos 9:5"
+    },
+    {
+      "id": "q024",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Que ____ estaba en Cristo reconciliando consigo al mundo.",
+      "correcta": "Dios",
+      "respuestas": [
+        "dios"
+      ],
+      "referencia": "2 Corintios 5:19"
+    },
+    {
+      "id": "q025",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Él es la ____ del Dios invisible, el primogénito de toda creación.",
+      "correcta": "imagen",
+      "respuestas": [
+        "imagen"
+      ],
+      "referencia": "Colosenses 1:15"
+    },
+    {
+      "id": "q026",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "He aquí que la virgen concebirá, y dará a luz un hijo, y llamará su nombre ____.",
+      "correcta": "Emanuel",
+      "respuestas": [
+        "emanuel"
+      ],
+      "referencia": "Isaías 7:14"
+    },
+    {
+      "id": "q027",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Si no creéis que yo ____, en vuestros pecados moriréis.",
+      "correcta": "soy",
+      "respuestas": [
+        "soy"
+      ],
+      "referencia": "Juan 8:24"
+    },
+    {
+      "id": "q028",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Yo soy el camino, y la verdad, y la ____; nadie viene al Padre, sino por mí.",
+      "correcta": "vida",
+      "respuestas": [
+        "vida"
+      ],
+      "referencia": "Juan 14:6"
+    },
+    {
+      "id": "q029",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Para que en el nombre de Jesús se doble toda ____ de los que están en los cielos, y en la tierra, y debajo de la tierra.",
+      "correcta": "rodilla",
+      "respuestas": [
+        "rodilla"
+      ],
+      "referencia": "Filipenses 2:10"
+    },
+    {
+      "id": "q030",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "Y llamarás su nombre ____, porque él salvará a su pueblo de sus pecados.",
+      "correcta": "Jesús",
+      "respuestas": [
+        "jesus"
+      ],
+      "referencia": "Mateo 1:21"
+    },
+    {
+      "id": "q031",
+      "tipo": "completar",
+      "tema": "jesus-es-dios",
+      "pregunta": "____ es Espíritu; y los que le adoran, en espíritu y en verdad es necesario que adoren.",
+      "correcta": "Dios",
+      "respuestas": [
+        "dios"
+      ],
+      "referencia": "Juan 4:24"
+    },
+    {
+      "id": "q032",
+      "tipo": "completar",
+      "tema": "nombre-de-jesus",
+      "pregunta": "Arrepentíos, y bautícese cada uno de vosotros en el nombre de ____ para perdón de los pecados.",
+      "correcta": "Jesucristo",
+      "respuestas": [
+        "jesucristo",
+        "jesus cristo",
+        "jesus"
+      ],
+      "referencia": "Hechos 2:38"
+    },
+    {
+      "id": "q033",
+      "tipo": "completar",
+      "tema": "nombre-de-jesus",
+      "pregunta": "Y en ningún otro hay salvación; porque no hay otro ____ bajo el cielo, dado a los hombres, en que podamos ser salvos.",
+      "correcta": "nombre",
+      "respuestas": [
+        "nombre"
+      ],
+      "referencia": "Hechos 4:12"
+    },
+    {
+      "id": "q034",
+      "tipo": "completar",
+      "tema": "nombre-de-jesus",
+      "pregunta": "Aún no había descendido sobre ninguno de ellos, sino que solamente habían sido bautizados en el nombre de ____.",
+      "correcta": "Jesús",
+      "respuestas": [
+        "jesus"
+      ],
+      "referencia": "Hechos 8:16"
+    },
+    {
+      "id": "q035",
+      "tipo": "completar",
+      "tema": "nombre-de-jesus",
+      "pregunta": "Y mandó bautizarles en el nombre del ____ Jesús.",
+      "correcta": "Señor",
+      "respuestas": [
+        "senor"
+      ],
+      "referencia": "Hechos 10:48"
+    },
+    {
+      "id": "q036",
+      "tipo": "completar",
+      "tema": "nombre-de-jesus",
+      "pregunta": "Cuando oyeron esto, fueron bautizados en el nombre del Señor ____.",
+      "correcta": "Jesús",
+      "respuestas": [
+        "jesus"
+      ],
+      "referencia": "Hechos 19:5"
+    },
+    {
+      "id": "q037",
+      "tipo": "completar",
+      "tema": "nombre-de-jesus",
+      "pregunta": "Levántate y bautízate, y lava tus pecados, invocando su ____.",
+      "correcta": "nombre",
+      "respuestas": [
+        "nombre"
+      ],
+      "referencia": "Hechos 22:16"
+    },
+    {
+      "id": "q038",
+      "tipo": "completar",
+      "tema": "nombre-de-jesus",
+      "pregunta": "Y todo lo que hacéis, sea de palabra o de hecho, hacedlo todo en el nombre del Señor ____.",
+      "correcta": "Jesús",
+      "respuestas": [
+        "jesus"
+      ],
+      "referencia": "Colosenses 3:17"
+    },
+    {
+      "id": "q039",
+      "tipo": "completar",
+      "tema": "nombre-de-jesus",
+      "pregunta": "Bautizándolos en el ____ del Padre, y del Hijo, y del Espíritu Santo.",
+      "correcta": "nombre",
+      "respuestas": [
+        "nombre"
+      ],
+      "referencia": "Mateo 28:19"
+    },
+    {
+      "id": "q040",
+      "tipo": "completar",
+      "tema": "nombre-de-jesus",
+      "pregunta": "Y que se predicase en su nombre el ____ y el perdón de pecados en todas las naciones.",
+      "correcta": "arrepentimiento",
+      "respuestas": [
+        "arrepentimiento"
+      ],
+      "referencia": "Lucas 24:47"
+    },
+    {
+      "id": "q041",
+      "tipo": "personaje",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Qué apóstol exclamó: «¡Señor mío, y Dios mío!»?",
+      "correcta": "Tomás",
+      "respuestas": [
+        "tomas"
+      ],
+      "referencia": "Juan 20:28"
+    },
+    {
+      "id": "q042",
+      "tipo": "personaje",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Qué apóstol le pidió a Jesús: «Señor, muéstranos el Padre»?",
+      "correcta": "Felipe",
+      "respuestas": [
+        "felipe"
+      ],
+      "referencia": "Juan 14:8"
+    },
+    {
+      "id": "q043",
+      "tipo": "personaje",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Qué apóstol dijo a la multitud: «Arrepentíos, y bautícese cada uno de vosotros»?",
+      "correcta": "Pedro",
+      "respuestas": [
+        "pedro",
+        "simon pedro"
+      ],
+      "referencia": "Hechos 2:38"
+    },
+    {
+      "id": "q044",
+      "tipo": "personaje",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Qué profeta escribió que se llamaría su nombre «Dios fuerte, Padre eterno»?",
+      "correcta": "Isaías",
+      "respuestas": [
+        "isaias"
+      ],
+      "referencia": "Isaías 9:6"
+    },
+    {
+      "id": "q045",
+      "tipo": "personaje",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Quién le dijo a Saulo: «Levántate y bautízate»?",
+      "correcta": "Ananías",
+      "respuestas": [
+        "ananias"
+      ],
+      "referencia": "Hechos 22:16"
+    },
+    {
+      "id": "q046",
+      "tipo": "personaje",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Qué profeta anunció que Jehová sería uno y su nombre uno?",
+      "correcta": "Zacarías",
+      "respuestas": [
+        "zacarias"
+      ],
+      "referencia": "Zacarías 14:9"
+    },
+    {
+      "id": "q047",
+      "tipo": "dato",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿En qué ciudad halló Pablo a unos discípulos que fueron bautizados de nuevo en el nombre del Señor Jesús?",
+      "correcta": "Éfeso",
+      "respuestas": [
+        "efeso"
+      ],
+      "referencia": "Hechos 19:1-5"
+    },
+    {
+      "id": "q048",
+      "tipo": "dato",
+      "tema": "personajes-y-datos",
+      "pregunta": "En Hechos 19, ¿cuántos hombres, aproximadamente, fueron bautizados de nuevo en el nombre del Señor Jesús?",
+      "correcta": "doce",
+      "respuestas": [
+        "doce",
+        "12"
+      ],
+      "referencia": "Hechos 19:7"
+    },
+    {
+      "id": "q049",
+      "tipo": "dato",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Cuántas personas, aproximadamente, se añadieron a la iglesia aquel día después del mensaje de Pedro?",
+      "correcta": "tres mil",
+      "respuestas": [
+        "tres mil",
+        "3000",
+        "3.000",
+        "3 mil"
+      ],
+      "referencia": "Hechos 2:41"
+    },
+    {
+      "id": "q050",
+      "tipo": "dato",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Qué significa «Emanuel»?",
+      "correcta": "Dios con nosotros",
+      "respuestas": [
+        "dios con nosotros"
+      ],
+      "referencia": "Mateo 1:23"
+    },
+    {
+      "id": "q051",
+      "tipo": "personaje",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Cómo se llamaba el centurión de Cesarea cuya casa recibió el Espíritu Santo?",
+      "correcta": "Cornelio",
+      "respuestas": [
+        "cornelio"
+      ],
+      "referencia": "Hechos 10:1-48"
+    },
+    {
+      "id": "q052",
+      "tipo": "personaje",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Quién dijo: «Tú eres el Cristo, el Hijo del Dios viviente»?",
+      "correcta": "Pedro",
+      "respuestas": [
+        "pedro",
+        "simon pedro",
+        "simon"
+      ],
+      "referencia": "Mateo 16:16"
+    },
+    {
+      "id": "q053",
+      "tipo": "dato",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Qué nombre ordenó el ángel que se le pusiera al hijo de María?",
+      "correcta": "Jesús",
+      "respuestas": [
+        "jesus"
+      ],
+      "referencia": "Lucas 1:31"
+    },
+    {
+      "id": "q054",
+      "tipo": "personaje",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Qué apóstol escribió que «Dios fue manifestado en carne»?",
+      "correcta": "Pablo",
+      "respuestas": [
+        "pablo"
+      ],
+      "referencia": "1 Timoteo 3:16"
+    },
+    {
+      "id": "q055",
+      "tipo": "personaje",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Qué apóstol escribió: «Aquel Verbo fue hecho carne»?",
+      "correcta": "Juan",
+      "respuestas": [
+        "juan"
+      ],
+      "referencia": "Juan 1:14"
+    },
+    {
+      "id": "q056",
+      "tipo": "personaje",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Qué profeta anunció que una virgen concebiría y daría a luz un hijo llamado Emanuel?",
+      "correcta": "Isaías",
+      "respuestas": [
+        "isaias"
+      ],
+      "referencia": "Isaías 7:14"
+    },
+    {
+      "id": "q057",
+      "tipo": "dato",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿Cómo se llama el día en que se derramó el Espíritu Santo sobre los discípulos?",
+      "correcta": "Pentecostés",
+      "respuestas": [
+        "pentecostes"
+      ],
+      "referencia": "Hechos 2:1-4"
+    },
+    {
+      "id": "q058",
+      "tipo": "dato",
+      "tema": "personajes-y-datos",
+      "pregunta": "Según Hechos 2:38, ¿qué don recibe quien se arrepiente y se bautiza en el nombre de Jesucristo?",
+      "correcta": "El Espíritu Santo",
+      "respuestas": [
+        "espiritu santo",
+        "el espiritu santo",
+        "don del espiritu santo"
+      ],
+      "referencia": "Hechos 2:38"
+    },
+    {
+      "id": "q059",
+      "tipo": "dato",
+      "tema": "personajes-y-datos",
+      "pregunta": "¿En qué ciudad se derramó el Espíritu Santo el día de Pentecostés?",
+      "correcta": "Jerusalén",
+      "respuestas": [
+        "jerusalen"
+      ],
+      "referencia": "Hechos 2:1-5"
+    },
+    {
+      "id": "q060",
+      "tipo": "dato",
+      "tema": "personajes-y-datos",
+      "pregunta": "Según 1 Timoteo 2:5, ¿cuántos mediadores hay entre Dios y los hombres?",
+      "correcta": "Uno",
+      "respuestas": [
+        "uno",
+        "1",
+        "un solo",
+        "solo uno"
+      ],
+      "referencia": "1 Timoteo 2:5"
+    }
+  ]
+}
