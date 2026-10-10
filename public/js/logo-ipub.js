@@ -35,6 +35,13 @@
         brand.setAttribute('aria-label', NOMBRE);
 
         ajustarNombre(contenedor, nombre);
+        // la caja cambia de ancho al cruzar los 480 px
+        var anchoCaja = contenedor.offsetWidth;
+        window.addEventListener('resize', function () {
+            if (contenedor.offsetWidth === anchoCaja) return;
+            anchoCaja = contenedor.offsetWidth;
+            ajustarNombre(contenedor, nombre);
+        });
         if (document.fonts && document.fonts.load) {
             document.fonts.load('800 20px Alegreya').then(function () { ajustarNombre(contenedor, nombre); }, function () {});
         }

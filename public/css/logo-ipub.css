@@ -24,6 +24,13 @@
 body:not(.nav-open) .navbar.scrolled .lg-brand {
   --lg-escala: 1;
 }
+/* Celulares: 84 px con scroll y 112 px arriba de todo */
+@media (max-width: 480px) {
+  .lg-brand {
+    --lg-escala: 1.3333; /* 112 / 84 */
+    width: 84px;
+  }
+}
 .lg-brand > svg {
   display: block;
   width: 100%;
