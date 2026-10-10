@@ -1,0 +1,78 @@
+/* Copias del logo fuera del encabezado (componente: js/logo-copias.js).
+   Colores y animación vienen de logo-ipub.css; acá solo tamaño, ubicación y gradientes de cada copia.
+   El PNG original queda en el HTML y solo se oculta cuando el SVG ya cargó. */
+.lgc-oculto {
+  display: none !important;
+}
+.lgc-brand {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: top;
+}
+.lgc-brand > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* Cada copia usa sus propios gradientes (ids renombrados por js/logo-copias.js) */
+.lg--b.lgc [id$="-ct"] path {
+  fill: var(--lgc-bg);
+}
+.lg--b.lgc .lg-rm {
+  fill: var(--lgc-bc);
+}
+
+/* Footer: a la izquierda en escritorio, centrado en celular (text-align del footer) */
+.lgc-footer {
+  width: 112px;
+  margin-bottom: 1rem;
+}
+
+/* Paneles de jóvenes, damas y escuela: misma altura que el PNG anterior */
+.lgc-panel {
+  position: relative;
+  z-index: 1;
+  width: min(40%, 240px);
+}
+@media (max-width: 991.98px) {
+  .lgc-panel {
+    width: min(46%, 220px);
+  }
+}
+/* Celular y tablet: los badges pasan debajo del logo para no taparlo.
+   El margen ocupa el resto de la fila y deja el logo solo, centrado. */
+@media (max-width: 767.98px) {
+  .ministry-visual-panel {
+    flex-wrap: wrap;
+    align-content: center;
+    gap: 8px;
+    padding: 24px 16px;
+  }
+  .ministry-visual-panel__badge {
+    position: static;
+    transform: none;
+    order: 2;
+  }
+  .ministry-visual-panel > img,
+  .lgc-panel {
+    --lgc-w: 160px;
+    order: 1;
+    width: var(--lgc-w);
+    max-width: none;
+    margin: 0 calc((100% - var(--lgc-w)) / 2) 8px;
+  }
+}
+@media (min-width: 480px) and (max-width: 767.98px) {
+  .ministry-visual-panel > img,
+  .lgc-panel {
+    --lgc-w: 200px;
+  }
+}
+
+/* Radio (alabanza): estático */
+.lgc-radio {
+  display: flex;
+  width: 96px;
+  margin: 0 auto 16px;
+}
