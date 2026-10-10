@@ -46,6 +46,9 @@
             document.fonts.load('800 20px Alegreya').then(function () { ajustarNombre(contenedor, nombre); }, function () {});
         }
 
+        // Intro (js/logo-intro.js), con el mismo SVG ya descargado
+        if (window.IPUBLogoIntro) window.IPUBLogoIntro(texto, svg, brand);
+
         if (reducido) return;
 
         // Ola de luz: arco superior, cinta y arco inferior, cada grupo ordenado de izquierda a derecha.

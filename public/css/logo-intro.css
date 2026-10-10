@@ -1,0 +1,85 @@
+/* Intro del logo; lgi-respaldo destapa todo si falla el JS */
+html.lgi-cubre::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #F2F1EC;
+  animation: lgi-respaldo 0.01s linear 8s forwards;
+}
+.lgi {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  animation: lgi-respaldo 0.01s linear 9s forwards;
+}
+.lgi-fondo {
+  position: absolute;
+  inset: 0;
+  background: #F2F1EC;
+  animation: lgi-fuera 0.8s ease 5s both;
+}
+.lgi-logo {
+  position: absolute;
+  transform-origin: 0 0;
+  animation: lgi-asentar 1s cubic-bezier(0.65, 0, 0.35, 1) 4.9s both, lgi-fuera 0.4s ease 5.9s both;
+}
+.lgi-logo > svg {
+  display: block;
+  width: 100%;
+}
+.lgi .lg-grid path,
+.lg.lgi-corta .lg-grid path {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: lgi-trazo 0.7s ease-out both;
+}
+.lgi .lg-tr path {
+  animation: lgi-entra 0.5s ease both;
+}
+.lgi #lgi-cinta rect {
+  transform: scaleX(0);
+  transform-origin: 33px 0;
+  animation: lgi-despliegue 0.9s cubic-bezier(0.3, 0.6, 0.3, 1) 2.3s both;
+}
+.lgi .lg-t path,
+.lg.lgi-corta .lg-t path {
+  animation: lgi-letra 0.45s ease-out both;
+}
+.lgi-salir {
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+.lgi-pausa,
+.lgi-pausa * {
+  animation-play-state: paused !important;
+}
+.navbar-brand.lgi-espera .lg-brand {
+  opacity: 0;
+  transition: none;
+  animation: lgi-aparece 0.4s ease 9s forwards;
+}
+.navbar-brand .lg-brand {
+  transition: transform 0.3s ease, opacity 0.4s ease;
+}
+
+/* Versión corta en el logo del encabezado */
+.lg.lgi-corta .lg-grid path,
+.lg.lgi-corta .lg-t path {
+  animation-duration: 0.4s;
+}
+.lg.lgi-corta .lg-co,
+.lg.lgi-corta .lg-rib {
+  animation: lgi-entra 0.4s ease 0.3s both;
+}
+
+@keyframes lgi-trazo { to { stroke-dashoffset: 0; } }
+@keyframes lgi-entra { from { opacity: 0; } }
+@keyframes lgi-despliegue { to { transform: scaleX(1); } }
+@keyframes lgi-letra { from { opacity: 0; transform: translateY(-3px); } }
+@keyframes lgi-asentar { to { transform: translate(var(--tx), var(--ty)) scale(var(--s)); } }
+@keyframes lgi-fuera { to { opacity: 0; } }
+@keyframes lgi-respaldo { from, to { visibility: hidden; opacity: 0; } }
+@keyframes lgi-aparece { to { opacity: 1; } }
