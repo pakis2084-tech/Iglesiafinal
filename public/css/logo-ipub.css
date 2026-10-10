@@ -1,0 +1,115 @@
+/* Logo animado del encabezado (componente: js/logo-ipub.js + images/logo-ipub.svg).
+   El PNG original queda en el HTML y solo se oculta cuando el SVG ya cargó (.lg-on). */
+.navbar-brand.lg-on > img {
+  display: none;
+}
+.navbar-brand.lg-on {
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+/* La caja de layout mide siempre 96 px (tamaño con scroll); arriba de todo se
+   agranda a 140 px solo con transform, así el cambio no mueve nada. */
+.lg-brand {
+  --lg-escala: 1.4583; /* 140 / 96 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 96px;
+  transform: scale(var(--lg-escala));
+  transform-origin: 0 0;
+  transition: transform 0.3s ease;
+}
+body:not(.nav-open) .navbar.scrolled .lg-brand {
+  --lg-escala: 1;
+}
+.lg-brand > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.lg-name {
+  display: block;
+  width: max-content;
+  margin-top: 2px;
+  font-family: 'Alegreya', Georgia, serif;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+.lg-name__ipub { color: #0B6FD6; }
+.lg-name__tupiza { color: #D2102E; }
+
+/* Colores del encabezado (opción B). Oscuro por defecto; claro con la barra blanca. */
+.lg {
+  --lg-line: #E9E7E0;
+  --lg-text: #E9E7E0;
+  --lg-ctext: #FFFFFF;
+  --lg-ol: #14192A;
+  --lg-gold: #E8A33D;
+  --lg-up: -1.3px;
+}
+body:not(.nav-open) .navbar.scrolled .lg {
+  --lg-line: #14192A;
+  --lg-text: #14192A;
+}
+.lg-grid,
+.lg-ol {
+  transition: stroke 0.3s ease;
+}
+.lg--b .lg-grid { stroke: var(--lg-line); }
+.lg--b #lg-ct path { fill: url(#lg-bG); }
+.lg--b .lg-co { stroke: none; }
+.lg--b .lg-rm { fill: url(#lg-bC); }
+.lg--b .lg-tl { fill: #A80C24; }
+.lg--b .lg-tr2 { fill: #095BAF; }
+.lg--b .lg-ol { stroke: var(--lg-ol); }
+.lg--b .lg-ta,
+.lg--b .lg-tb { --c: var(--lg-text); }
+.lg--b .lg-tc { --c: var(--lg-ctext); }
+.lg--b .lg-t path { fill: var(--c); }
+
+/* Movimiento: solo transform, opacity y fill de pocos elementos */
+.lg--anim .lg-tr {
+  animation: lg-spin 60s steps(480) infinite;
+}
+.lg--anim .lg-sh {
+  animation: lg-sheen 9s ease-in-out 6s infinite;
+}
+.lg--anim.lg-ola .lg-t path {
+  animation: lg-wave 0.8s ease-in-out both;
+}
+.lg--anim.lg-flash .lg-sh2 {
+  animation: lg-sheen-once 0.9s ease-out 1;
+}
+.lg--paused,
+.lg--paused * {
+  animation-play-state: paused !important;
+}
+@keyframes lg-spin {
+  to { transform: translateX(113px); }
+}
+@keyframes lg-sheen {
+  0% { opacity: 0; transform: translateX(0); }
+  2% { opacity: 0.8; }
+  14% { opacity: 0.8; transform: translateX(170px); }
+  16%, 100% { opacity: 0; transform: translateX(170px); }
+}
+@keyframes lg-sheen-once {
+  0% { opacity: 0; transform: translateX(0); }
+  15% { opacity: 0.7; }
+  85% { opacity: 0.7; }
+  100% { opacity: 0; transform: translateX(170px); }
+}
+@keyframes lg-wave {
+  0%, 100% { fill: var(--c); transform: translateY(0); }
+  40% { fill: var(--lg-gold); transform: translateY(var(--lg-up)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lg *,
+  .lg-brand {
+    animation: none !important;
+    transition: none !important;
+  }
+}
