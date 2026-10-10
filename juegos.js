@@ -1,5 +1,6 @@
 // -----------------------------------------------------
-// JUEGOS DEL GRUPO (talentos, Bendicion del dia, perfil, ranking semanal).
+// JUEGOS DEL GRUPO (talentos, Bendicion del dia, perfil, ranking semanal y
+// preguntas con tiempo limite: .trivia / .versiculo / .personaje / .r).
 //
 // Reglas anti-ban (no relajar sin pensarlo):
 // - Solo responde a comandos exactos con prefijo "." y una sola vez por comando.
@@ -13,6 +14,7 @@
 // dispositivo (el bot corre en un celular cuya zona puede estar mal).
 // -----------------------------------------------------
 
+const fs = require('fs');
 const mensajes = require('./mensajes.js');
 
 const ZONA_HORARIA_JUEGOS = 'America/La_Paz';
@@ -23,6 +25,22 @@ const TALENTOS_BENDICION_BASE = 10;
 const TALENTOS_POR_DIA_RACHA = 2;
 const MAX_DIAS_BONUS_RACHA = 7;
 const TOP_RANKING = 5;
+
+// ---------- Preguntas con tiempo limite ----------
+// Talentos por acierto segun el tipo de pregunta (sin bonus por rapidez).
+const TALENTOS_PREGUNTA = { completar: 15, personaje: 20, dato: 10 };
+const TIPOS_PREGUNTA = Object.keys(TALENTOS_PREGUNTA);
+// Tiempo anunciado en la pregunta. Se mide con el reloj del bot desde que el
+// mensaje de la pregunta termino de enviarse.
+const LIMITE_PREGUNTA_MS = 15000;
+// Margen extra (no anunciado) para la latencia de WhatsApp: una respuesta
+// cuenta si llega hasta LIMITE + GRACIA. El cierre se programa en ese momento.
+const GRACIA_RESPUESTA_MS = 1000;
+// Preguntas premiadas por persona y por dia (hora Bolivia). Pasado el tope
+// se puede seguir jugando, pero sin talentos.
+const TOPE_PREGUNTAS_PREMIADAS_DIA = 5;
+// Comando -> tipo de pregunta (null = cualquier tipo).
+const COMANDOS_PREGUNTA = { trivia: null, versiculo: 'completar', personaje: 'personaje' };
 
 // Umbrales por talentos TOTALES (no semanales). Ordenados de menor a mayor.
 const NIVELES = [
@@ -125,7 +143,11 @@ const COMANDOS_SIN_ARGUMENTO = {
     '.ranking': 'ranking',
     '.salir': 'salir',
     '.ayuda': 'ayuda',
-    '.idgrupo': 'idgrupo'
+    '.idgrupo': 'idgrupo',
+    '.trivia': 'trivia',
+    '.versiculo': 'versiculo',
+    '.versículo': 'versiculo',
+    '.personaje': 'personaje'
 };
 
 function parsearComando(texto) {
@@ -138,6 +160,9 @@ function parsearComando(texto) {
 
     if (nombre === '.unirme') {
         return { comando: 'unirme', argumento };
+    }
+    if (nombre === '.r') {
+        return argumento ? { comando: 'responder', argumento } : null;
     }
     if (COMANDOS_SIN_ARGUMENTO[nombre] && !argumento) {
         return { comando: COMANDOS_SIN_ARGUMENTO[nombre], argumento: '' };
@@ -183,11 +208,124 @@ function calcularRanking(jugadores, semanaActual) {
     });
 }
 
+// ---------- Banco de preguntas ----------
+
+// Minusculas, sin tildes (tambien ñ -> n), sin signos de puntuacion,
+// espacios colapsados. Se aplica a lo que escribe la persona Y a las
+// respuestas del banco, asi "3.000" y "3000" son lo mismo.
+function normalizarRespuesta(texto) {
+    return String(texto || '')
+        .normalize('NFD')
+        .replace(/\p{M}/gu, '')
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}\s]/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function textoNoVacio(valor) {
+    return typeof valor === 'string' && valor.trim() !== '';
+}
+
+// Devuelve '' si la pregunta es valida, o el motivo si no lo es.
+function validarPregunta(pregunta) {
+    if (!pregunta || typeof pregunta !== 'object') return 'no es un objeto';
+    if (!textoNoVacio(pregunta.id)) return 'falta "id"';
+    if (!TIPOS_PREGUNTA.includes(pregunta.tipo)) return `tipo "${pregunta.tipo}" no valido`;
+    if (!textoNoVacio(pregunta.tema)) return 'falta "tema"';
+    if (!textoNoVacio(pregunta.pregunta)) return 'falta "pregunta"';
+    if (!textoNoVacio(pregunta.correcta)) return 'falta "correcta"';
+    if (!textoNoVacio(pregunta.referencia)) return 'falta "referencia"';
+
+    const huecos = pregunta.pregunta.match(/_+/g) || [];
+    if (pregunta.tipo === 'completar' && (huecos.length !== 1 || huecos[0] !== '____')) {
+        return 'una pregunta "completar" debe tener exactamente un "____"';
+    }
+    if (pregunta.tipo !== 'completar' && huecos.length > 0) {
+        return 'solo las preguntas "completar" llevan "____"';
+    }
+
+    if (!Array.isArray(pregunta.respuestas) || pregunta.respuestas.length === 0) return 'sin "respuestas"';
+    const normalizadas = pregunta.respuestas.map(normalizarRespuesta);
+    if (normalizadas.some((respuesta) => !respuesta)) return 'hay una respuesta vacia';
+    if (!normalizadas.includes(normalizarRespuesta(pregunta.correcta))) return '"correcta" no esta en "respuestas"';
+    return '';
+}
+
+// Valida el contenido ya parseado. Las preguntas invalidas o con id repetido
+// se descartan una por una (no apagan el juego). Devuelve preguntas: null si
+// el banco entero no sirve (estructura rota o ninguna pregunta valida).
+function validarBanco(datos) {
+    if (!datos || typeof datos !== 'object' || !Array.isArray(datos.preguntas)) {
+        return { preguntas: null, errores: ['el archivo no tiene una lista "preguntas"'] };
+    }
+
+    const errores = [];
+    const ids = new Set();
+    const preguntas = [];
+    datos.preguntas.forEach((pregunta, indice) => {
+        const motivo = validarPregunta(pregunta);
+        const etiqueta = pregunta && textoNoVacio(pregunta.id) ? pregunta.id : `#${indice + 1}`;
+        if (motivo) {
+            errores.push(`${etiqueta}: ${motivo}`);
+            return;
+        }
+        if (ids.has(pregunta.id)) {
+            errores.push(`${etiqueta}: id repetido`);
+            return;
+        }
+        ids.add(pregunta.id);
+        preguntas.push({
+            id: pregunta.id,
+            tipo: pregunta.tipo,
+            pregunta: pregunta.pregunta,
+            correcta: pregunta.correcta,
+            referencia: pregunta.referencia,
+            respuestas: new Set(pregunta.respuestas.map(normalizarRespuesta))
+        });
+    });
+
+    if (preguntas.length === 0) {
+        errores.push('ninguna pregunta valida');
+        return { preguntas: null, errores };
+    }
+    return { preguntas, errores };
+}
+
+// Nunca lanza: si el archivo falta o no sirve, loguea y devuelve null, y
+// crearJuegos deshabilita solo los comandos de preguntas.
+function cargarBancoPreguntas(ruta, log = console) {
+    let datos;
+    try {
+        datos = JSON.parse(fs.readFileSync(ruta, 'utf8'));
+    } catch (error) {
+        log.error(`❌ Banco de preguntas no disponible (${ruta}): ${error.message}. Los comandos de preguntas quedan deshabilitados.`);
+        return null;
+    }
+
+    const { preguntas, errores } = validarBanco(datos);
+    if (!preguntas) {
+        log.error(`❌ Banco de preguntas invalido (${ruta}): ${errores.join('; ')}. Los comandos de preguntas quedan deshabilitados.`);
+        return null;
+    }
+    errores.forEach((errorPregunta) => log.warn(`⚠️ Pregunta descartada del banco: ${errorPregunta}`));
+    return preguntas;
+}
+
 function crearJuegos(opciones = {}) {
     const versiculos = Array.isArray(opciones.versiculos) ? opciones.versiculos : [];
     const ahora = typeof opciones.ahora === 'function' ? opciones.ahora : () => new Date();
     const cooldownMs = Number.isFinite(opciones.cooldownMs) ? opciones.cooldownMs : COOLDOWN_JUEGOS_MS;
     const ultimoComandoPorPersona = new Map();
+    const banco = Array.isArray(opciones.bancoPreguntas) && opciones.bancoPreguntas.length > 0 ? opciones.bancoPreguntas : null;
+    const preguntasPorId = new Map((banco || []).map((pregunta) => [pregunta.id, pregunta]));
+    const aleatorio = typeof opciones.aleatorio === 'function' ? opciones.aleatorio : Math.random;
+    const programar = typeof opciones.programar === 'function' ? opciones.programar : (fn, ms) => setTimeout(fn, ms);
+    // El cierre llega 15 s despues: si hubo una reconexion en el medio, el
+    // socket vigente es otro. bot.js pasa obtenerSock; si no, se usa el original.
+    const obtenerSock = typeof opciones.obtenerSock === 'function' ? opciones.obtenerSock : null;
+    // Pregunta activa por grupo. Vive solo en memoria: si el bot se reinicia, se pierde.
+    const preguntasActivas = new Map();
 
     function enCooldown(id, ahoraMs) {
         const ultimo = ultimoComandoPorPersona.get(id);
@@ -298,6 +436,172 @@ function crearJuegos(opciones = {}) {
         });
     }
 
+    // ---------- Mazo por grupo (db.json: juegosMazos[jid] = { ids, indice }) ----------
+
+    function mezclar(lista) {
+        const copia = [...lista];
+        for (let i = copia.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(aleatorio() * (i + 1));
+            [copia[i], copia[j]] = [copia[j], copia[i]];
+        }
+        return copia;
+    }
+
+    // Saca la proxima pregunta sin repetir hasta agotar el mazo. Las preguntas
+    // nuevas del JSON se mezclan en la parte que todavia no salio; las que ya
+    // no existen se saltean. Con filtro de tipo, se trae la proxima de ese tipo
+    // a la posicion actual; si no queda ninguna, se re-mezcla el mazo entero.
+    function sacarPregunta(db, chat, tipo) {
+        const ruta = ['juegosMazos', chat];
+        const guardado = db.get(ruta).value();
+        const valido = guardado && Array.isArray(guardado.ids) && Number.isInteger(guardado.indice) && guardado.indice >= 0;
+        let ids = valido ? guardado.ids : [];
+        let indice = valido ? Math.min(guardado.indice, ids.length) : 0;
+
+        const vistos = ids.slice(0, indice).filter((id) => preguntasPorId.has(id));
+        let pendientes = ids.slice(indice).filter((id) => preguntasPorId.has(id));
+        const enMazo = new Set(ids);
+        const nuevas = [...preguntasPorId.keys()].filter((id) => !enMazo.has(id));
+        if (nuevas.length > 0) {
+            pendientes = mezclar([...pendientes, ...nuevas]);
+        }
+        ids = [...vistos, ...pendientes];
+        indice = vistos.length;
+
+        const coincide = (id) => !tipo || preguntasPorId.get(id).tipo === tipo;
+        let posicion = ids.findIndex((id, i) => i >= indice && coincide(id));
+        if (posicion === -1) {
+            ids = mezclar([...preguntasPorId.keys()]);
+            indice = 0;
+            posicion = ids.findIndex(coincide);
+            if (posicion === -1) return null; // no hay preguntas de ese tipo en el banco
+        }
+
+        [ids[indice], ids[posicion]] = [ids[posicion], ids[indice]];
+        const pregunta = preguntasPorId.get(ids[indice]);
+        db.set(ruta, { ids, indice: indice + 1 }).write();
+        return pregunta;
+    }
+
+    // ---------- Pregunta activa ----------
+
+    async function iniciarPregunta(sock, db, chat, jugador, comando, msg) {
+        if (!jugador) {
+            await sock.sendMessage(chat, { text: mensajes.noRegistrado() }, { quoted: msg });
+            return;
+        }
+        if (preguntasActivas.has(chat)) {
+            await sock.sendMessage(chat, { text: mensajes.preguntaEnCurso() }, { quoted: msg });
+            return;
+        }
+
+        const pregunta = sacarPregunta(db, chat, COMANDOS_PREGUNTA[comando]);
+        if (!pregunta) return;
+
+        // Se marca ANTES del await para que nadie pueda pedir otra mientras se envia.
+        const activa = {
+            pregunta,
+            estado: 'enviando',
+            inicioMs: null,
+            intentos: new Set(),
+            aciertos: [],
+            recordados: new Set()
+        };
+        preguntasActivas.set(chat, activa);
+
+        try {
+            await sock.sendMessage(chat, {
+                text: mensajes.pregunta({
+                    tipo: pregunta.tipo,
+                    texto: pregunta.pregunta,
+                    segundos: LIMITE_PREGUNTA_MS / 1000,
+                    premio: TALENTOS_PREGUNTA[pregunta.tipo]
+                })
+            }, { quoted: msg });
+        } catch (error) {
+            // Si no se pudo mandar, no queda una pregunta "fantasma" bloqueando el grupo.
+            if (preguntasActivas.get(chat) === activa) preguntasActivas.delete(chat);
+            throw error;
+        }
+
+        // El reloj arranca recien ahora, con el mensaje ya enviado.
+        activa.inicioMs = ahora().getTime();
+        activa.estado = 'abierta';
+        // Devuelve la promesa para que los tests puedan esperar el cierre.
+        programar(() => cerrarPregunta(sock, db, chat, activa).catch((error) => {
+            console.error('❌ Error cerrando la pregunta de juegos:', error);
+        }), LIMITE_PREGUNTA_MS + GRACIA_RESPUESTA_MS);
+    }
+
+    // Devuelve el texto a responder (solo el recordatorio de .unirme) o ''.
+    // Aciertos y errores NO generan respuesta: todo se ve en el cierre.
+    function registrarRespuesta(db, chat, id, jugador, texto) {
+        const activa = preguntasActivas.get(chat);
+        if (!activa || activa.estado !== 'abierta') return '';
+
+        if (!jugador) {
+            if (activa.recordados.has(id)) return '';
+            activa.recordados.add(id);
+            return mensajes.recordatorioUnirme();
+        }
+
+        if (activa.intentos.has(id)) return '';
+        activa.intentos.add(id);
+
+        const transcurrido = ahora().getTime() - activa.inicioMs;
+        if (transcurrido > LIMITE_PREGUNTA_MS + GRACIA_RESPUESTA_MS) return '';
+        if (activa.pregunta.respuestas.has(normalizarRespuesta(texto))) {
+            activa.aciertos.push(id);
+        }
+        return '';
+    }
+
+    async function cerrarPregunta(sockOriginal, db, chat, activa) {
+        if (preguntasActivas.get(chat) !== activa) return;
+        preguntasActivas.delete(chat);
+
+        db.read();
+        const hoy = fechaBolivia(ahora());
+        const semanaActual = semanaIsoDeFecha(hoy);
+        const premio = TALENTOS_PREGUNTA[activa.pregunta.tipo];
+        const acertaron = [];
+        const llegaronAlTope = [];
+
+        activa.aciertos.forEach((id) => {
+            let jugador = obtenerJugadores(db).find({ id }).value();
+            if (!jugador) return; // hizo .salir mientras corria la pregunta
+            jugador = asegurarSemana(db, jugador, semanaActual);
+
+            const dia = jugador.preguntasDia && jugador.preguntasDia.fecha === hoy
+                ? jugador.preguntasDia
+                : { fecha: hoy, premiadas: 0, avisado: false };
+
+            if (dia.premiadas < TOPE_PREGUNTAS_PREMIADAS_DIA) {
+                obtenerJugadores(db).find({ id }).assign({
+                    talentos: jugador.talentos + premio,
+                    semana: { id: semanaActual, talentos: semanaVigente(jugador, semanaActual) + premio },
+                    preguntasDia: { ...dia, premiadas: dia.premiadas + 1 }
+                }).write();
+            } else if (!dia.avisado) {
+                llegaronAlTope.push(jugador.alias);
+                obtenerJugadores(db).find({ id }).assign({ preguntasDia: { ...dia, avisado: true } }).write();
+            }
+            acertaron.push(jugador.alias);
+        });
+
+        const sock = (obtenerSock && obtenerSock()) || sockOriginal;
+        await sock.sendMessage(chat, {
+            text: mensajes.cierrePregunta({
+                correcta: activa.pregunta.correcta,
+                referencia: activa.pregunta.referencia,
+                acertaron,
+                premio,
+                llegaronAlTope,
+                tope: TOPE_PREGUNTAS_PREMIADAS_DIA
+            })
+        });
+    }
+
     function cmdSalir(db, jugador) {
         obtenerJugadores(db).remove({ id: jugador.id }).write();
         return mensajes.despedida(jugador.alias);
@@ -349,6 +653,26 @@ function crearJuegos(opciones = {}) {
         if (!config.activo || !config.grupos.includes(chat)) return false;
 
         const id = msg.key.participant || msg.key.remoteJid;
+        const esDePreguntas = parseado.comando === 'responder' || parseado.comando in COMANDOS_PREGUNTA;
+
+        if (esDePreguntas) {
+            // Sin banco valido, estos comandos se reclaman en silencio (para que
+            // ".r hola" no abra el menu) y el resto del juego sigue igual.
+            if (!banco) return true;
+            const jugador = obtenerJugadores(db).find({ id }).value() || null;
+
+            // .r no usa ni activa el cooldown: ya tiene un solo intento por pregunta.
+            if (parseado.comando === 'responder') {
+                const aviso = registrarRespuesta(db, chat, id, jugador, parseado.argumento);
+                if (aviso) await sock.sendMessage(chat, { text: aviso }, { quoted: msg });
+                return true;
+            }
+
+            if (enCooldown(id, ahora().getTime())) return true;
+            await iniciarPregunta(sock, db, chat, jugador, parseado.comando, msg);
+            return true;
+        }
+
         if (enCooldown(id, ahora().getTime())) return true;
 
         const texto = responderComando(db, id, parseado.comando, parseado.argumento);
@@ -363,6 +687,14 @@ function crearJuegos(opciones = {}) {
 
 module.exports = {
     crearJuegos,
+    cargarBancoPreguntas,
+    validarBanco,
+    validarPregunta,
+    normalizarRespuesta,
+    TALENTOS_PREGUNTA,
+    LIMITE_PREGUNTA_MS,
+    GRACIA_RESPUESTA_MS,
+    TOPE_PREGUNTAS_PREMIADAS_DIA,
     fechaBolivia,
     semanaIsoDeFecha,
     sumarDiasAFechaStr,

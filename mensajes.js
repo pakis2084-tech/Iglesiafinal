@@ -7,12 +7,13 @@
 // - Dato:       > *Etiqueta ›* valor
 // - Talentos con ✦, comandos en `codigo`, notas en _cursiva_ (sin anidar formatos).
 // - Como maximo un emoji tematico por linea y 8 lineas por mensaje.
-// - Solo simbolos comunes: ✦ ✿ ✝ › 🕊️ 📖 🌱 🔥 🏆 🥇 🥈 🥉
+// - Solo simbolos comunes: ✦ ✿ ✝ › 🕊️ 📖 🌱 🔥 🏆 🥇 🥈 🥉 (y ⏳ solo para el tiempo de las preguntas)
 // - Solo alias, nunca ids, numeros ni @menciones.
 // -----------------------------------------------------
 
 const MAX_LINEAS_MENSAJE = 8;
 const MEDALLAS = { 1: '🥇', 2: '🥈', 3: '🥉' };
+const MAX_NOMBRES_CIERRE = 5;
 
 function encabezado(simbolo, titulo) {
     return `「${simbolo}」 *${titulo}*`;
@@ -59,10 +60,10 @@ function ayuda() {
         encabezado('✿', 'Juegos del grupo'),
         comando('.unirme alias', 'participar con un apodo'),
         comando('.bendicion', 'tu Bendición del día'),
-        comando('.perfil', 'talentos, racha y nivel'),
-        comando('.ranking', 'top 5 de la semana'),
+        `> \`.perfil\` · \`.ranking\` › tus datos y top 5`,
+        `> \`.trivia\` · \`.versiculo\` · \`.personaje\` › pregunta de 15 s`,
+        comando('.r respuesta', 'responder la pregunta'),
         comando('.salir', 'borrar tus datos del juego'),
-        comando('.ayuda', 'esta lista'),
         nota('Los talentos son solo por diversión, no tienen valor real.')
     ]);
 }
@@ -192,6 +193,66 @@ function ranking({ numeroSemana, filas, total, miFila, registrado }) {
     ]);
 }
 
+// ---------- Preguntas con tiempo limite ----------
+
+const ENCABEZADO_PREGUNTA = {
+    completar: ['📖', 'Completá el versículo'],
+    personaje: ['✝', 'Personaje bíblico'],
+    dato: ['✿', 'Pregunta bíblica']
+};
+
+// "Ana, Beto y Carla"; con mas de 5: "Ana, Beto, Carla, Dani, Eva y 2 más".
+function listaNombres(nombres) {
+    if (nombres.length <= MAX_NOMBRES_CIERRE) {
+        return nombres.length === 1 ? nombres[0] : `${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}`;
+    }
+    return `${nombres.slice(0, MAX_NOMBRES_CIERRE).join(', ')} y ${nombres.length - MAX_NOMBRES_CIERRE} más`;
+}
+
+// No muestra la referencia: en "personaje" delataria la respuesta (ej. Isaías 9:6).
+function pregunta({ tipo, texto, segundos, premio }) {
+    const [simbolo, titulo] = ENCABEZADO_PREGUNTA[tipo] || ENCABEZADO_PREGUNTA.dato;
+    const cuerpo = tipo === 'completar' ? texto.replace('____', '*____*') : texto;
+    return componer([
+        encabezado(simbolo, titulo),
+        `> ${cuerpo}`,
+        dato('Premio', talentos(premio)),
+        `⏳ ${segundos} segundos — respondé con \`.r <tu respuesta>\``
+    ]);
+}
+
+function preguntaEnCurso() {
+    return error('Ya hay una pregunta en curso', 'Esperá el cierre para pedir otra.');
+}
+
+function recordatorioUnirme() {
+    return componer([
+        encabezado('✿', 'Para responder, primero unite al juego'),
+        'Escribí `.unirme alias` y participá en la próxima.'
+    ]);
+}
+
+function cierrePregunta({ correcta, referencia, acertaron, premio, llegaronAlTope, tope }) {
+    const lineas = [
+        encabezado('✝', 'Tiempo cumplido'),
+        dato('Respuesta', correcta),
+        dato('Referencia', `📖 ${referencia}`)
+    ];
+
+    if (acertaron.length === 0) {
+        lineas.push(nota('Nadie acertó esta vez. ¡Ánimo para la próxima!'));
+        return componer(lineas);
+    }
+
+    lineas.push(dato('Acertaron', listaNombres(acertaron)));
+    lineas.push(dato('Premio', `${talentos(premio)} c/u`));
+    if (llegaronAlTope.length > 0) {
+        const verbo = llegaronAlTope.length === 1 ? 'ya llegó' : 'ya llegaron';
+        lineas.push(nota(`${listaNombres(llegaronAlTope)} ${verbo} al tope de ${tope} preguntas premiadas de hoy.`));
+    }
+    return componer(lineas);
+}
+
 // ---------- Utilidades ----------
 
 // Solo el JID, sin formato, para poder copiarlo y pegarlo tal cual en el panel.
@@ -216,5 +277,9 @@ module.exports = {
     bendicionYaRecibida,
     perfil,
     ranking,
+    pregunta,
+    preguntaEnCurso,
+    recordatorioUnirme,
+    cierrePregunta,
     idGrupo
 };
