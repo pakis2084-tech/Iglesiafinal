@@ -250,6 +250,235 @@ h1, h2, h3, h4, h5, h6,
     pointer-events: none;
 }
 
+// --- LANDING DEL INICIO (secciones 2 a 9) ---
+// Fondos alternos: crema → tinta → crema → (blanco) → tinta → (crema) → carmín → pie. Sin eyebrows ni píldoras;
+// el carmín solo en la acción (cierre). Las reglas viejas de las secciones que salieron se conservan porque
+// otras páginas usan algunas de esas clases.
+@lp-linea: fade(@dark-color, 18%);
+@lp-linea-clara: rgba(255, 255, 255, .22);
+@lp-texto-claro: rgba(255, 255, 255, .82);
+
+.lp {
+    padding: 64px 20px;
+
+    h2 {
+        font-family: @font-display;
+        font-weight: 800;
+        font-size: 2rem;
+        line-height: 1.08;
+        letter-spacing: -.01em;
+        margin: 0 0 16px;
+        max-width: 18ch;
+    }
+
+    a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+    &--crema { background: @light-bg; color: @dark-color; }
+    &--blanco { background: @white; color: @dark-color; }
+    &--tinta { background: @dark-color; color: @white; }
+    &--carmin { background: @primary-color; color: @white; }
+}
+
+.lp-in { max-width: 1116px; margin: 0 auto; }
+.lp-sub { margin: 0 0 24px; color: @ink-soft; }
+.lp--tinta .lp-sub,
+.lp--tinta .lp-texto { color: @lp-texto-claro; }
+
+.lp-link {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+
+    &--claro { color: @white; }
+}
+
+.lp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 0 22px;
+    border-radius: @radius-control;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background-color .2s ease, color .2s ease;
+
+    i { font-size: 1.25rem; }
+
+    &--linea {
+        color: @dark-color;
+        box-shadow: inset 0 0 0 2px @dark-color;
+
+        &:hover { background: @dark-color; color: @white; }
+    }
+
+    &--blanco {
+        background: @white;
+        color: @primary-deep;
+
+        &:hover { background: @light-bg; color: @primary-deep; }
+    }
+}
+
+// 2 · Cuándo y dónde
+.lp-bloque + .lp-bloque { margin-top: 56px; padding-top: 40px; border-top: 1px solid @lp-linea; }
+.lp-dias {
+    list-style: none;
+    margin: 24px 0 16px;
+    padding: 0;
+    border-top: 2px solid @dark-color;
+
+    li {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: baseline;
+        gap: 4px 16px;
+        padding: 14px 0;
+        border-bottom: 1px solid @lp-linea;
+
+        // El próximo culto: filete de tinta a la izquierda (sin etiqueta ni carmín)
+        &.es-proximo { padding-left: 14px; box-shadow: inset 4px 0 0 @dark-color; }
+    }
+}
+.lp-dia { font-family: @font-display; font-weight: 700; font-size: 1.6rem; line-height: 1.1; }
+.lp-hora { font-family: @font-display; font-weight: 700; font-size: 1.25rem; text-align: right; font-variant-numeric: tabular-nums; }
+.lp-falta { grid-column: 1 / -1; font-size: .95rem; color: @dark-color; }
+.lp-aviso { margin: 0 0 8px; font-weight: 600; }
+.lp-nota { margin: 0; color: @ink-soft; }
+.lp-dir { font-family: @font-display; font-weight: 800; font-size: 1.9rem; line-height: 1.1; margin: 8px 0 10px; }
+.lp-pc { margin: 0 0 24px; color: @ink-soft; font-size: .95rem; }
+
+// 3 · Preguntas frecuentes: abiertas, sin acordeón
+.lp-faq {
+    margin: 8px 0 0;
+    border-top: 1px solid @lp-linea-clara;
+
+    > div { padding: 20px 0; border-bottom: 1px solid @lp-linea-clara; }
+    dt { font-family: @font-display; font-weight: 700; font-size: 1.3rem; line-height: 1.2; margin-bottom: 8px; }
+    dd { margin: 0; color: @lp-texto-claro; line-height: 1.55; }
+    a { color: @white; text-decoration: underline; text-underline-offset: 3px; }
+}
+
+// 4 · Ministerios: lista, no tarjetas
+.lp-min {
+    list-style: none;
+    margin: 24px 0 0;
+    padding: 0;
+    border-top: 2px solid @dark-color;
+
+    li { padding: 22px 0; border-bottom: 1px solid @lp-linea; }
+    h3 { font-family: @font-display; font-weight: 700; font-size: 1.6rem; margin: 0 0 8px; }
+    p { margin: 0 0 12px; color: #3a4152; line-height: 1.55; max-width: 62ch; }
+    a { color: @dark-color; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+}
+
+// 5 y 7 · Eventos y Mensajes (los pinta inicio.js)
+.lp-cab {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-bottom: 24px;
+
+    h2 { margin: 0; }
+    .lp-sub { margin: 4px 0 0; }
+}
+.lp-tarjetas {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 32px;
+
+    li { border-top: 2px solid @dark-color; padding-top: 16px; }
+    img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; margin-bottom: 14px; background: @surface-sunken; }
+    h3 { font-family: @font-display; font-weight: 700; font-size: 1.3rem; line-height: 1.2; margin: 0 0 6px; }
+    p { margin: 0 0 8px; color: @ink-soft; }
+    a { color: @dark-color; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+}
+.lp-tarjetas--mensajes img { aspect-ratio: 4 / 3; }
+@media (max-width: 767px) {
+    .lp-tarjetas--mensajes li:nth-child(n + 2) { display: none; } // en celular, solo el último mensaje
+}
+
+// 6 · Nuestra historia
+.lp-texto { line-height: 1.6; margin: 0 0 20px; max-width: 60ch; }
+.lp-pastor {
+    margin: 28px 0 24px;
+    padding-top: 24px;
+    border-top: 1px solid @lp-linea-clara;
+}
+.lp-pastor__nombre {
+    font-family: @font-display;
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin: 0 0 8px;
+
+    span { font-family: @font-body; font-weight: 400; font-size: 1rem; color: @lp-texto-claro; }
+}
+
+// 8 · Cierre carmín
+.lp-cierre {
+    p { font-size: 1.1rem; margin: 0 0 24px; }
+
+    .lp-cierre__sec { font-size: 1rem; margin: 18px 0 0; }
+    .lp-cierre__sec a { color: @white; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+}
+
+// 9 · Pie
+.lp-pie {
+    background: #0d1120;
+    color: rgba(255, 255, 255, .78);
+    padding: 32px 20px 96px; // deja lugar al botón flotante
+    font-size: .95rem;
+
+    p { margin: 0 0 8px; }
+    a { color: @white; text-decoration: underline; text-underline-offset: 3px; }
+    a:focus-visible { outline: 2px solid @white; outline-offset: 3px; }
+}
+.lp-pie__legal { color: rgba(255, 255, 255, .62); font-size: .85rem; }
+
+// Entradas suaves: solo con JS y sin movimiento reducido (sin JS se ve todo)
+.lp-rv .rv { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; }
+.lp-rv .rv.ok { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+    .lp-rv .rv { opacity: 1; transform: none; transition: none; }
+}
+
+@media (min-width: 768px) {
+    .lp-tarjetas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 992px) {
+    .lp {
+        padding: 112px ~"max(24px, calc((100% - 1116px) / 2))";
+
+        h2 { font-size: 2.75rem; }
+    }
+    .lp-dos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 72px; align-items: start; }
+    .lp-dos--faq { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+    .lp-bloque + .lp-bloque { margin: 0 0 0 -72px; padding: 0 0 0 72px; border-top: 0; border-left: 1px solid @lp-linea; }
+    .lp-dia { font-size: 1.9rem; }
+    .lp-hora { font-size: 1.45rem; }
+    .lp-dir { font-size: 2.6rem; }
+    .lp-min {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: 48px;
+        border-top: 0;
+
+        li { border-top: 2px solid @dark-color; border-bottom: 0; }
+    }
+    .lp-cierre { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 48px; align-items: end; }
+    .lp-pie { padding: 40px ~"max(24px, calc((100% - 1116px) / 2))"; }
+    .lp-pie__in { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 32px; }
+}
+
 // Barra de "Próximo servicio" — misma superficie de tinta + seam que el resto
 .next-event-bar {
     .seam-surface(.20, 42s, @dark-color);

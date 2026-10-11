@@ -97,350 +97,118 @@
         </div>
     </header>
 
-    <section class="about-section py-5">
-        <div class="container py-4">
-            <div class="row g-5 align-items-center about-section__intro-row">
-                <div class="col-lg-5">
-                    <!-- TODO: reemplazar por una foto real de la congregacion/templo. Placeholder generico. -->
-                    <img
-                        src="https://picsum.photos/seed/ipub-tupiza-comunidad/800/900"
-                        alt="Comunidad de IPUB Tupiza reunida en un culto"
-                        class="about-section__photo"
-                        loading="lazy"
-                        width="800"
-                        height="900">
-                </div>
-                <div class="col-lg-7">
-                    <div class="section-intro-panel">
-                        <span class="eyebrow">Qui&eacute;nes somos</span>
-                        <h2 class="mb-3">29 a&ntilde;os de fe en Tupiza</h2>
-                        <p>Desde 1997 hemos recorrido un camino de fe, pruebas y victorias. Hoy somos una familia firme en la Palabra, sirviendo a nuestra ciudad con las puertas abiertas: un espacio seguro donde encontrar amigos para toda la vida, una alabanza viva que hace de la presencia de Dios el centro de cada culto, y una iglesia que no solo se re&uacute;ne, sino que sirve con fe y compasi&oacute;n a Tupiza.</p>
-                        <a href="/nosotros" class="read-more mb-0">Nuestra historia completa <i class="fas fa-arrow-right ms-1"></i></a>
-                    </div>
-                </div>
+    <!-- 2 · Cuándo y dónde: horarios y ubicación completos, una sola vez -->
+    <section class="lp lp--crema" aria-label="Cu&aacute;ndo y d&oacute;nde">
+        <div class="lp-in lp-dos">
+            <div id="horarios" class="lp-bloque rv">
+                <h2>Te esperamos en cualquiera de estos d&iacute;as</h2>
+                <ul class="lp-dias" id="lpDias">
+                    <li data-dias="2"><span class="lp-dia">Martes</span><span class="lp-hora">7:30 PM</span></li>
+                    <li data-dias="4"><span class="lp-dia">Jueves</span><span class="lp-hora">7:30 PM</span></li>
+                    <li data-dias="6"><span class="lp-dia">S&aacute;bado</span><span class="lp-hora">7:30 PM</span></li>
+                    <li data-dias="0"><span class="lp-dia">Domingo</span><span class="lp-hora">10:30 AM<br>7:30 PM</span></li>
+                </ul>
+                <p class="lp-aviso" id="lpAviso" hidden></p>
+                <p class="lp-nota">No necesitas avisar antes. Ven como est&eacute;s.</p>
+            </div>
+            <div id="donde" class="lp-bloque rv">
+                <h2>D&oacute;nde estamos</h2>
+                <p class="lp-dir">Final Aniceto Arce,<br>zona San Antonio,<br>Tupiza</p>
+                <p class="lp-pc">C&oacute;digo del mapa: H78M+2HM</p>
+                <a class="lp-btn lp-btn--linea" href="https://www.google.com/maps/search/?api=1&amp;query=H78M%2B2HM+Tupiza+Bolivia" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
             </div>
         </div>
     </section>
 
-    <section id="horarios" class="service-hours py-5 text-white">
-        <div class="container">
-            <div class="service-hours__intro text-center mb-5">
-                <span class="eyebrow eyebrow-light">Horarios</span>
-                <h2 class="text-white mb-2">Te esperamos en cualquiera de estos d&iacute;as</h2>
-                <p class="text-white-50 mb-0">No necesitas avisar antes. Ven como est&eacute;s.</p>
+    <!-- 3 · Preguntas frecuentes: sin las de horarios y ubicación (ya están arriba) -->
+    <section class="lp lp--tinta" aria-labelledby="lpFaqT">
+        <div class="lp-in lp-dos lp-dos--faq">
+            <div class="rv">
+                <h2 id="lpFaqT">Preguntas frecuentes</h2>
+                <p class="lp-sub">Todo lo que necesitas saber antes de tu primera visita.</p>
             </div>
+            <dl class="lp-faq rv">
+                <div><dt>&iquest;Necesito avisar antes de venir?</dt><dd>No hace falta. Las puertas est&aacute;n abiertas toda la semana y puedes venir como est&eacute;s, sin necesidad de invitaci&oacute;n previa.</dd></div>
+                <div><dt>&iquest;Tienen espacios para ni&ntilde;os, j&oacute;venes y mujeres?</dt><dd>S&iacute;. Tenemos Escuela Dominical para los m&aacute;s peque&ntilde;os, un ministerio de J&oacute;venes y Damas Dorcas para las mujeres de la iglesia. <a href="#ministerios">Conoce cada uno m&aacute;s abajo.</a></dd></div>
+                <div><dt>&iquest;C&oacute;mo puedo bautizarme o aprender m&aacute;s sobre la fe?</dt><dd>Escr&iacute;benos por WhatsApp y te acompa&ntilde;amos en el proceso, sin compromiso. Es el canal m&aacute;s directo para hablar con alguien de la iglesia.</dd></div>
+                <div><dt>&iquest;C&oacute;mo puedo dar mi diezmo u ofrenda?</dt><dd>Escr&iacute;benos por WhatsApp y te compartimos la informaci&oacute;n para hacerlo, o usa el bot&oacute;n Donar del men&uacute;.</dd></div>
+            </dl>
+        </div>
+    </section>
 
-            <div class="service-hours__grid">
-                <div class="service-hours__item">
-                    <span class="service-hours__day">Martes</span>
-                    <span class="service-hours__time">7:30 PM</span>
-                </div>
-                <div class="service-hours__item">
-                    <span class="service-hours__day">Jueves</span>
-                    <span class="service-hours__time">7:30 PM</span>
-                </div>
-                <div class="service-hours__item">
-                    <span class="service-hours__day">S&aacute;bado</span>
-                    <span class="service-hours__time">7:30 PM</span>
-                </div>
-                <div class="service-hours__item service-hours__item--sunday">
-                    <span class="service-hours__day">Domingo</span>
-                    <span class="service-hours__time">10:30 AM &middot; 7:30 PM</span>
-                </div>
+    <!-- 4 · Ministerios: lista tipográfica, sin fotos de relleno -->
+    <section class="lp lp--crema" id="ministerios" aria-labelledby="lpMinT">
+        <div class="lp-in">
+            <h2 id="lpMinT" class="rv">Ministerios que acompa&ntilde;an cada etapa</h2>
+            <!-- FOTOS PENDIENTES (opcional): una por ministerio, horizontal 3:2, mínimo 1200×800 px. No se muestran hasta tenerlas. -->
+            <ul class="lp-min rv">
+                <li><h3>Escuela Dominical</h3><p>Clases, din&aacute;micas y ense&ntilde;anza adaptada para sembrar la Palabra en el coraz&oacute;n de los ni&ntilde;os. Mientras la iglesia participa del culto principal, ellos pueden recibir ense&ntilde;anza preparada especialmente para su edad.</p><a href="/escuela">Conocer la Escuela Dominical</a></li>
+                <li><h3>J&oacute;venes</h3><p>Un espacio de amistad, formaci&oacute;n y fuego espiritual para una generaci&oacute;n activa en Tupiza.</p><a href="/jovenes">Conocer el ministerio de J&oacute;venes</a></li>
+                <li><h3>Damas Dorcas</h3><p>Damas comprometidas con la intercesi&oacute;n, el cuidado de otros y la edificaci&oacute;n espiritual de la iglesia.</p><a href="/damas">Conocer Damas Dorcas</a></li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- 5 · Eventos: nace oculta; inicio.js la muestra solo si la API trae eventos próximos -->
+    <section class="lp lp--blanco" id="lpEventos" aria-labelledby="lpEvT" hidden>
+        <div class="lp-in">
+            <div class="lp-cab rv">
+                <h2 id="lpEvT">Lo que se viene en la iglesia</h2>
+                <a class="lp-link" href="/eventos">Ver toda la agenda</a>
             </div>
+            <ul class="lp-tarjetas lp-tarjetas--eventos rv" id="lpEventosLista"></ul>
+        </div>
+    </section>
 
-            <div class="service-hours__countdown">
-                <span class="service-hours__countdown-label">Pr&oacute;ximo servicio en</span>
-                <div id="countdown" class="service-hours__countdown-value">Cargando...</div>
+    <!-- 6 · Nuestra historia: Quiénes somos + Pastor -->
+    <section class="lp lp--tinta" aria-labelledby="lpHistT">
+        <div class="lp-in lp-dos">
+            <h2 id="lpHistT" class="rv">Nuestra historia</h2>
+            <div class="rv">
+                <!-- FOTO PENDIENTE: el templo o la congregación en un culto. Horizontal 3:2, mínimo 1600×1067 px, JPG. No se muestra hasta tenerla. -->
+                <p class="lp-texto">Desde 1997 hemos recorrido un camino de fe, pruebas y victorias. Hoy somos una familia firme en la Palabra, sirviendo a nuestra ciudad con las puertas abiertas.</p>
+                <div class="lp-pastor">
+                    <!-- FOTO PENDIENTE: retrato del Ptr. Juan Mage. Vertical 4:5, mínimo 800×1000 px, fondo neutro. -->
+                    <p class="lp-pastor__nombre">Ptr. Juan Mage <span>&middot; pastor desde 2023</span></p>
+                    <p class="lp-texto">Lidera IPUB Tupiza con un pastorado enfocado en el estudio b&iacute;blico y el aprendizaje continuo de la doctrina, fortaleciendo semana a semana el fundamento de fe de la congregaci&oacute;n.</p>
+                </div>
+                <a class="lp-link lp-link--claro" href="/nosotros">Nuestra historia completa</a>
             </div>
         </div>
     </section>
 
-    <section class="events-carousel-section py-5 bg-white">
-        <div class="container">
-            <div class="events-carousel-section__header">
-                <div>
-                    <h2 class="mb-2">Lo que se viene en la iglesia</h2>
-                    <p class="mb-0">Retiros, cultos especiales y actividades de nuestros ministerios.</p>
-                </div>
-                <div class="events-carousel-nav">
-                    <button type="button" class="events-carousel-nav__btn" id="eventosCarouselPrev" aria-label="Evento anterior"><i class="fas fa-arrow-left" aria-hidden="true"></i></button>
-                    <button type="button" class="events-carousel-nav__btn" id="eventosCarouselNext" aria-label="Evento siguiente"><i class="fas fa-arrow-right" aria-hidden="true"></i></button>
-                </div>
+    <!-- 7 · Mensajes: nace oculta; inicio.js la muestra solo si la API trae mensajes -->
+    <section class="lp lp--crema" id="lpMensajes" aria-labelledby="lpMsjT" hidden>
+        <div class="lp-in">
+            <div class="lp-cab rv">
+                <div><h2 id="lpMsjT">Mensajes recientes</h2><p class="lp-sub">Inspiraci&oacute;n b&iacute;blica para tu semana.</p></div>
+                <a class="lp-link" href="/sermon">Ver todos los mensajes</a>
             </div>
-            <div class="events-carousel-track" id="eventosCarouselTrack">
-                <div class="events-carousel-loading">Cargando agenda...</div>
+            <ul class="lp-tarjetas lp-tarjetas--mensajes rv" id="lpMensajesLista"></ul>
+        </div>
+    </section>
+
+    <!-- 8 · Cierre: WhatsApp como acción principal; el formulario de /contacto como opción secundaria -->
+    <section class="lp lp--carmin" aria-labelledby="lpCierreT">
+        <div class="lp-in lp-cierre">
+            <div class="rv">
+                <h2 id="lpCierreT">Hablemos</h2>
+                <p>Escr&iacute;benos por WhatsApp. Te respondemos.</p>
+            </div>
+            <div class="rv">
+                <a class="lp-btn lp-btn--blanco" href="https://wa.me/59157296426?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20IPUB%20Tupiza." target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp" aria-hidden="true"></i>Escr&iacute;benos por WhatsApp</a>
+                <p class="lp-cierre__sec">&iquest;Prefieres dejar una petici&oacute;n de oraci&oacute;n? <a href="/contacto">Usa el formulario de contacto</a></p>
             </div>
         </div>
     </section>
 
-    <section class="home-ministry-spotlight py-5">
-        <div class="container">
-            <div class="section-intro-panel">
-                <div class="text-center mb-5">
-                    <h2 class="mb-3">Ministerios que acompa&ntilde;an cada etapa</h2>
-                    <p class="mb-0 mx-auto" style="max-width: 720px;">La vida congregacional no se limita al culto principal. Estos espacios ayudan a formar ni&ntilde;os, j&oacute;venes y mujeres con identidad, palabra y servicio dentro de la iglesia.</p>
-                </div>
-
-                <div class="row g-4">
-                    <div class="col-lg-4">
-                        <a href="/jovenes" class="ministry-link-card ministry-link-card--jovenes d-block">
-                            <span class="ministry-link-card__media">
-                                <!-- TODO: reemplazar por una foto real de una reunion de jovenes. Placeholder generico. -->
-                                <img src="https://picsum.photos/seed/ipub-tupiza-jovenes/700/560" alt="J&oacute;venes de IPUB Tupiza reunidos" loading="lazy" width="700" height="560">
-                                <span class="ministry-link-card__badge">Juventud</span>
-                            </span>
-                            <span class="ministry-link-card__body">
-                                <h3 class="mb-3">J&oacute;venes con identidad y prop&oacute;sito</h3>
-                                <p class="mb-0 text-muted">Un espacio de amistad, formaci&oacute;n y fuego espiritual para una generaci&oacute;n activa en Tupiza.</p>
-                                <span class="ministry-link-card__arrow">Conocer ministerio <i class="fas fa-arrow-right"></i></span>
-                            </span>
-                        </a>
-                    </div>
-                    <div class="col-lg-4">
-                        <a href="/damas" class="ministry-link-card ministry-link-card--damas d-block">
-                            <span class="ministry-link-card__media">
-                                <!-- TODO: reemplazar por una foto real de una reunion de Damas Dorcas. Placeholder generico. -->
-                                <img src="https://picsum.photos/seed/ipub-tupiza-damas/700/560" alt="Mujeres del ministerio Damas Dorcas" loading="lazy" width="700" height="560">
-                                <span class="ministry-link-card__badge">Dorcas</span>
-                            </span>
-                            <span class="ministry-link-card__body">
-                                <h3 class="mb-3">Mujeres que oran, sirven y sostienen</h3>
-                                <p class="mb-0 text-muted">Damas comprometidas con la intercesi&oacute;n, el cuidado de otros y la edificaci&oacute;n espiritual de la iglesia.</p>
-                                <span class="ministry-link-card__arrow">Conocer ministerio <i class="fas fa-arrow-right"></i></span>
-                            </span>
-                        </a>
-                    </div>
-                    <div class="col-lg-4">
-                        <a href="/escuela" class="ministry-link-card ministry-link-card--escuela d-block">
-                            <span class="ministry-link-card__media">
-                                <!-- TODO: reemplazar por una foto real de una clase de escuela dominical. Placeholder generico. -->
-                                <img src="https://picsum.photos/seed/ipub-tupiza-escuela/700/560" alt="Ni&ntilde;os en la Escuela Dominical" loading="lazy" width="700" height="560">
-                                <span class="ministry-link-card__badge">Infancia</span>
-                            </span>
-                            <span class="ministry-link-card__body">
-                                <h3 class="mb-3">Escuela Dominical que forma desde temprano</h3>
-                                <p class="mb-0 text-muted">Clases, din&aacute;micas y ense&ntilde;anza adaptada para sembrar la Palabra en el coraz&oacute;n de los ni&ntilde;os.</p>
-                                <span class="ministry-link-card__arrow">Conocer ministerio <i class="fas fa-arrow-right"></i></span>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="pastor-section py-5 bg-white">
-        <div class="container py-4">
-            <div class="row g-5 align-items-center pastor-section__row">
-                <div class="col-lg-5 order-lg-2">
-                    <!-- TODO: reemplazar por una foto real del Ptr. Juan Mage. Placeholder generico. -->
-                    <img
-                        src="https://picsum.photos/seed/ipub-tupiza-pastor/700/860"
-                        alt="Ptr. Juan Mage, pastor de IPUB Tupiza"
-                        class="pastor-section__photo"
-                        loading="lazy"
-                        width="700"
-                        height="860">
-                </div>
-                <div class="col-lg-7 order-lg-1">
-                    <span class="pastor-section__badge">Pastor desde 2023</span>
-                    <h2 class="mb-3">Ptr. Juan Mage</h2>
-                    <p class="pastor-section__bio mb-4">Lidera IPUB Tupiza con un pastorado enfocado en el estudio b&iacute;blico y el aprendizaje continuo de la doctrina, fortaleciendo semana a semana el fundamento de fe de la congregaci&oacute;n.</p>
-                    <a href="/nosotros" class="read-more">Conocer la historia completa <i class="fas fa-arrow-right ms-1"></i></a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="sermons-section py-5 bg-white">
-        <div class="container">
-            <div class="section-header text-center mb-5">
-                <h2 class="fw-bold">Mensajes Recientes</h2>
-                <div class="divider mx-auto"></div>
-                <p class="text-muted">Inspiraci&oacute;n b&iacute;blica para tu semana.</p>
-            </div>
-
-            <div class="row" id="contenedor-sermones">
-                <div class="col-12 text-center text-muted py-5">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-2">Cargando mensajes...</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="faq-section py-5 bg-white">
-        <div class="container py-4">
-            <div class="section-intro-panel mx-auto text-center mb-5">
-                <h2 class="mb-2">Preguntas frecuentes</h2>
-                <p class="mb-0">Todo lo que necesitas saber antes de tu primera visita.</p>
-            </div>
-
-            <div class="faq-accordion mx-auto" id="faqAccordion">
-                <div class="faq-item">
-                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="false" aria-controls="faq1">
-                        &iquest;Cu&aacute;les son los horarios de los cultos?
-                        <i class="fas fa-plus" aria-hidden="true"></i>
-                    </button>
-                    <div id="faq1" class="collapse faq-item__panel" data-bs-parent="#faqAccordion">
-                        <p class="mb-0">Nos reunimos martes, jueves y s&aacute;bado a las 7:30 PM, y domingo a las 10:30 AM y 7:30 PM. Puedes ver el detalle completo en la secci&oacute;n de Horarios m&aacute;s arriba.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2">
-                        &iquest;Necesito avisar antes de venir?
-                        <i class="fas fa-plus" aria-hidden="true"></i>
-                    </button>
-                    <div id="faq2" class="collapse faq-item__panel" data-bs-parent="#faqAccordion">
-                        <p class="mb-0">No hace falta. Las puertas est&aacute;n abiertas toda la semana y puedes venir como est&eacute;s, sin necesidad de invitaci&oacute;n previa.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3">
-                        &iquest;Tienen espacios para ni&ntilde;os, j&oacute;venes y mujeres?
-                        <i class="fas fa-plus" aria-hidden="true"></i>
-                    </button>
-                    <div id="faq3" class="collapse faq-item__panel" data-bs-parent="#faqAccordion">
-                        <p class="mb-0">S&iacute;. Tenemos Escuela Dominical para los m&aacute;s peque&ntilde;os, un ministerio de J&oacute;venes y Damas Dorcas para las mujeres de la iglesia. Puedes conocer cada uno en la secci&oacute;n de Ministerios.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">
-                        &iquest;C&oacute;mo puedo bautizarme o aprender m&aacute;s sobre la fe?
-                        <i class="fas fa-plus" aria-hidden="true"></i>
-                    </button>
-                    <div id="faq4" class="collapse faq-item__panel" data-bs-parent="#faqAccordion">
-                        <p class="mb-0">Escr&iacute;benos por WhatsApp y te acompa&ntilde;amos en el proceso, sin compromiso. Es el canal m&aacute;s directo para hablar con alguien de la iglesia.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5" aria-expanded="false" aria-controls="faq5">
-                        &iquest;C&oacute;mo llego a la iglesia?
-                        <i class="fas fa-plus" aria-hidden="true"></i>
-                    </button>
-                    <div id="faq5" class="collapse faq-item__panel" data-bs-parent="#faqAccordion">
-                        <p class="mb-0">Estamos en H78M+2HM, Tupiza. Puedes ver la ubicaci&oacute;n exacta en la secci&oacute;n Contacto m&aacute;s abajo o escribirnos si te perdiste en el camino.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-item__trigger collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6" aria-expanded="false" aria-controls="faq6">
-                        &iquest;C&oacute;mo puedo dar mi diezmo u ofrenda?
-                        <i class="fas fa-plus" aria-hidden="true"></i>
-                    </button>
-                    <div id="faq6" class="collapse faq-item__panel" data-bs-parent="#faqAccordion">
-                        <p class="mb-0">Escr&iacute;benos por WhatsApp y te compartimos la informaci&oacute;n para hacerlo, o usa el bot&oacute;n Donar en la parte superior de la p&aacute;gina.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="contacto" class="contact-section py-5 bg-white">
-        <div class="container py-4">
-            <div class="section-intro-panel mx-auto text-center mb-5">
-                <h2 class="mb-2">Hablemos</h2>
-                <p class="mb-0">Escr&iacute;benos, visitanos o mand&aacute;nos un mensaje directo. Te respondemos.</p>
-            </div>
-
-            <div class="row g-5">
-                <div class="col-lg-7">
-                    <form class="church-contact-form contact-wrap">
-                        <div class="row">
-                            <div style="position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden;" aria-hidden="true">
-                                <label for="home-website">No llenar este campo</label>
-                                <input type="text" id="home-website" name="website" class="form-control" autocomplete="off" tabindex="-1">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="home-nombre" class="form-label text-muted small fw-bold">NOMBRE COMPLETO</label>
-                                <input type="text" id="home-nombre" name="nombre" class="form-control" placeholder="Ej: Juan P&eacute;rez" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="home-contacto" class="form-label text-muted small fw-bold">TEL&Eacute;FONO O EMAIL</label>
-                                <input type="text" id="home-contacto" name="contacto" class="form-control" placeholder="Ej: 71234567 o juan@email.com" required>
-                            </div>
-                            <div class="col-12 mb-4">
-                                <label for="home-mensaje" class="form-label text-muted small fw-bold">MENSAJE</label>
-                                <textarea id="home-mensaje" name="mensaje" class="form-control" rows="5" placeholder="Escribe tu petici&oacute;n de oraci&oacute;n o mensaje aqu&iacute;..." required></textarea>
-                            </div>
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5">Enviar Mensaje</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="col-lg-5">
-                    <div class="contact-info-stack">
-                        <a class="contact-info-item" href="https://www.google.com/maps/search/?api=1&amp;query=H78M%2B2HM+Tupiza+Bolivia" target="_blank" rel="noopener noreferrer">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <div>
-                                <span class="contact-info-item__label">Ubicaci&oacute;n</span>
-                                <span class="contact-info-item__value">H78M+2HM, Tupiza</span>
-                            </div>
-                        </a>
-                        <a class="contact-info-item" href="tel:+59157296426">
-                            <i class="fas fa-phone-alt"></i>
-                            <div>
-                                <span class="contact-info-item__label">Tel&eacute;fono</span>
-                                <span class="contact-info-item__value">+591 57296426</span>
-                            </div>
-                        </a>
-                        <a class="contact-info-item" href="mailto:ipubtupiza@gmail.com">
-                            <i class="fas fa-envelope"></i>
-                            <div>
-                                <span class="contact-info-item__label">Email</span>
-                                <span class="contact-info-item__value">ipubtupiza@gmail.com</span>
-                            </div>
-                        </a>
-                        <a class="contact-info-item contact-info-item--whatsapp" href="https://wa.me/59157296426?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20IPUB%20Tupiza." target="_blank" rel="noopener noreferrer">
-                            <i class="fab fa-whatsapp"></i>
-                            <div>
-                                <span class="contact-info-item__label">Directo</span>
-                                <span class="contact-info-item__value">Escr&iacute;benos por WhatsApp</span>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer class="main-footer pt-5 pb-2 text-white">
-        <div class="container">
-            <div class="row pb-4">
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <img src="images/cropped-IPUB-BOLVIA-ICO-1-300x175.png" alt="Logo IPUB Tupiza" class="footer-brand mb-3">
-                    <p class="small text-white-50 mb-3">Una familia de fe en Tupiza desde 1997.</p>
-                    <div class="socials">
-                        <a href="https://www.facebook.com/share/18Bz1oMgGF/" class="text-white me-3" aria-label="Facebook de IPUB Tupiza"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://www.instagram.com/ipubtupiza?igsh=MWQ4dWR4aGRlM3JtMw==" class="text-white me-3" aria-label="Instagram de IPUB Tupiza"><i class="fab fa-instagram"></i></a>
-                        <a href="https://www.youtube.com/channel/UCKy1W7jBAjTsGBoqxIdB21g" class="text-white" aria-label="YouTube de IPUB Tupiza"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <h5 class="footer-title mb-3">LINKS R&Aacute;PIDOS</h5>
-                    <ul class="list-unstyled footer-links">
-                        <li><a href="/nosotros">Nuestra Historia</a></li>
-                        <li><a href="https://wa.me/59157296426?text=Hola,%20quisiera%20informaci%C3%B3n%20sobre%20diezmos%20y%20donaciones." target="_blank">Donaciones</a></li>
-                        <li><a href="/contacto">Peticiones de Oraci&oacute;n</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-4 col-md-12 mb-4">
-                    <h5 class="footer-title mb-3">CONTACTO</h5>
-                    <p class="small mb-1"><i class="fas fa-map-marker-alt me-2 text-primary"></i> H78M+2HM, Tupiza</p>
-                    <p class="small mb-1"><i class="fas fa-phone-alt me-2 text-primary"></i> +591 57296426</p>
-                    <p class="small"><i class="fas fa-envelope me-2 text-primary"></i> ipubtupiza@gmail.com</p>
-                </div>
-            </div>
-            <div class="copyright text-center border-top border-secondary pt-3">
-                <small class="text-white-50">&copy; 2026 IGLESIA PENTECOSTAL UNIDA DE BOLIVIA. Todos los derechos reservados.</small>
-            </div>
+    <!-- 9 · Pie: sin repetir la dirección (está en "Dónde estamos") -->
+    <footer class="lp-pie">
+        <div class="lp-in lp-pie__in">
+            <p>Una familia de fe en Tupiza desde 1997.</p>
+            <p><a href="tel:+59157296426">+591 57296426</a> &middot; <a href="mailto:ipubtupiza@gmail.com">ipubtupiza@gmail.com</a></p>
+            <p><a href="https://www.facebook.com/share/18Bz1oMgGF/">Facebook</a> &middot; <a href="https://www.instagram.com/ipubtupiza?igsh=MWQ4dWR4aGRlM3JtMw==">Instagram</a> &middot; <a href="https://www.youtube.com/channel/UCKy1W7jBAjTsGBoqxIdB21g">YouTube</a></p>
+            <p class="lp-pie__legal">&copy; 2026 Iglesia Pentecostal Unida de Bolivia</p>
         </div>
     </footer>
 
