@@ -104,7 +104,6 @@ h1, h2, h3, h4, h5, h6,
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(to top, fade(@dark-color, 96%) 0%, fade(@dark-color, 92%) 36%, fade(@dark-color, 60%) 44%, @hv-ink 51%);
 }
 
 .hv-body {
@@ -112,6 +111,20 @@ h1, h2, h3, h4, h5, h6,
     z-index: 1;
     width: 100%;
     padding: 0 20px 28px;
+
+    // Celular: el degradé cuelga del propio bloque de texto (cubre el texto mida lo que mida) y se
+    // desvanece 56 px por encima, sin llegar al núcleo de la llama
+    &::before {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: -56px;
+        background: linear-gradient(to bottom, @hv-ink 0, fade(@dark-color, 92%) 56px, fade(@dark-color, 96%) 100%);
+        pointer-events: none;
+    }
 }
 
 .hv-next {
@@ -126,6 +139,7 @@ h1, h2, h3, h4, h5, h6,
         font-size: 2.5rem;
         line-height: 1.05;
         color: @white;
+        text-wrap: balance; // sin palabra suelta al cortar (la hora y AM/PM van unidas en inicio.js)
     }
 
     &--aviso {
@@ -192,10 +206,14 @@ h1, h2, h3, h4, h5, h6,
     outline-offset: 3px;
 }
 
-// Pantallas bajas (≤ 620 px de alto): video más arriba, degradé más alto y bloque más compacto
+// Celulares de hasta 700 px de alto: la llama sube un poco más para quedar arriba del texto
+@media (max-width: 991px) and (max-height: 700px) {
+    .hv #bg-video { transform: translateY(-20%); }
+}
+
+// Pantallas bajas (≤ 620 px de alto): video más arriba y bloque más compacto
 @media (max-width: 991px) and (max-height: 620px) {
     .hv #bg-video { transform: translateY(-24%); }
-    .hv-scrim { background: linear-gradient(to top, fade(@dark-color, 96%) 0%, fade(@dark-color, 93%) 52%, fade(@dark-color, 62%) 58%, @hv-ink 63%); }
     .hv-body { padding-bottom: 20px; }
     .hv-next { margin-bottom: 8px; }
     .hv-next strong { font-size: 1.85rem; }
@@ -206,6 +224,7 @@ h1, h2, h3, h4, h5, h6,
 
 @media (min-width: 992px) {
     .hv #bg-video { transform: none; }
+    .hv-body::before { content: none; }
 
     // Columna de texto oscurecida y desvanecida hacia arriba (máscara): sin bordes duros, termina antes del núcleo
     .hv-scrim {
