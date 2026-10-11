@@ -75,90 +75,198 @@ h1, h2, h3, h4, h5, h6,
     letter-spacing: 1px;
 }
 
-// --- HERO SECTION (Portada con Video Responsivo) ---
-.hero-section {
+// --- HERO DEL INICIO (V1 · Al pie) ---
+// La llama a pantalla completa y sin velo. El texto va abajo a la izquierda; el degradé está solo detrás
+// del texto y termina antes del núcleo de la llama (núcleo medido en el loop: x 40–62 %, y 0–58 %).
+@hv-ink: fade(@dark-color, 0%);
+
+.hv {
     position: relative;
-    min-height: 100vh; // Ocupa toda la altura de la pantalla
-    overflow: hidden;  // Evita que el video se salga de los bordes
+    min-height: 100vh;
+    min-height: 100svh;
     display: flex;
-    align-items: center;
-    .seam-glint(.16, 46s, 1); // el mismo destello que el resto del sitio, encima del video
+    align-items: flex-end;
+    color: @white;
+    background: @dark-color;
+    overflow: hidden; // recorta el video, no la página
 
     #bg-video {
         position: absolute;
-        top: 0;
-        left: 0;
+        inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: cover; // ¡ESTA ES LA MAGIA RESPONSIVA!
-        z-index: 0;
+        object-fit: cover;
+        transform: translateY(-12%); // celular: la llama sube; la base libre la cubre el degradé del texto
     }
+}
 
-    .overlay-oscuro {
+.hv-scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.hv-body {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding: 0 20px 28px;
+
+    // Celular: el degradé cuelga del propio bloque de texto (cubre el texto mida lo que mida) y se
+    // desvanece 56 px por encima, sin llegar al núcleo de la llama
+    &::before {
+        content: '';
         position: absolute;
-        top: 0;
+        z-index: -1;
         left: 0;
-        width: 100%;
-        height: 100%;
-        background:
-            radial-gradient(ellipse 70% 60% at 50% 45%, fade(@dark-color, 35%), fade(@dark-color, 84%) 75%),
-            linear-gradient(0deg, fade(@dark-color, 78%) 0%, transparent 45%);
-        z-index: 1;
+        right: 0;
+        bottom: 0;
+        top: -56px;
+        background: linear-gradient(to bottom, @hv-ink 0, fade(@dark-color, 92%) 56px, fade(@dark-color, 96%) 100%);
+        pointer-events: none;
     }
+}
 
-    .container {
-        position: relative;
-        z-index: 2;
-        max-width: 720px;
-    }
+.hv-next {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, .88);
 
-    .hero-badge {
-        border: 1px solid rgba(255, 255, 255, .35);
-        border-radius: 999px;
-        padding: 6px 20px;
-        font-family: @font-body;
-        font-weight: 600;
-        font-size: .68rem;
-        letter-spacing: .16em;
-        text-transform: uppercase;
-        color: @seam-color;
-    }
-
-    .hero-title {
-        font-size: clamp(2.6rem, 6vw, 4.6rem);
+    strong {
+        display: block;
+        font-family: @font-display;
         font-weight: 800;
-        line-height: 1.08;
-        letter-spacing: -.01em;
+        font-size: 2.5rem;
+        line-height: 1.05;
+        color: @white;
+        text-wrap: balance; // sin palabra suelta al cortar (la hora y AM/PM van unidas en inicio.js)
+    }
 
-        em {
-            font-style: italic;
-            font-weight: 500;
-            color: @seam-color;
+    &--aviso {
+        font-family: @font-display;
+        font-weight: 700;
+        font-size: 1.5rem;
+        line-height: 1.2;
+        color: @white;
+    }
+}
+
+.hv-title {
+    font-family: @font-display;
+    font-weight: 700;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin: 0 0 4px;
+    color: @white;
+}
+
+.hv-lead {
+    margin: 0 0 20px;
+    color: rgba(255, 255, 255, .88);
+    line-height: 1.45;
+}
+
+// Carmín: el mismo botón primario del sitio, solo para la acción
+.hv-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 22px;
+    border-radius: @radius-control;
+    background: @primary-color;
+    color: @white;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background-color .2s ease;
+
+    i { font-size: 1.25rem; }
+
+    &:hover { background: @primary-deep; color: @white; }
+}
+
+.hv-where {
+    margin: 14px 0 0;
+    font-size: .95rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, .88);
+
+    a {
+        color: @white;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        white-space: nowrap;
+    }
+}
+
+.hv-cta:focus-visible,
+.hv-where a:focus-visible {
+    outline: 2px solid @white;
+    outline-offset: 3px;
+}
+
+// Celulares de hasta 700 px de alto: la llama sube un poco más para quedar arriba del texto
+@media (max-width: 991px) and (max-height: 700px) {
+    .hv #bg-video { transform: translateY(-20%); }
+}
+
+// Pantallas bajas (≤ 620 px de alto): video más arriba y bloque más compacto
+@media (max-width: 991px) and (max-height: 620px) {
+    .hv #bg-video { transform: translateY(-24%); }
+    .hv-body { padding-bottom: 20px; }
+    .hv-next { margin-bottom: 8px; }
+    .hv-next strong { font-size: 1.85rem; }
+    .hv-lead { margin-bottom: 14px; }
+    .hv-cta { padding-top: 12px; padding-bottom: 12px; }
+    .hv-where { margin-top: 10px; }
+}
+
+@media (min-width: 992px) {
+    .hv #bg-video { transform: none; }
+    .hv-body::before { content: none; }
+
+    // Columna de texto oscurecida y desvanecida hacia arriba (máscara): sin bordes duros, termina antes del núcleo
+    .hv-scrim {
+        background: linear-gradient(to right, fade(@dark-color, 93%) 0%, fade(@dark-color, 90%) 24%, fade(@dark-color, 80%) 28%, fade(@dark-color, 62%) 31%, fade(@dark-color, 42%) 34%, fade(@dark-color, 22%) 36.5%, fade(@dark-color, 8%) 38.5%, @hv-ink 40%);
+        -webkit-mask-image: linear-gradient(to top, #000 0%, #000 44%, transparent 72%);
+        mask-image: linear-gradient(to top, #000 0%, #000 44%, transparent 72%);
+
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, fade(@dark-color, 88%) 0%, @hv-ink 22%);
         }
     }
 
-    .hero-lead {
-        font-size: 1.15rem;
-        color: rgba(255, 255, 255, .82);
-        max-width: 46ch;
-        margin-left: auto;
-        margin-right: auto;
+    .hv-body {
+        padding: 0 0 56px ~"max(24px, calc((100% - 1116px) / 2))";
+        max-width: 1116px;
+
+        > * { max-width: 340px; }
     }
 
-    .hero-cta {
-        border-width: 1.5px;
-        font-weight: 600;
-        letter-spacing: .04em;
-        transition: background-color .25s ease, color .25s ease;
+    .hv-next strong { font-size: 3.5rem; }
+    .hv-title { font-size: 1.6rem; }
+}
 
-        i { margin-right: @space-2; }
+@media (min-width: 992px) and (max-width: 1199px) {
+    .hv-body > * { max-width: 330px; }
+}
 
-        &:hover {
-            background-color: @white;
-            color: @dark-color;
-        }
-    }
+// Pantallas anchas: la columna se ancla cerca del borde, sobre la pared oscura (alineada al contenedor
+// quedaría donde el degradé ya se desvanece)
+@media (min-width: 1600px) {
+    .hv-body { padding-left: 8vw; }
+}
 
+// Solo en el inicio: inicio.js pone la clase mientras se ve el botón del hero
+.hero-cta-visible .whatsapp-btn {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(.85);
+    pointer-events: none;
 }
 
 // Barra de "Próximo servicio" — misma superficie de tinta + seam que el resto
@@ -1687,6 +1795,19 @@ body.nav-open { overflow: hidden; }
     }
 }
 
+@media (max-width: 575.98px) {
+    /* g-5 (3rem) se salía 12 px del .container fluido y ensanchaba la portada en celular */
+    .row.g-5 {
+        --bs-gutter-x: 1.5rem;
+    }
+}
+
+@media (max-width: 991px) {
+    .page-header {
+        padding-top: 136px !important; /* alto de la barra con el logo animado; le gana a section { padding-top: 40px !important } */
+    }
+}
+
 // ==========================================
 // RESPONSIVE DESIGN (MEDIA QUERIES)
 // ==========================================
@@ -1701,36 +1822,12 @@ body.nav-open { overflow: hidden; }
         padding-bottom: 40px !important;
     }
 
-    .hero-section {
-        height: auto !important;
-        min-height: 100vh;
-        padding: 80px 0;
-        text-align: center;
-
-        .hero-badge {
-            font-size: .62rem;
-            padding: 5px 14px;
-            margin-bottom: @space-4 !important;
-        }
-
-        .hero-title {
-            font-size: clamp(2.1rem, 9vw, 2.8rem);
-        }
-
-        .hero-lead {
-            font-size: 1rem;
-        }
-
-        .hero-cta.btn-lg {
-            width: 100%;
-        }
-    }
-
     .nav-overlay__links { gap: @space-3; }
     .nav-overlay__inner { gap: @space-6; }
 
     .page-header {
-        height: 200px; 
+        height: auto;
+        min-height: 200px;
         h1.display-5 { font-size: 2rem; }
     }
 
