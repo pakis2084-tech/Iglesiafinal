@@ -229,14 +229,47 @@ para que el flotante de WhatsApp se oculte mientras se ve el botón del hero.
 - Desborde: `Input.synthesizeScrollGesture` táctil (CDP) a varias alturas, con `body` sin el parche.
 - Bootstrap 5.3.0 y Font Awesome 6.4.0 bajados de npm (los CDN y picsum están bloqueados por el proxy).
 
-## Fase 2 — Landing completa (pendiente: propuesta, sin aplicar)
+## Fase 2 — Landing completa (aprobada)
 
-Reglas dadas por el dueño:
-- Horarios y ubicación aparecen completos **una sola vez** (sección propia).
-- Las preguntas frecuentes **suben**: tienen el mejor contenido para quien nunca vino.
-- Eventos y Mensajes se **ocultan si están vacíos**.
-- Sin fotos de relleno (picsum), sin testimonios ni cifras inventadas.
-- Sin eyebrows, píldoras ni dorado en textos o botones.
-- Formulario de contacto: secundario (se decide en esta fase).
-- Entregable: estructura de secciones y jerarquía (qué entra, qué se funde, qué se elimina), con
-  maqueta o esquema por sección, en 360 y 1366. NO aplicar nada hasta la aprobación.
+Estructura aprobada (alto aprox. a 360 px; página sin Eventos ni Mensajes ≈ 4.500 px, hoy 7.943):
+
+| # | Sección | Contenido | Acción | Fondo |
+|---|---|---|---|---|
+| 1 | Hero V1 | Próximo culto · `<h1>` · "En Tupiza desde 1997. Puedes venir sin avisar." · línea corta "Final Aniceto Arce, zona San Antonio, Tupiza" + enlaces "Todos los horarios" y "Cómo llegar" | Botón carmín WhatsApp | Video |
+| 2 | Cuándo y dónde | 4 días en filas tipográficas; el próximo marcado con filete de tinta + cuenta regresiva (America/La_Paz). Dirección completa + plus code H78M+2HM | "Abrir en Google Maps" (botón de contorno tinta) | Crema |
+| 3 | Preguntas frecuentes | 4 preguntas abiertas (sin acordeón) con el texto existente; se quitan la de horarios y la de cómo llegar | Enlaces a WhatsApp y a Ministerios | Tinta |
+| 4 | Ministerios | Lista tipográfica (sin tarjetas ni fotos) con los textos existentes | "Conocer …" por ministerio | Crema |
+| 5 | Eventos | Nace oculta; aparece solo si la API trae datos; si falla o tarda, sigue oculta | "Ver toda la agenda" | Blanco |
+| 6 | Nuestra historia | Quiénes somos + Pastor fusionados (primera frase existente + bio del pastor tal cual) | "Nuestra historia completa" | Tinta |
+| 7 | Mensajes | Igual que Eventos; en celular solo el último | "Ver todos los mensajes" | Crema |
+| 8 | Hablemos (cierre) | "Escríbenos por WhatsApp. Te respondemos." | Botón blanco WhatsApp · enlace secundario al formulario de `/contacto` | Carmín |
+| 9 | Pie | Teléfono, correo, redes; sin dirección | — | Oscuro |
+
+Textos aprobados:
+1. Hero: línea corta de dirección + enlaces "Todos los horarios · Cómo llegar" (lo completo queda solo en "Cuándo y dónde").
+2. Sección 6 se titula "Nuestra historia".
+3. Pregunta del diezmo: "…o usa el botón Donar del menú."
+4. Escuela Dominical suma la frase de `escuela.html`: "Mientras la iglesia participa del culto principal, ellos pueden recibir enseñanza preparada especialmente para su edad."
+5. "Ptr. Juan Mage · pastor desde 2023" (sin píldora).
+
+Se elimina del inicio: preguntas 1 y 5, el bloque aparte de la cuenta regresiva, el formulario (queda el
+enlace a `/contacto`), la dirección del pie, las 5 fotos picsum, eyebrows, píldoras y la línea decorativa.
+
+Formulario: enlace secundario a `/contacto`. Verificado: `/contacto` responde 200 y su formulario guarda
+el mensaje (`POST /api/mensajes` → 200, mensaje registrado en la base). La confirmación es un `alert()` del
+navegador (funciona; mejora posible en otra etapa, otra página).
+
+Fotos pendientes (lugar marcado, no se muestra nada hasta tenerlas):
+- Templo o congregación en un culto: horizontal 3:2, mínimo 1600×1067 px.
+- Retrato del Ptr. Juan Mage: vertical 4:5, mínimo 800×1000 px, fondo neutro.
+
+Verificación de la maqueta: contraste AA en los 12 pares de colores (mínimo 5,45:1), 0 px de desborde con
+gestos táctiles en 16 casos, reduced-motion e intro OK. Peso: ~2,9 MB → ~1,5 MB con gzip.
+
+## Fase 3 — Aplicación (en curso)
+
+- Rama: `claude/landing-inicio`, creada desde `main`. Sin PR ni merge: el dueño la prueba en su celular.
+- Eventos y Mensajes: script propio del inicio que consulta la API (sin tocar `app.js`); las secciones nacen
+  ocultas y solo aparecen con datos; si la API falla o tarda, siguen ocultas.
+- Próximo culto y cuenta regresiva en America/La_Paz, probados con fechas simuladas: antes del culto,
+  faltan X min, en curso, después del último del día, domingo con dos cultos, cruce de medianoche.
