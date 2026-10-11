@@ -75,90 +75,171 @@ h1, h2, h3, h4, h5, h6,
     letter-spacing: 1px;
 }
 
-// --- HERO SECTION (Portada con Video Responsivo) ---
+// --- HERO (inicio) ---
+// La llama tiene su propio espacio y el texto nunca va encima: banda arriba en
+// celular, columna derecha en escritorio. Sin velo ni destello sobre el video.
 .hero-section {
     position: relative;
-    min-height: 100vh; // Ocupa toda la altura de la pantalla
-    overflow: hidden;  // Evita que el video se salga de los bordes
-    display: flex;
-    align-items: center;
-    .seam-glint(.16, 46s, 1); // el mismo destello que el resto del sitio, encima del video
+    display: grid;
+    background: @dark-color;
+    color: @white;
 
     #bg-video {
-        position: absolute;
-        top: 0;
-        left: 0;
+        display: block;
         width: 100%;
-        height: 100%;
-        object-fit: cover; // ¡ESTA ES LA MAGIA RESPONSIVA!
-        z-index: 0;
+        // La banda deja lugar para que el botón de WhatsApp entre en el primer pantallazo
+        height: 50vh;
+        height: ~"clamp(190px, calc(100vh - 380px), 50vh)";
+        height: ~"clamp(190px, calc(100svh - 380px), 50svh)";
+        object-fit: cover;
+        background: @dark-color; // sin video ni poster queda la tinta
     }
 
-    .overlay-oscuro {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background:
-            radial-gradient(ellipse 70% 60% at 50% 45%, fade(@dark-color, 35%), fade(@dark-color, 84%) 75%),
-            linear-gradient(0deg, fade(@dark-color, 78%) 0%, transparent 45%);
-        z-index: 1;
+    &__body {
+        padding: @space-5 @space-4 @space-7;
     }
 
-    .container {
-        position: relative;
-        z-index: 2;
-        max-width: 720px;
-    }
-
-    .hero-badge {
-        border: 1px solid rgba(255, 255, 255, .35);
-        border-radius: 999px;
-        padding: 6px 20px;
-        font-family: @font-body;
-        font-weight: 600;
-        font-size: .68rem;
-        letter-spacing: .16em;
-        text-transform: uppercase;
-        color: @seam-color;
-    }
-
+    // "IPUB Tupiza" ya se ve en el logo: dentro del mismo h1 va oculto y lo visible es el nombre completo
     .hero-title {
-        font-size: clamp(2.6rem, 6vw, 4.6rem);
+        font-size: 2rem;
         font-weight: 800;
-        line-height: 1.08;
-        letter-spacing: -.01em;
-
-        em {
-            font-style: italic;
-            font-weight: 500;
-            color: @seam-color;
-        }
+        line-height: 1.1;
+        color: @white;
+        max-width: 16ch;
+        margin: 0 0 @space-2;
     }
 
     .hero-lead {
-        font-size: 1.15rem;
+        font-size: 1rem;
+        line-height: 1.5;
         color: rgba(255, 255, 255, .82);
-        max-width: 46ch;
-        margin-left: auto;
-        margin-right: auto;
+        max-width: 42ch;
+        margin: 0 0 @space-5;
     }
 
-    .hero-cta {
-        border-width: 1.5px;
-        font-weight: 600;
-        letter-spacing: .04em;
-        transition: background-color .25s ease, color .25s ease;
+    .hero-next {
+        margin: 0 0 @space-2;
+        color: rgba(255, 255, 255, .82);
 
-        i { margin-right: @space-2; }
+        strong {
+            display: block;
+            font-family: @font-display;
+            font-weight: 800;
+            font-size: 2.25rem;
+            line-height: 1.1;
+            color: @white;
+        }
+
+        &--aviso {
+            font-family: @font-display;
+            font-weight: 700;
+            font-size: 1.5rem;
+            line-height: 1.2;
+            color: @white;
+            max-width: 26ch;
+        }
+    }
+
+    .hero-sched {
+        line-height: 1.5;
+        color: rgba(255, 255, 255, .82);
+        font-variant-numeric: tabular-nums;
+        margin: 0 0 @space-5;
+    }
+
+    // Una línea en celular: sin btn-lg, sin espaciado de letras, radio de control
+    .hero-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 22px;
+        border-radius: @radius-control;
+        background: @white;
+        color: @dark-color;
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+        text-decoration: none;
+        transition: background-color .2s ease;
+
+        i {
+            font-size: 1.25rem;
+            color: @whatsapp-green-deep;
+        }
 
         &:hover {
-            background-color: @white;
+            background: @light-bg;
             color: @dark-color;
         }
     }
 
+    .hero-cta:focus-visible,
+    .hero-where a:focus-visible {
+        outline: 2px solid @white;
+        outline-offset: 3px;
+    }
+
+    .hero-where {
+        margin: @space-4 0 0;
+        font-size: .95rem;
+        line-height: 1.5;
+        color: rgba(255, 255, 255, .82);
+
+        a {
+            color: inherit;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+
+            &:hover { color: @white; }
+        }
+    }
+}
+
+@media (min-width: 992px) {
+    .hero-section {
+        // 1.ª columna: el mismo margen que el .container del encabezado (1140 px; 1320 px desde 1400)
+        grid-template-columns: ~"max(24px, calc((100% - 1116px) / 2))" minmax(0, 5fr) minmax(0, 7fr);
+        grid-template-rows: minmax(0, 1fr);
+        height: 100vh;
+        height: 100svh;
+        min-height: 620px;
+
+        #bg-video {
+            grid-column: 3;
+            grid-row: 1;
+            height: 100%;
+            min-height: 0;
+            // El borde izquierdo se funde con la tinta: sin corte duro de pantalla partida
+            -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%);
+            mask-image: linear-gradient(90deg, transparent, #000 22%);
+        }
+
+        &__body {
+            grid-column: 2;
+            grid-row: 1;
+            align-self: center;
+            padding: 120px @space-5 @space-7 0;
+            max-width: 560px;
+        }
+
+        .hero-title { font-size: 2.75rem; }
+        .hero-lead { font-size: 1.1rem; margin-bottom: @space-6; }
+        .hero-next strong { font-size: 3.25rem; }
+    }
+}
+
+@media (min-width: 1400px) {
+    .hero-section {
+        grid-template-columns: ~"max(24px, calc((100% - 1296px) / 2))" minmax(0, 5fr) minmax(0, 7fr);
+    }
+}
+
+// Solo en el inicio: hero.js pone la clase mientras se ve el botón del hero
+.hero-cta-visible .whatsapp-btn {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(.85);
+    pointer-events: none;
 }
 
 // Barra de "Próximo servicio" — misma superficie de tinta + seam que el resto
@@ -617,6 +698,11 @@ h1, h2, h3, h4, h5, h6,
         &__body {
             display: block;
             padding: @space-5;
+        }
+
+        // Sin foto real todavía: el color del ministerio va en el borde superior
+        &--sin-foto {
+            border-top: 3px solid var(--card-accent);
         }
 
         h3 {
@@ -1687,6 +1773,19 @@ body.nav-open { overflow: hidden; }
     }
 }
 
+@media (max-width: 575.98px) {
+    /* g-5 (3rem) se salía 12 px del .container fluido y ensanchaba la portada en celular */
+    .row.g-5 {
+        --bs-gutter-x: 1.5rem;
+    }
+}
+
+@media (max-width: 991px) {
+    .page-header {
+        padding-top: 136px !important; /* alto de la barra con el logo animado; le gana a section { padding-top: 40px !important } */
+    }
+}
+
 // ==========================================
 // RESPONSIVE DESIGN (MEDIA QUERIES)
 // ==========================================
@@ -1701,36 +1800,12 @@ body.nav-open { overflow: hidden; }
         padding-bottom: 40px !important;
     }
 
-    .hero-section {
-        height: auto !important;
-        min-height: 100vh;
-        padding: 80px 0;
-        text-align: center;
-
-        .hero-badge {
-            font-size: .62rem;
-            padding: 5px 14px;
-            margin-bottom: @space-4 !important;
-        }
-
-        .hero-title {
-            font-size: clamp(2.1rem, 9vw, 2.8rem);
-        }
-
-        .hero-lead {
-            font-size: 1rem;
-        }
-
-        .hero-cta.btn-lg {
-            width: 100%;
-        }
-    }
-
     .nav-overlay__links { gap: @space-3; }
     .nav-overlay__inner { gap: @space-6; }
 
     .page-header {
-        height: 200px; 
+        height: auto;
+        min-height: 200px;
         h1.display-5 { font-size: 2rem; }
     }
 

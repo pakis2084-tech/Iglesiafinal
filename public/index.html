@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preload" href="/fonts/worksans-400.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/alegreya-800.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261011">
+    <link rel="stylesheet" href="css/style.css?v=20261015">
     <link rel="stylesheet" href="css/logo-ipub.css?v=20261011">
     <link rel="stylesheet" href="css/logo-copias.css?v=20261014">
     <link rel="stylesheet" href="css/logo-intro.css?v=20261013">
@@ -72,38 +72,41 @@
         </div>
     </div>
 
-    <header class="hero-section text-center text-white d-flex align-items-center">
-        <video autoplay loop muted playsinline id="bg-video" aria-hidden="true">
-            <source src="videos/fondo.mp4" type="video/mp4">
+    <header class="hero-section">
+        <video autoplay loop muted playsinline id="bg-video" aria-hidden="true" poster="videos/fondo-poster.webp">
+            <source src="videos/fondo-720.mp4" type="video/mp4">
         </video>
+        <script>
+            // Movimiento reducido: la llama queda en el poster y el video no se descarga (hero.js lo devuelve si cambia la preferencia)
+            (function (v) {
+                if (!v || !window.matchMedia || !matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                v.autoplay = false;
+                [].forEach.call(v.querySelectorAll('source[src]'), function (s) { s.setAttribute('data-src', s.getAttribute('src')); s.removeAttribute('src'); });
+            })(document.getElementById('bg-video'));
+        </script>
+        <script src="js/hero.js?v=20261011" defer></script>
 
-        <div class="overlay-oscuro"></div>
-
-        <div class="container position-relative z-2">
-            <span class="hero-badge d-inline-flex align-items-center mb-4">Desde 1997</span>
-            <h1 class="hero-title mb-3">Un Se&ntilde;or, una fe,<br><em>un bautismo</em></h1>
-            <p class="hero-lead mb-4">Una familia de fe en Tupiza, con las puertas abiertas toda la semana.</p>
-            <a href="https://wa.me/59157296426?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20IPUB%20Tupiza." class="btn btn-outline-light btn-lg rounded-pill hero-cta px-5" target="_blank" rel="noopener noreferrer">
+        <div class="hero-section__body">
+            <h1 class="hero-title"><span class="visually-hidden">IPUB Tupiza: </span>Iglesia Pentecostal Unida de Bolivia</h1>
+            <p class="hero-lead">Tupiza, desde 1997. Puedes venir sin avisar.</p>
+            <p class="hero-next" id="heroProximo" hidden></p>
+            <p class="hero-sched">Martes, jueves y s&aacute;bado 7:30 PM<br>Domingo 10:30 AM y 7:30 PM</p>
+            <a href="https://wa.me/59157296426?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20IPUB%20Tupiza." class="hero-cta" target="_blank" rel="noopener noreferrer">
                 <i class="fab fa-whatsapp" aria-hidden="true"></i>
                 Escr&iacute;benos por WhatsApp
             </a>
+            <p class="hero-where">
+                Final Aniceto Arce, zona San Antonio, Tupiza<br>
+                <a href="https://www.google.com/maps/search/?api=1&amp;query=H78M%2B2HM+Tupiza+Bolivia" target="_blank" rel="noopener noreferrer">H78M+2HM &middot; Ver en el mapa</a>
+            </p>
         </div>
     </header>
 
     <section class="about-section py-5">
         <div class="container py-4">
+            <!-- TODO: cuando haya una foto real de la congregacion/templo, volver a la columna col-lg-5 con .about-section__photo -->
             <div class="row g-5 align-items-center about-section__intro-row">
-                <div class="col-lg-5">
-                    <!-- TODO: reemplazar por una foto real de la congregacion/templo. Placeholder generico. -->
-                    <img
-                        src="https://picsum.photos/seed/ipub-tupiza-comunidad/800/900"
-                        alt="Comunidad de IPUB Tupiza reunida en un culto"
-                        class="about-section__photo"
-                        loading="lazy"
-                        width="800"
-                        height="900">
-                </div>
-                <div class="col-lg-7">
+                <div class="col-12">
                     <div class="section-intro-panel">
                         <span class="eyebrow">Qui&eacute;nes somos</span>
                         <h2 class="mb-3">29 a&ntilde;os de fe en Tupiza</h2>
@@ -177,12 +180,8 @@
 
                 <div class="row g-4">
                     <div class="col-lg-4">
-                        <a href="/jovenes" class="ministry-link-card ministry-link-card--jovenes d-block">
-                            <span class="ministry-link-card__media">
-                                <!-- TODO: reemplazar por una foto real de una reunion de jovenes. Placeholder generico. -->
-                                <img src="https://picsum.photos/seed/ipub-tupiza-jovenes/700/560" alt="J&oacute;venes de IPUB Tupiza reunidos" loading="lazy" width="700" height="560">
-                                <span class="ministry-link-card__badge">Juventud</span>
-                            </span>
+                        <!-- TODO: con una foto real de una reunion de jovenes, quitar --sin-foto y volver a poner .ministry-link-card__media -->
+                        <a href="/jovenes" class="ministry-link-card ministry-link-card--jovenes ministry-link-card--sin-foto d-block">
                             <span class="ministry-link-card__body">
                                 <h3 class="mb-3">J&oacute;venes con identidad y prop&oacute;sito</h3>
                                 <p class="mb-0 text-muted">Un espacio de amistad, formaci&oacute;n y fuego espiritual para una generaci&oacute;n activa en Tupiza.</p>
@@ -191,12 +190,8 @@
                         </a>
                     </div>
                     <div class="col-lg-4">
-                        <a href="/damas" class="ministry-link-card ministry-link-card--damas d-block">
-                            <span class="ministry-link-card__media">
-                                <!-- TODO: reemplazar por una foto real de una reunion de Damas Dorcas. Placeholder generico. -->
-                                <img src="https://picsum.photos/seed/ipub-tupiza-damas/700/560" alt="Mujeres del ministerio Damas Dorcas" loading="lazy" width="700" height="560">
-                                <span class="ministry-link-card__badge">Dorcas</span>
-                            </span>
+                        <!-- TODO: con una foto real de una reunion de Damas Dorcas, quitar --sin-foto y volver a poner .ministry-link-card__media -->
+                        <a href="/damas" class="ministry-link-card ministry-link-card--damas ministry-link-card--sin-foto d-block">
                             <span class="ministry-link-card__body">
                                 <h3 class="mb-3">Mujeres que oran, sirven y sostienen</h3>
                                 <p class="mb-0 text-muted">Damas comprometidas con la intercesi&oacute;n, el cuidado de otros y la edificaci&oacute;n espiritual de la iglesia.</p>
@@ -205,12 +200,8 @@
                         </a>
                     </div>
                     <div class="col-lg-4">
-                        <a href="/escuela" class="ministry-link-card ministry-link-card--escuela d-block">
-                            <span class="ministry-link-card__media">
-                                <!-- TODO: reemplazar por una foto real de una clase de escuela dominical. Placeholder generico. -->
-                                <img src="https://picsum.photos/seed/ipub-tupiza-escuela/700/560" alt="Ni&ntilde;os en la Escuela Dominical" loading="lazy" width="700" height="560">
-                                <span class="ministry-link-card__badge">Infancia</span>
-                            </span>
+                        <!-- TODO: con una foto real de una clase de escuela dominical, quitar --sin-foto y volver a poner .ministry-link-card__media -->
+                        <a href="/escuela" class="ministry-link-card ministry-link-card--escuela ministry-link-card--sin-foto d-block">
                             <span class="ministry-link-card__body">
                                 <h3 class="mb-3">Escuela Dominical que forma desde temprano</h3>
                                 <p class="mb-0 text-muted">Clases, din&aacute;micas y ense&ntilde;anza adaptada para sembrar la Palabra en el coraz&oacute;n de los ni&ntilde;os.</p>
@@ -225,18 +216,9 @@
 
     <section class="pastor-section py-5 bg-white">
         <div class="container py-4">
+            <!-- TODO: cuando haya una foto real del Ptr. Juan Mage, volver a la columna col-lg-5 order-lg-2 con .pastor-section__photo -->
             <div class="row g-5 align-items-center pastor-section__row">
-                <div class="col-lg-5 order-lg-2">
-                    <!-- TODO: reemplazar por una foto real del Ptr. Juan Mage. Placeholder generico. -->
-                    <img
-                        src="https://picsum.photos/seed/ipub-tupiza-pastor/700/860"
-                        alt="Ptr. Juan Mage, pastor de IPUB Tupiza"
-                        class="pastor-section__photo"
-                        loading="lazy"
-                        width="700"
-                        height="860">
-                </div>
-                <div class="col-lg-7 order-lg-1">
+                <div class="col-12">
                     <span class="pastor-section__badge">Pastor desde 2023</span>
                     <h2 class="mb-3">Ptr. Juan Mage</h2>
                     <p class="pastor-section__bio mb-4">Lidera IPUB Tupiza con un pastorado enfocado en el estudio b&iacute;blico y el aprendizaje continuo de la doctrina, fortaleciendo semana a semana el fundamento de fe de la congregaci&oacute;n.</p>
