@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preload" href="/fonts/worksans-400.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/alegreya-800.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=20261011">
+    <link rel="stylesheet" href="css/style.css?v=20261012">
     <link rel="stylesheet" href="css/logo-ipub.css?v=20261011">
     <link rel="stylesheet" href="css/logo-copias.css?v=20261014">
     <link rel="stylesheet" href="css/logo-intro.css?v=20261013">
@@ -72,21 +72,28 @@
         </div>
     </div>
 
-    <header class="hero-section text-center text-white d-flex align-items-center">
-        <video autoplay loop muted playsinline id="bg-video" aria-hidden="true">
-            <source src="videos/fondo.mp4" type="video/mp4">
+    <header class="hv">
+        <video autoplay loop muted playsinline id="bg-video" aria-hidden="true" poster="videos/fondo-poster.webp">
+            <source src="videos/fondo-720.mp4" type="video/mp4">
         </video>
-
-        <div class="overlay-oscuro"></div>
-
-        <div class="container position-relative z-2">
-            <span class="hero-badge d-inline-flex align-items-center mb-4">Desde 1997</span>
-            <h1 class="hero-title mb-3">Un Se&ntilde;or, una fe,<br><em>un bautismo</em></h1>
-            <p class="hero-lead mb-4">Una familia de fe en Tupiza, con las puertas abiertas toda la semana.</p>
-            <a href="https://wa.me/59157296426?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20IPUB%20Tupiza." class="btn btn-outline-light btn-lg rounded-pill hero-cta px-5" target="_blank" rel="noopener noreferrer">
+        <script>
+            // Movimiento reducido: la llama queda en el poster y el video no se descarga (inicio.js lo devuelve si cambia la preferencia)
+            (function (v) {
+                if (!v || !window.matchMedia || !matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                v.autoplay = false;
+                [].forEach.call(v.querySelectorAll('source[src]'), function (s) { s.setAttribute('data-src', s.getAttribute('src')); s.removeAttribute('src'); });
+            })(document.getElementById('bg-video'));
+        </script>
+        <div class="hv-scrim" aria-hidden="true"></div>
+        <div class="hv-body">
+            <p class="hv-next" id="heroProximo" hidden></p>
+            <h1 class="hv-title"><span class="visually-hidden">IPUB Tupiza: </span>Iglesia Pentecostal Unida de Bolivia</h1>
+            <p class="hv-lead">En Tupiza desde 1997. Puedes venir sin avisar.</p>
+            <a href="https://wa.me/59157296426?text=Hola,%20me%20gustar%C3%ADa%20saber%20m%C3%A1s%20sobre%20IPUB%20Tupiza." class="hv-cta" target="_blank" rel="noopener noreferrer">
                 <i class="fab fa-whatsapp" aria-hidden="true"></i>
                 Escr&iacute;benos por WhatsApp
             </a>
+            <p class="hv-where">Final Aniceto Arce, zona San Antonio, Tupiza<br><a href="#horarios">Todos los horarios</a> &middot; <a href="#donde">C&oacute;mo llegar</a></p>
         </div>
     </header>
 
@@ -441,8 +448,8 @@
         <i class="fab fa-whatsapp"></i>
     </a>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/app.js?v=20260905"></script>
+    <script src="js/inicio.js?v=20261012" defer></script>
     <script src="js/logo-ipub.js?v=20261014"></script>
     <script src="js/logo-copias.js?v=20261014"></script>
 </body>
